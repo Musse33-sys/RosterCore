@@ -212,7 +212,19 @@ main{padding:32px 40px;max-width:1600px;margin:0 auto;}
 .empty-state .ei{font-size:40px;margin-bottom:12px;}
 .toast{position:fixed;bottom:28px;right:28px;background:#0e1e36;border:1px solid var(--gold-dim);border-left:3px solid var(--gold);color:var(--cream);padding:12px 18px;font-family:'JetBrains Mono',monospace;font-size:11px;z-index:300;box-shadow:var(--shadow);animation:slideUp .3s ease;max-width:320px;}
 
-.tab-content{display:none;}.tab-content.active{display:block;}
+/* LANDING */
+.landing-page{min-height:100vh;display:flex;flex-direction:column;background:var(--navy);}
+.landing-hero{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:60px 24px 40px;}
+.landing-hero h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(52px,9vw,100px);letter-spacing:6px;color:var(--white);line-height:1;margin-bottom:12px;}
+.landing-hero h1 span{color:var(--gold);}
+.landing-hero p{font-size:17px;color:var(--slate-lt);max-width:480px;margin:0 auto 36px;line-height:1.7;}
+.landing-btns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:60px;}
+.landing-features{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;max-width:900px;width:100%;margin:0 auto;padding:0 24px 60px;}
+.feat-card{background:var(--navy-card);border:1px solid rgba(201,168,76,.13);border-top:2px solid var(--gold-dim);padding:22px;}
+.feat-icon{font-size:26px;margin-bottom:10px;}
+.feat-title{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;color:var(--gold);margin-bottom:6px;}
+.feat-desc{font-size:13px;color:var(--slate-lt);line-height:1.6;}
+
 @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 @keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
@@ -221,6 +233,27 @@ main{padding:32px 40px;max-width:1600px;margin:0 auto;}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
+<!-- ══ LANDING PAGE ══ -->
+<div id="landingPage" class="landing-page">
+  <div class="landing-hero">
+    <div style="width:80px;height:80px;border-radius:50%;background:radial-gradient(circle,var(--gold) 0%,var(--gold-dim) 55%,#2e1e08 100%);display:flex;align-items:center;justify-content:center;font-size:36px;box-shadow:0 0 0 3px var(--gold-dim),0 0 0 8px rgba(201,168,76,.1);margin:0 auto 24px;">🦅</div>
+    <h1>Roster<span>Core</span></h1>
+    <p>Professional roster management for FiveM roleplay departments. Built for serious servers.</p>
+    <div class="landing-btns">
+      <button class="btn btn-primary" style="font-size:13px;padding:14px 32px;" onclick="showRegister();document.getElementById('loginModal').style.display='flex'">Get Started — Free</button>
+      <button class="btn btn-outline" style="font-size:13px;padding:14px 32px;" onclick="showLogin();document.getElementById('loginModal').style.display='flex'">Login</button>
+    </div>
+  </div>
+  <div class="landing-features">
+    <div class="feat-card"><div class="feat-icon">🦅</div><div class="feat-title">Auto Callsigns</div><div class="feat-desc">Assign callsigns automatically based on rank group slots. Promote someone and it updates instantly.</div></div>
+    <div class="feat-card"><div class="feat-icon">⬡</div><div class="feat-title">Full Editor</div><div class="feat-desc">Customize rank groups, positions, subdivisions, themes and more — all in one place.</div></div>
+    <div class="feat-card"><div class="feat-icon">🎓</div><div class="feat-title">Trainee Roster</div><div class="feat-desc">Separate trainee tab. Graduate trainees directly onto the main roster with one click.</div></div>
+    <div class="feat-card"><div class="feat-icon">💾</div><div class="feat-title">Saved Forever</div><div class="feat-desc">All your roster data saves to the cloud. Never resets on refresh.</div></div>
+  </div>
+</div>
+
+<!-- ══ ROSTER APP ══ -->
+<div id="rosterApp" style="display:none;">
 <div class="page">
 <header>
   <div class="header-top">
@@ -277,19 +310,15 @@ main{padding:32px 40px;max-width:1600px;margin:0 auto;}
 
   <!-- THEME -->
   <div class="editor-section">
-    <h3>Theme &amp; Colors</h3>
-    <p class="editor-note">Pick a preset theme or fine-tune individual colors below.</p>
+    <h3>Theme</h3>
     <div class="theme-presets-grid" id="themePresetsGrid"></div>
-    <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:12px;margin-top:4px;">Custom Colors</div>
-    <div class="color-tweaks-grid" id="colorTweaksGrid"></div>
-    <button class="btn btn-ghost btn-sm" onclick="resetThemeToActive()" style="margin-top:6px;">↺ Reset to Active Preset</button>
   </div>
   <div class="editor-divider"></div>
 
   <!-- PREFIX -->
   <div class="editor-section">
     <h3>Department Name</h3>
-    <p class="editor-note">The name shown in the header of your roster.</p>
+    
     <div style="display:flex;gap:10px;align-items:center;max-width:400px;">
       <input type="text" class="form-input" id="deptNameInput" placeholder="e.g. San Andreas Game Warden" style="flex:1;" oninput="updateDeptName(this.value)">
     </div>
@@ -298,7 +327,7 @@ main{padding:32px 40px;max-width:1600px;margin:0 auto;}
 
   <div class="editor-section">
     <h3>Global Callsign Prefix</h3>
-    <p class="editor-note">Changing this updates every member's callsign prefix at once.</p>
+    
     <div style="display:flex;gap:10px;align-items:center;max-width:340px;">
       <input type="text" class="form-input" id="prefixInput" value="" style="max-width:120px;" oninput="updatePrefix(this.value)">
       <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--slate-lt);">Preview: <span id="prefixPreview" style="color:#6ecf8a;">1W-##</span></span>
@@ -309,7 +338,7 @@ main{padding:32px 40px;max-width:1600px;margin:0 auto;}
   <!-- RANK GROUPS -->
   <div class="editor-section">
     <h3>Rank Groups &amp; Slot Ranges</h3>
-    <p class="editor-note">Top = highest rank. Slots define which callsign numbers belong to each group. Promote/demote uses these ranges.</p>
+    
     <div class="col-lbl" style="grid-template-columns:1fr 70px 70px 28px 28px 28px;"><span>Group Name</span><span>From #</span><span>To #</span><span style="text-align:center">↑</span><span style="text-align:center">↓</span><span style="text-align:center">✕</span></div>
     <div class="edit-list" id="rankGroupList"></div>
     <div class="add-row-form">
@@ -324,7 +353,7 @@ main{padding:32px 40px;max-width:1600px;margin:0 auto;}
   <!-- SUBDIVISIONS -->
   <div class="editor-section">
     <h3>Subdivisions</h3>
-    <p class="editor-note">Each member can hold up to 3 subdivisions.</p>
+    
     <div class="col-lbl" style="grid-template-columns:1fr 60px 28px;"><span>Name</span><span>Color</span><span style="text-align:center">✕</span></div>
     <div class="edit-list" id="subdivEditorList"></div>
     <div class="add-row-form">
@@ -335,23 +364,10 @@ main{padding:32px 40px;max-width:1600px;margin:0 auto;}
   </div>
   <div class="editor-divider"></div>
 
-  <!-- FTO LIST -->
-  <div class="editor-section">
-    <h3>FTO Roster</h3>
-    <p class="editor-note">Field Training Officers available to assign to members and trainees.</p>
-    <div class="col-lbl" style="grid-template-columns:1fr 28px;"><span>FTO Name</span><span style="text-align:center">✕</span></div>
-    <div class="edit-list" id="ftoEditorList"></div>
-    <div class="add-row-form">
-      <input type="text" id="nftoName" placeholder="FTO name…">
-      <button class="btn btn-primary btn-sm" onclick="addFTO()">+ Add</button>
-    </div>
-  </div>
-  <div class="editor-divider"></div>
-
   <!-- POSITIONS -->
   <div class="editor-section">
     <h3>Positions</h3>
-    <p class="editor-note">Custom position titles shown under member names on the roster.</p>
+    
     <div class="col-lbl" style="grid-template-columns:1fr 28px;"><span>Position Title</span><span style="text-align:center">✕</span></div>
     <div class="edit-list" id="positionEditorList"></div>
     <div class="add-row-form">
@@ -364,7 +380,7 @@ main{padding:32px 40px;max-width:1600px;margin:0 auto;}
   <!-- TRAINEE PREFIX -->
   <div class="editor-section">
     <h3>Trainee Callsign Prefix</h3>
-    <p class="editor-note">Prefix for trainee callsigns (e.g. G → G-01, G-02…)</p>
+    
     <div style="display:flex;gap:10px;align-items:center;max-width:340px;">
       <input type="text" class="form-input" id="traineePrefixInput" value="" style="max-width:100px;" oninput="updateTraineePrefix(this.value)">
       <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--slate-lt);">Preview: <span id="traineePrefixPreview" style="color:#b39ddb;">G-01</span></span>
@@ -374,9 +390,8 @@ main{padding:32px 40px;max-width:1600px;margin:0 auto;}
 </div>
 
 </main>
-</div>
-
-<!-- LOGIN MODAL -->
+</div><!-- end .page -->
+</div><!-- end #rosterApp -->
 <div class="modal-overlay" id="loginModal" style="display:none;" onclick="if(event.target===this)this.style.display='none'">
   <div class="login-card" style="width:440px;">
     <div class="login-seal">🦅</div>
@@ -405,12 +420,23 @@ main{padding:32px 40px;max-width:1600px;margin:0 auto;}
 
 <!-- SHARE MODAL -->
 <div class="modal-overlay" id="shareModal" style="display:none;" onclick="if(event.target===this)this.style.display='none'">
-  <div class="modal" style="max-width:460px;">
+  <div class="modal" style="max-width:480px;">
     <div class="modal-title">Share Roster Access</div>
-    <div class="modal-sub">Anyone with this link can edit your roster.</div>
-    <div id="shareUrlBox" style="background:rgba(7,14,28,.7);border:1px solid rgba(201,168,76,.2);padding:12px 14px;border-radius:2px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--gold);word-break:break-all;margin-bottom:16px;min-height:44px;"></div>
+    <div class="modal-sub">Invite people to edit your roster via email.</div>
+    <div class="form-group">
+      <label class="form-label">Invite by Email</label>
+      <div style="display:flex;gap:8px;">
+        <input type="email" class="form-input" id="inviteEmail" placeholder="colleague@example.com" style="flex:1;">
+        <button class="btn btn-primary btn-sm" onclick="sendInvite()">Send Invite</button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Or share this link directly</label>
+      <div id="shareUrlBox" style="background:rgba(7,14,28,.7);border:1px solid rgba(201,168,76,.2);padding:10px 13px;border-radius:2px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gold);word-break:break-all;cursor:pointer;" onclick="copyShareLink()" title="Click to copy"></div>
+    </div>
+    <div id="invitedList" style="margin-bottom:16px;"></div>
     <div style="display:flex;gap:10px;">
-      <button class="btn btn-primary" onclick="copyShareLink()">Copy Link</button>
+      <button class="btn btn-primary btn-sm" onclick="copyShareLink()">Copy Link</button>
       <button class="btn btn-danger" onclick="disableShare()">Disable Link</button>
       <button class="btn btn-ghost" onclick="document.getElementById('shareModal').style.display='none'">Close</button>
     </div>
@@ -424,9 +450,12 @@ main{padding:32px 40px;max-width:1600px;margin:0 auto;}
     <div class="modal-sub"   id="mmSub">Enter personnel details.</div>
     <div class="form-row">
       <div class="form-group"><label class="form-label">Full Name</label><input type="text" class="form-input" id="mmName" placeholder="John Smith"></div>
-      <div class="form-group"><label class="form-label">Rank Group</label><select class="form-select" id="mmRankGroup" onchange="refreshCallsignPreview()"></select></div>
+      <div class="form-group"><label class="form-label">Callsign</label><input type="text" class="form-input" id="mmCallsign" placeholder="e.g. 1W-01, K9-03"></div>
     </div>
-    <div class="form-group"><label class="form-label">Position</label><select class="form-select" id="mmPosition"><option value="">— None —</option></select></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Rank Group</label><select class="form-select" id="mmRankGroup"></select></div>
+      <div class="form-group"><label class="form-label">Position</label><select class="form-select" id="mmPosition"><option value="">— None —</option></select></div>
+    </div>
     <div class="form-row">
       <div class="form-group"><label class="form-label">Discord ID</label><input type="text" class="form-input" id="mmDiscord" placeholder="123456789…" maxlength="9999"></div>
       <div class="form-group"><label class="form-label">DOH (Date of Hire)</label><input type="date" class="form-input" id="mmDOH"></div>
@@ -435,7 +464,10 @@ main{padding:32px 40px;max-width:1600px;margin:0 auto;}
       <div class="form-group"><label class="form-label">Status</label>
         <select class="form-select" id="mmStatus"><option>Active</option><option>Inactive</option><option>LOA</option><option>Part Time</option></select>
       </div>
-      <div class="form-group"><label class="form-label">FTO</label><select class="form-select" id="mmFTO"><option value="">— None —</option></select></div>
+      <div class="form-group" style="display:flex;align-items:flex-end;padding-bottom:4px;gap:16px;">
+        <label class="form-check"><input type="checkbox" id="mmIsFTO"> <span>FTO</span></label>
+        <label class="form-check"><input type="checkbox" id="mmVolunteer"> <span>Volunteer</span></label>
+      </div>
     </div>
     <div class="form-group"><label class="form-label">Subdivision 1</label><select class="form-select" id="mmS1"><option value="">— None —</option></select></div>
     <div class="form-row">
@@ -449,9 +481,6 @@ main{padding:32px 40px;max-width:1600px;margin:0 auto;}
       </div>
     </div>
     <div class="form-group"><label class="form-label">Notes</label><input type="text" class="form-input" id="mmNotes" placeholder="Optional notes…"></div>
-    <div id="csPreviewBox" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--slate);margin-top:4px;display:none;">
-      Auto-assigned callsign: <span id="csPreviewVal" style="color:#6ecf8a;font-weight:700;"></span>
-    </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeMemberModal()">Cancel</button>
       <button class="btn btn-primary" onclick="saveMember()">Save Member</button>
@@ -596,6 +625,8 @@ async function loginSuccess(user){
   document.getElementById('shareBtn').style.display='inline-block';
   document.getElementById('editorNavBtn').style.display='inline-block';
   document.getElementById('addTraineeBtn').style.display='inline-block';
+  document.getElementById('landingPage').style.display='none';
+  document.getElementById('rosterApp').style.display='block';
   await loadRoster(user.id);
   renderMainRoster(); renderStats();
   showToast('✓ Welcome back, '+deptN+'!');
@@ -614,8 +645,8 @@ async function doLogout(){
   document.getElementById('editorNavBtn').style.display='none';
   document.getElementById('addTraineeBtn').style.display='none';
   document.getElementById('deptTitle').textContent='My Department';
-  switchTab('roster',document.querySelector('.nav-tab'));
-  renderMainRoster(); renderStats();
+  document.getElementById('landingPage').style.display='flex';
+  document.getElementById('rosterApp').style.display='none';
   showToast('Logged out.');
 }
 
@@ -688,29 +719,71 @@ async function saveRoster(){
 // ══════════════════════════════════════════════════════════════════
 // SHARE LINK
 // ══════════════════════════════════════════════════════════════════
+let shareToken = null;
+
 async function openShare(){
   document.getElementById('shareModal').style.display='flex';
-  const {data}=await sb.from('rosters').select('share_token,share_enabled').eq('id',currentRosterId).single();
+  const {data}=await sb.from('rosters').select('share_token,share_enabled,invited_emails').eq('id',currentRosterId).single();
   if(data&&data.share_enabled&&data.share_token){
+    shareToken=data.share_token;
     document.getElementById('shareUrlBox').textContent=window.location.origin+window.location.pathname+'?share='+data.share_token;
+    renderInvitedList(data.invited_emails||[]);
   } else {
-    document.getElementById('shareUrlBox').textContent='Click "Generate Link" to create a share link.';
-    // Auto generate
     await generateShareLink();
   }
 }
+
 async function generateShareLink(){
-  const token=Math.random().toString(36).slice(2)+Math.random().toString(36).slice(2);
-  await sb.from('rosters').update({share_token:token,share_enabled:true}).eq('id',currentRosterId);
-  document.getElementById('shareUrlBox').textContent=window.location.origin+window.location.pathname+'?share='+token;
+  shareToken=Math.random().toString(36).slice(2)+Math.random().toString(36).slice(2);
+  await sb.from('rosters').update({share_token:shareToken,share_enabled:true}).eq('id',currentRosterId);
+  document.getElementById('shareUrlBox').textContent=window.location.origin+window.location.pathname+'?share='+shareToken;
+  renderInvitedList([]);
 }
+
+async function sendInvite(){
+  const email=document.getElementById('inviteEmail').value.trim();
+  if(!email){showToast('⚠ Enter an email address.',true);return;}
+  const link=window.location.origin+window.location.pathname+'?share='+shareToken;
+  // Save email to invited list
+  const {data}=await sb.from('rosters').select('invited_emails').eq('id',currentRosterId).single();
+  const list=[...(data?.invited_emails||[])];
+  if(!list.includes(email)) list.push(email);
+  await sb.from('rosters').update({invited_emails:list}).eq('id',currentRosterId);
+  // Send email via mailto (simple approach)
+  window.open(`mailto:${email}?subject=You've been invited to ${deptName} Roster&body=You've been invited to access the ${deptName} roster on RosterCore.%0A%0AClick this link to access:%0A${encodeURIComponent(link)}`);
+  document.getElementById('inviteEmail').value='';
+  renderInvitedList(list);
+  showToast(`✓ Invite sent to ${email}`);
+}
+
+function renderInvitedList(list){
+  const el=document.getElementById('invitedList');
+  if(!list.length){el.innerHTML='';return;}
+  el.innerHTML=`<label class="form-label" style="margin-bottom:8px;display:block;">People with access</label>`+
+    list.map(e=>`<div style="display:flex;align-items:center;justify-content:space-between;background:rgba(7,14,28,.5);border:1px solid rgba(201,168,76,.1);padding:8px 12px;border-radius:2px;margin-bottom:6px;">
+      <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--cream-dk);">${e}</span>
+      <button class="btn btn-danger" style="padding:3px 8px;font-size:10px;" onclick="removeInvite('${e}')">Remove</button>
+    </div>`).join('');
+}
+
+async function removeInvite(email){
+  const {data}=await sb.from('rosters').select('invited_emails').eq('id',currentRosterId).single();
+  const list=(data?.invited_emails||[]).filter(e=>e!==email);
+  await sb.from('rosters').update({invited_emails:list}).eq('id',currentRosterId);
+  renderInvitedList(list);
+  showToast(`${email} removed.`);
+}
+
 async function disableShare(){
-  await sb.from('rosters').update({share_enabled:false}).eq('id',currentRosterId);
+  await sb.from('rosters').update({share_enabled:false,invited_emails:[]}).eq('id',currentRosterId);
   document.getElementById('shareUrlBox').textContent='Share link disabled.';
+  renderInvitedList([]);
   showToast('Share link disabled.');
 }
+
 function copyShareLink(){
   const txt=document.getElementById('shareUrlBox').textContent;
+  if(txt.includes('disabled')){showToast('⚠ Share link is disabled.',true);return;}
   navigator.clipboard.writeText(txt).then(()=>showToast('✓ Link copied!'));
 }
 // ══════════════════════════════════════════════════════════════════
@@ -870,12 +943,12 @@ function refreshAllSelects(){
   populateSelect('fRankGroup', rankGroups.map(g=>g.name), true);
   populateSelect('fSubdiv', subdivisions.map(s=>s.name), true);
   populateSelect('mmRankGroup', rankGroups.map(g=>g.name), false);
-  populateSelect('mmFTO', ftoList, true);
+
   populateSelect('mmPosition', positions, true);
   populateSelect('mmS1', subdivisions.map(s=>s.name), true);
   populateSelect('mmS2', subdivisions.map(s=>s.name), true);
   populateSelect('mmS3', subdivisions.map(s=>s.name), true);
-  populateSelect('tmFTO', ftoList, true);
+
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -942,7 +1015,7 @@ function renderMainRoster(){
         <div class="rank-group-table-wrap">
           <table class="roster-tbl">
             <thead><tr class="col-header-row">
-              <th>Callsign</th><th>Name</th><th>FTO</th><th>DOH</th>
+              <th>Callsign</th><th>Name</th><th>DOH</th>
               <th>Subdivision</th><th>Status</th><th>Notes</th><th>Discord ID</th><th>Strikes</th>
               ${isAdmin?'<th>Actions</th>':''}
             </tr></thead>
@@ -967,7 +1040,7 @@ function emptySlotRow(slot){
 }
 
 function filledRow(m, gi){
-  const cs = formatCallsign(m.callsignNum);
+  const cs = m.callsign||'—';
   const isTop = gi===0;
   const isBot = gi===rankGroups.length-1;
   const adminCol = isAdmin?`<td><div class="row-actions admin-acts">
@@ -980,10 +1053,10 @@ function filledRow(m, gi){
   return`<tr class="filled-row" style="animation-delay:${Math.random()*.1}s">
     <td><span class="cs-tag">${cs}</span></td>
     <td class="name-cell">
-      <div class="mname">${m.name}</div>
+      <div class="mname">${m.name}${m.isFTO?` <span style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1px;background:rgba(126,200,227,.12);border:1px solid rgba(126,200,227,.4);color:#7ec8e3;padding:1px 6px;border-radius:2px;text-transform:uppercase;margin-left:5px;">FTO</span>`:''}
+      </div>
       ${m.position?`<div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--gold);letter-spacing:.5px;margin-top:1px;text-transform:uppercase;">${m.position}</div>`:''}
     </td>
-    <td><span class="fto-tag">${m.fto||'—'}</span></td>
     <td><span class="date-joined" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--slate);">${formatDate(m.doh)}</span></td>
     <td><div class="subdiv-wrap">${subdivBadges(m.subdivs)}</div></td>
     <td>${statusPill(m.status)}</td>
@@ -1108,21 +1181,21 @@ function openAddMember(){
   editingMemberId=null;
   refreshAllSelects();
   document.getElementById('mmTitle').textContent='Add Member';
-  document.getElementById('mmSub').textContent='Member will be auto-assigned the lowest available callsign in their rank group.';
+  document.getElementById('mmSub').textContent='Enter personnel details.';
   document.getElementById('mmName').value='';
+  document.getElementById('mmCallsign').value='';
   document.getElementById('mmDiscord').value='';
   document.getElementById('mmDOH').value=new Date().toISOString().split('T')[0];
-  document.getElementById('mmRankGroup').value=rankGroups[rankGroups.length-1].name;
+  document.getElementById('mmRankGroup').value=rankGroups[rankGroups.length-1]?.name||'';
   document.getElementById('mmStatus').value='Active';
-  document.getElementById('mmFTO').value='';
   document.getElementById('mmPosition').value='';
   document.getElementById('mmS1').value='';
   document.getElementById('mmS2').value='';
   document.getElementById('mmS3').value='';
   document.getElementById('mmStrikes').value='0';
   document.getElementById('mmVolunteer').checked=false;
+  document.getElementById('mmIsFTO').checked=false;
   document.getElementById('mmNotes').value='';
-  refreshCallsignPreview();
   document.getElementById('memberModal').style.display='flex';
 }
 function openEditMember(id){
@@ -1130,21 +1203,21 @@ function openEditMember(id){
   editingMemberId=id;
   refreshAllSelects();
   document.getElementById('mmTitle').textContent='Edit Member';
-  document.getElementById('mmSub').textContent='Callsign is managed automatically via rank group.';
+  document.getElementById('mmSub').textContent='Update personnel details.';
   document.getElementById('mmName').value=m.name;
+  document.getElementById('mmCallsign').value=m.callsign||'';
   document.getElementById('mmDiscord').value=m.discord||'';
   document.getElementById('mmDOH').value=m.doh||'';
   document.getElementById('mmRankGroup').value=m.rankGroup;
   document.getElementById('mmStatus').value=m.status;
-  document.getElementById('mmFTO').value=m.fto||'';
   document.getElementById('mmPosition').value=m.position||'';
   document.getElementById('mmS1').value=(m.subdivs&&m.subdivs[0])||'';
   document.getElementById('mmS2').value=(m.subdivs&&m.subdivs[1])||'';
   document.getElementById('mmS3').value=(m.subdivs&&m.subdivs[2])||'';
   document.getElementById('mmStrikes').value=m.strikes||0;
   document.getElementById('mmVolunteer').checked=!!m.volunteer;
+  document.getElementById('mmIsFTO').checked=!!m.isFTO;
   document.getElementById('mmNotes').value=m.notes||'';
-  document.getElementById('csPreviewBox').style.display='none';
   document.getElementById('memberModal').style.display='flex';
 }
 function closeMemberModal(){ document.getElementById('memberModal').style.display='none'; }
@@ -1162,11 +1235,12 @@ function refreshCallsignPreview(){
 
 function saveMember(){
   const name=document.getElementById('mmName').value.trim();
+  const callsign=document.getElementById('mmCallsign').value.trim();
   const discord=document.getElementById('mmDiscord').value.trim();
   const doh=document.getElementById('mmDOH').value;
   const rankGroup=document.getElementById('mmRankGroup').value;
   const status=document.getElementById('mmStatus').value;
-  const fto=document.getElementById('mmFTO').value;
+  const isFTO=document.getElementById('mmIsFTO').checked;
   const position=document.getElementById('mmPosition').value;
   const s1=document.getElementById('mmS1').value;
   const s2=document.getElementById('mmS2').value;
@@ -1181,20 +1255,11 @@ function saveMember(){
   if(editingMemberId!==null){
     const idx=members.findIndex(m=>m.id===editingMemberId);
     const m=members[idx];
-    const oldGroup=m.rankGroup;
-    members[idx]={...m,name,discord,doh,rankGroup,status,fto,position,subdivs,strikes,volunteer,notes};
-    // If rank group changed, reassign callsign
-    if(oldGroup!==rankGroup){
-      const slot=lowestAvailableSlot(rankGroup, editingMemberId);
-      if(slot===null){showToast(`⚠ No open slots in "${rankGroup}".`,true);members[idx].rankGroup=oldGroup;return;}
-      members[idx].callsignNum=slot;
-    }
+    members[idx]={...m,name,callsign,discord,doh,rankGroup,status,isFTO,position,subdivs,strikes,volunteer,notes};
     showToast('✓ Member updated.');
   } else {
-    const slot=lowestAvailableSlot(rankGroup);
-    if(slot===null){showToast(`⚠ No open slots in "${rankGroup}".`,true);return;}
-    members.push({id:nextMemberId++,name,discord,doh,rankGroup,status,fto,position,subdivs,strikes,volunteer,notes,callsignNum:slot});
-    showToast(`✓ ${name} added as ${formatCallsign(slot)}.`);
+    members.push({id:nextMemberId++,name,callsign,discord,doh,rankGroup,status,isFTO,position,subdivs,strikes,volunteer,notes});
+    showToast(`✓ ${name} added.`);
   }
   closeMemberModal();
   renderMainRoster(); renderStats();
@@ -1292,7 +1357,7 @@ function renderEditor(){
   renderThemeEditor();
   renderRankGroupEditor();
   renderSubdivEditor();
-  renderFTOEditor();
+
   renderPositionEditor();
   document.getElementById('deptNameInput').value=deptName;
   document.getElementById('prefixInput').value=globalPrefix;
@@ -1406,7 +1471,7 @@ function addFTO(){
   if(!name){showToast('⚠ Enter a name.',true);return;}
   ftoList.push(name);
   document.getElementById('nftoName').value='';
-  renderFTOEditor();
+
   showToast(`✓ FTO "${name}" added.`); scheduleSave();
 }
 
@@ -1656,38 +1721,17 @@ function resetThemeToActive(){
 }
 
 function renderThemeEditor(){
-  // Presets grid
   const grid = document.getElementById('themePresetsGrid');
   if(!grid) return;
   grid.innerHTML = themes.map(t => {
-    const dots = Object.values(t.vars).slice(0,4);
     const swatches = [t.vars['--gold']||'#ccc', t.vars['--navy-card']||'#111', t.vars['--cream']||'#eee', t.vars['--body-bg']||'#000'];
     const isActive = t.id===activeThemeId;
     return `<button class="theme-preset-btn${isActive?' active-theme':''}"
       style="background:${t.vars['--navy-card']||'#111'};border-color:${isActive?t.vars['--gold']||'#c9a84c':'transparent'};color:${t.vars['--cream']||'#f0ead8'};"
       onclick="selectPreset('${t.id}')">
       <span class="t-name">${t.name}</span>
-      <span style="font-size:9px;opacity:.7;font-family:'JetBrains Mono',monospace;">${t.desc}</span>
-      <span class="t-swatch">
-        ${swatches.map(c=>`<span class="t-dot" style="background:${c};"></span>`).join('')}
-      </span>
+      <span class="t-swatch">${swatches.map(c=>`<span class="t-dot" style="background:${c};"></span>`).join('')}</span>
     </button>`;
-  }).join('');
-
-  // Custom tweaks
-  const tweaks = document.getElementById('colorTweaksGrid');
-  if(!tweaks) return;
-  tweaks.innerHTML = colorTweakDefs.map(d => {
-    const val = currentVars[d.key] || getComputedStyle(document.documentElement).getPropertyValue(d.key).trim() || '#ffffff';
-    // Normalize to 6-digit hex for color input
-    const hex = normalizeHex(val);
-    return `<div class="color-tweak-item">
-      <span class="color-tweak-label">${d.label}</span>
-      <div class="color-tweak-row">
-        <input type="color" value="${hex}" oninput="applyCustomVar('${d.key}',this.value); this.nextElementSibling.textContent=this.value;">
-        <span>${hex}</span>
-      </div>
-    </div>`;
   }).join('');
 }
 
@@ -1741,6 +1785,8 @@ applyTheme('navy-gold', true);
       document.getElementById('adminBadge').style.display='inline-block';
       document.getElementById('editorNavBtn').style.display='inline-block';
       document.getElementById('addTraineeBtn').style.display='inline-block';
+      document.getElementById('landingPage').style.display='none';
+      document.getElementById('rosterApp').style.display='block';
       initCallsigns();
       showToast('✓ Shared roster loaded.');
     } else {
