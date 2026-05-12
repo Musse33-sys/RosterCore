@@ -218,6 +218,7 @@ main{padding:32px 40px;max-width:1600px;margin:0 auto;}
 @keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 @media(max-width:900px){.header-top{padding:14px 16px;}main{padding:20px 14px;}nav{padding:0 14px;}.form-row,.form-row-3{grid-template-columns:1fr;}}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 <div class="page">
@@ -231,6 +232,7 @@ main{padding:32px 40px;max-width:1600px;margin:0 auto;}
     </div>
     <div class="header-right">
       <span class="admin-badge" id="adminBadge" style="display:none;">⬡ Admin</span>
+      <button class="btn btn-outline btn-sm" id="shareBtn" onclick="openShare()" style="display:none;">⬡ Share</button>
       <button class="login-btn" id="loginBtn" onclick="openLogin()">Login</button>
       <button class="logout-btn" id="logoutBtn" style="display:none;" onclick="doLogout()">Logout</button>
     </div>
@@ -376,15 +378,42 @@ main{padding:32px 40px;max-width:1600px;margin:0 auto;}
 
 <!-- LOGIN MODAL -->
 <div class="modal-overlay" id="loginModal" style="display:none;" onclick="if(event.target===this)this.style.display='none'">
-  <div class="login-card">
+  <div class="login-card" style="width:440px;">
     <div class="login-seal">🦅</div>
-    <h2>Admin Access</h2>
-    <p class="ls">Authorized Personnel Only</p>
-    <div class="login-err" id="loginErr">⚠ Invalid credentials. Access denied.</div>
-    <div class="form-group"><label class="form-label">Username</label><input type="text" class="form-input" id="lusr" placeholder="Username" autocomplete="off"></div>
-    <div class="form-group"><label class="form-label">Password</label><input type="password" class="form-input" id="lpwd" placeholder="••••••••"></div>
-    <button class="btn btn-primary" style="width:100%;padding:13px;font-size:12px;letter-spacing:2px;" onclick="doLogin()">Access Portal</button>
-    <p style="text-align:center;margin-top:12px;font-size:11px;color:var(--slate);font-family:'JetBrains Mono',monospace;">Demo: admin / warden2024</p>
+    <h2 id="authTitle">Admin Access</h2>
+    <p class="ls" id="authSub">Sign in to manage your roster</p>
+    <div class="login-err" id="loginErr"></div>
+    <div id="authFormLogin">
+      <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-input" id="lusr" placeholder="you@example.com" autocomplete="off"></div>
+      <div class="form-group"><label class="form-label">Password</label><input type="password" class="form-input" id="lpwd" placeholder="••••••••"></div>
+      <button class="btn btn-primary" style="width:100%;padding:13px;font-size:12px;letter-spacing:2px;margin-top:4px;" onclick="doLogin()">Sign In</button>
+      <p style="text-align:center;margin-top:14px;font-size:11px;color:var(--slate);font-family:'JetBrains Mono',monospace;">
+        No account? <a href="#" onclick="showRegister()" style="color:var(--gold);text-decoration:none;">Register here</a>
+      </p>
+    </div>
+    <div id="authFormRegister" style="display:none;">
+      <div class="form-group"><label class="form-label">Department Name</label><input type="text" class="form-input" id="regDept" placeholder="San Andreas Game Warden"></div>
+      <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-input" id="regEmail" placeholder="you@example.com"></div>
+      <div class="form-group"><label class="form-label">Password</label><input type="password" class="form-input" id="regPwd" placeholder="Min 6 characters"></div>
+      <button class="btn btn-primary" style="width:100%;padding:13px;font-size:12px;letter-spacing:2px;margin-top:4px;" onclick="doRegister()">Create Account</button>
+      <p style="text-align:center;margin-top:14px;font-size:11px;color:var(--slate);font-family:'JetBrains Mono',monospace;">
+        Have an account? <a href="#" onclick="showLogin()" style="color:var(--gold);text-decoration:none;">Sign in</a>
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- SHARE MODAL -->
+<div class="modal-overlay" id="shareModal" style="display:none;" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal" style="max-width:460px;">
+    <div class="modal-title">Share Roster Access</div>
+    <div class="modal-sub">Anyone with this link can edit your roster.</div>
+    <div id="shareUrlBox" style="background:rgba(7,14,28,.7);border:1px solid rgba(201,168,76,.2);padding:12px 14px;border-radius:2px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--gold);word-break:break-all;margin-bottom:16px;min-height:44px;"></div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn btn-primary" onclick="copyShareLink()">Copy Link</button>
+      <button class="btn btn-danger" onclick="disableShare()">Disable Link</button>
+      <button class="btn btn-ghost" onclick="document.getElementById('shareModal').style.display='none'">Close</button>
+    </div>
   </div>
 </div>
 
@@ -497,10 +526,193 @@ let editingTraineeId = null;
 let deletingId = null;
 let deletingType = 'member';
 let isAdmin = false;
-const ADMIN_USER='admin', ADMIN_PASS='warden2024';
+let currentRosterId = null;
+let currentUserId = null;
+let saveTimeout = null;
 
 // ══════════════════════════════════════════════════════════════════
-// CALLSIGN LOGIC
+// SUPABASE SETUP
+// ══════════════════════════════════════════════════════════════════
+const SUPABASE_URL = 'https://lzxsltdwbuyzxbmkpuny.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx6eHNsdGR3YnV5enhibWtwdW55Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2MDM3NDksImV4cCI6MjA5NDE3OTc0OX0._Pr9Na_5u3AHweM2F-_W9R4EmXbsvpGsoBFYPC1I914';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ══════════════════════════════════════════════════════════════════
+// AUTH
+// ══════════════════════════════════════════════════════════════════
+function openLogin(){ 
+  showLogin();
+  document.getElementById('loginModal').style.display='flex'; 
+}
+function showLogin(){
+  document.getElementById('authTitle').textContent='Admin Access';
+  document.getElementById('authSub').textContent='Sign in to manage your roster';
+  document.getElementById('authFormLogin').style.display='block';
+  document.getElementById('authFormRegister').style.display='none';
+  document.getElementById('loginErr').style.display='none';
+  document.getElementById('loginErr').textContent='';
+}
+function showRegister(){
+  document.getElementById('authTitle').textContent='Create Account';
+  document.getElementById('authSub').textContent='Set up your department roster';
+  document.getElementById('authFormLogin').style.display='none';
+  document.getElementById('authFormRegister').style.display='block';
+  document.getElementById('loginErr').style.display='none';
+}
+
+async function doLogin(){
+  const email=document.getElementById('lusr').value.trim();
+  const pwd=document.getElementById('lpwd').value;
+  const err=document.getElementById('loginErr');
+  err.style.display='none';
+  const {data,error}=await sb.auth.signInWithPassword({email,password:pwd});
+  if(error){err.textContent='⚠ '+error.message;err.style.display='block';return;}
+  document.getElementById('loginModal').style.display='none';
+  await loginSuccess(data.user);
+}
+
+async function doRegister(){
+  const dept=document.getElementById('regDept').value.trim();
+  const email=document.getElementById('regEmail').value.trim();
+  const pwd=document.getElementById('regPwd').value;
+  const err=document.getElementById('loginErr');
+  err.style.display='none';
+  if(!dept){err.textContent='⚠ Enter a department name.';err.style.display='block';return;}
+  const {data,error}=await sb.auth.signUp({email,password:pwd,options:{data:{department_name:dept}}});
+  if(error){err.textContent='⚠ '+error.message;err.style.display='block';return;}
+  document.getElementById('loginModal').style.display='none';
+  if(data.user) await loginSuccess(data.user);
+  else showToast('Check your email to confirm your account!');
+}
+
+async function loginSuccess(user){
+  isAdmin=true;
+  currentUserId=user.id;
+  const deptN=user.user_metadata?.department_name||'My Department';
+  document.getElementById('deptTitle').textContent=deptN;
+  document.getElementById('loginBtn').style.display='none';
+  document.getElementById('logoutBtn').style.display='inline-block';
+  document.getElementById('adminBadge').style.display='inline-block';
+  document.getElementById('shareBtn').style.display='inline-block';
+  document.getElementById('editorNavBtn').style.display='inline-block';
+  document.getElementById('addTraineeBtn').style.display='inline-block';
+  await loadRoster(user.id);
+  renderMainRoster(); renderStats();
+  showToast('✓ Welcome back, '+deptN+'!');
+}
+
+async function doLogout(){
+  await sb.auth.signOut();
+  isAdmin=false; currentRosterId=null; currentUserId=null;
+  // Reset all data
+  members=[]; trainees=[]; rankGroups=[]; subdivisions=[];
+  positions=[]; ftoList=[]; globalPrefix=''; traineePrefix=''; deptName='';
+  document.getElementById('loginBtn').style.display='inline-block';
+  document.getElementById('logoutBtn').style.display='none';
+  document.getElementById('adminBadge').style.display='none';
+  document.getElementById('shareBtn').style.display='none';
+  document.getElementById('editorNavBtn').style.display='none';
+  document.getElementById('addTraineeBtn').style.display='none';
+  document.getElementById('deptTitle').textContent='My Department';
+  switchTab('roster',document.querySelector('.nav-tab'));
+  renderMainRoster(); renderStats();
+  showToast('Logged out.');
+}
+
+document.addEventListener('keydown',e=>{
+  if(document.getElementById('loginModal').style.display!=='none'&&e.key==='Enter'){
+    if(document.getElementById('authFormLogin').style.display!=='none') doLogin();
+    else doRegister();
+  }
+});
+
+// ══════════════════════════════════════════════════════════════════
+// LOAD & SAVE
+// ══════════════════════════════════════════════════════════════════
+async function loadRoster(userId){
+  // Check for share token in URL
+  const params=new URLSearchParams(window.location.search);
+  const token=params.get('share');
+
+  let row;
+  if(token){
+    const {data}=await sb.from('rosters').select('*').eq('share_token',token).eq('share_enabled',true).single();
+    row=data;
+    if(row) isAdmin=true; // share link grants edit access
+  } else {
+    const {data}=await sb.from('rosters').select('*').eq('user_id',userId).single();
+    row=data;
+  }
+
+  if(!row){
+    // Create new roster
+    const {data:newRow}=await sb.from('rosters').insert({user_id:userId,dept_name:deptName||'My Department'}).select().single();
+    row=newRow;
+  }
+
+  if(row){
+    currentRosterId=row.id;
+    rankGroups=row.rank_groups||[];
+    subdivisions=row.subdivisions||[];
+    positions=row.positions||[];
+    ftoList=row.fto_list||[];
+    members=row.members||[];
+    trainees=row.trainees||[];
+    globalPrefix=row.prefix||'';
+    traineePrefix=row.trainee_prefix||'';
+    deptName=row.dept_name||'My Department';
+    nextMemberId=members.length>0?Math.max(...members.map(m=>m.id||0))+1:1;
+    nextTraineeId=trainees.length>0?Math.max(...trainees.map(t=>t.id||0))+1:1;
+    document.getElementById('deptTitle').textContent=deptName;
+    initCallsigns();
+  }
+}
+
+function scheduleSave(){
+  if(!currentRosterId)return;
+  clearTimeout(saveTimeout);
+  saveTimeout=setTimeout(()=>saveRoster(),800);
+}
+
+async function saveRoster(){
+  if(!currentRosterId)return;
+  await sb.from('rosters').update({
+    rank_groups:rankGroups, subdivisions:subdivisions,
+    positions:positions, fto_list:ftoList,
+    members:members, trainees:trainees,
+    prefix:globalPrefix, trainee_prefix:traineePrefix,
+    dept_name:deptName, updated_at:new Date().toISOString()
+  }).eq('id',currentRosterId);
+}
+
+// ══════════════════════════════════════════════════════════════════
+// SHARE LINK
+// ══════════════════════════════════════════════════════════════════
+async function openShare(){
+  document.getElementById('shareModal').style.display='flex';
+  const {data}=await sb.from('rosters').select('share_token,share_enabled').eq('id',currentRosterId).single();
+  if(data&&data.share_enabled&&data.share_token){
+    document.getElementById('shareUrlBox').textContent=window.location.origin+window.location.pathname+'?share='+data.share_token;
+  } else {
+    document.getElementById('shareUrlBox').textContent='Click "Generate Link" to create a share link.';
+    // Auto generate
+    await generateShareLink();
+  }
+}
+async function generateShareLink(){
+  const token=Math.random().toString(36).slice(2)+Math.random().toString(36).slice(2);
+  await sb.from('rosters').update({share_token:token,share_enabled:true}).eq('id',currentRosterId);
+  document.getElementById('shareUrlBox').textContent=window.location.origin+window.location.pathname+'?share='+token;
+}
+async function disableShare(){
+  await sb.from('rosters').update({share_enabled:false}).eq('id',currentRosterId);
+  document.getElementById('shareUrlBox').textContent='Share link disabled.';
+  showToast('Share link disabled.');
+}
+function copyShareLink(){
+  const txt=document.getElementById('shareUrlBox').textContent;
+  navigator.clipboard.writeText(txt).then(()=>showToast('✓ Link copied!'));
+}
 // ══════════════════════════════════════════════════════════════════
 
 // Returns all callsign numbers currently used in a rank group
@@ -851,6 +1063,7 @@ function graduateTrainee(id){
   trainees = trainees.filter(tr=>tr.id!==id);
   renderTraineeRoster(); renderStats();
   showToast(`✓ ${t.name} graduated → ${formatCallsign(slot)} (${lowestGroup.name}).`);
+  scheduleSave();
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -870,7 +1083,7 @@ function promoteMember(id){
   m.callsignNum = slot;
   showToast(`✓ ${m.name} promoted to ${newGroup} → ${formatCallsign(slot)} (was ${oldCS}).`);
   renderMainRoster(); renderStats();
-
+  scheduleSave();
 }
 function demoteMember(id){
   const m = members.find(mb=>mb.id===id);
@@ -885,7 +1098,7 @@ function demoteMember(id){
   m.callsignNum = slot;
   showToast(`✓ ${m.name} demoted to ${newGroup} → ${formatCallsign(slot)} (was ${oldCS}).`);
   renderMainRoster(); renderStats();
-
+  scheduleSave();
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -985,7 +1198,7 @@ function saveMember(){
   }
   closeMemberModal();
   renderMainRoster(); renderStats();
-
+  scheduleSave();
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -1043,6 +1256,7 @@ function saveTrainee(){
   }
   closeTraineeModal();
   renderTraineeRoster(); renderStats();
+  scheduleSave();
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -1060,13 +1274,13 @@ function confirmDelete(){
   if(deletingType==='member'){
     members=members.filter(m=>m.id!==deletingId);
     renderMainRoster(); renderStats();
-  
   } else {
     trainees=trainees.filter(t=>t.id!==deletingId);
     renderTraineeRoster(); renderStats();
   }
   document.getElementById('delModal').style.display='none';
   showToast('✓ Member removed.');
+  scheduleSave();
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -1090,17 +1304,20 @@ function renderEditor(){
 function updateDeptName(val){
   deptName=val;
   document.getElementById('deptTitle').textContent=val||'My Department';
+  scheduleSave();
 }
 
 function updatePrefix(val){
   globalPrefix=val||'';
   document.getElementById('prefixPreview').textContent=val ? val+'-##' : '##';
   renderMainRoster();
+  scheduleSave();
 }
 function updateTraineePrefix(val){
   traineePrefix=val||'';
   document.getElementById('traineePrefixPreview').textContent=val ? val+'-##' : '##';
   renderTraineeRoster();
+  scheduleSave();
 }
 
 // RANK GROUP EDITOR
@@ -1115,9 +1332,9 @@ function renderRankGroupEditor(){
       <button class="del-btn"  onclick="deleteRG(${i})">×</button>
     </div>`).join('');
 }
-function updateRGName(i,v){rankGroups[i].name=v;renderMainRoster();}
-function updateRGFrom(i,v){rankGroups[i].from=parseInt(v)||1;renderMainRoster();}
-function updateRGTo(i,v){rankGroups[i].to=parseInt(v)||1;renderMainRoster();}
+function updateRGName(i,v){rankGroups[i].name=v;renderMainRoster();scheduleSave();}
+function updateRGFrom(i,v){rankGroups[i].from=parseInt(v)||1;renderMainRoster();scheduleSave();}
+function updateRGTo(i,v){rankGroups[i].to=parseInt(v)||1;renderMainRoster();scheduleSave();}
 function moveRG(i,d){
   const j=i+d;if(j<0||j>=rankGroups.length)return;
   [rankGroups[i],rankGroups[j]]=[rankGroups[j],rankGroups[i]];
@@ -1130,7 +1347,7 @@ function deleteRG(i){
   const fallback=rankGroups[rankGroups.length-1].name;
   members.forEach(m=>{if(m.rankGroup===removed){m.rankGroup=fallback;m.callsignNum=lowestAvailableSlot(fallback,m.id);}});
   renderRankGroupEditor();renderMainRoster();renderStats();
-  showToast(`Group "${removed}" removed.`);
+  showToast(`Group "${removed}" removed.`); scheduleSave();
 }
 function addRankGroup(){
   const name=document.getElementById('ngName').value.trim();
@@ -1142,7 +1359,7 @@ function addRankGroup(){
   document.getElementById('ngFrom').value='';
   document.getElementById('ngTo').value='';
   renderRankGroupEditor();refreshAllSelects();
-  showToast(`✓ Group "${name}" added.`);
+  showToast(`✓ Group "${name}" added.`); scheduleSave();
 }
 
 // SUBDIV EDITOR
@@ -1154,14 +1371,14 @@ function renderSubdivEditor(){
       <button class="del-btn" onclick="deleteSD(${i})">×</button>
     </div>`).join('');
 }
-function updateSDName(i,v){const old=subdivisions[i].name;subdivisions[i].name=v;members.forEach(m=>{m.subdivs=(m.subdivs||[]).map(s=>s===old?v:s);});renderMainRoster();}
-function updateSDColor(i,v){subdivisions[i].color=v;renderMainRoster();}
+function updateSDName(i,v){const old=subdivisions[i].name;subdivisions[i].name=v;members.forEach(m=>{m.subdivs=(m.subdivs||[]).map(s=>s===old?v:s);});renderMainRoster();scheduleSave();}
+function updateSDColor(i,v){subdivisions[i].color=v;renderMainRoster();scheduleSave();}
 function deleteSD(i){
   const removed=subdivisions[i].name;
   subdivisions.splice(i,1);
   members.forEach(m=>{m.subdivs=(m.subdivs||[]).filter(s=>s!==removed);});
   renderSubdivEditor();renderMainRoster();
-  showToast(`Subdivision "${removed}" removed.`);
+  showToast(`Subdivision "${removed}" removed.`); scheduleSave();
 }
 function addSubdivision(){
   const name=document.getElementById('nsdName').value.trim();
@@ -1171,7 +1388,7 @@ function addSubdivision(){
   subdivisions.push({name,color});
   document.getElementById('nsdName').value='';
   renderSubdivEditor();refreshAllSelects();
-  showToast(`✓ Subdivision "${name}" added.`);
+  showToast(`✓ Subdivision "${name}" added.`); scheduleSave();
 }
 
 // FTO EDITOR
@@ -1182,15 +1399,15 @@ function renderFTOEditor(){
       <button class="del-btn" onclick="deleteFTO(${i})">×</button>
     </div>`).join('');
 }
-function updateFTO(i,v){ftoList[i]=v;}
-function deleteFTO(i){ftoList.splice(i,1);renderFTOEditor();showToast('FTO removed.');}
+function updateFTO(i,v){ftoList[i]=v;scheduleSave();}
+function deleteFTO(i){ftoList.splice(i,1);renderFTOEditor();showToast('FTO removed.'); scheduleSave();}
 function addFTO(){
   const name=document.getElementById('nftoName').value.trim();
   if(!name){showToast('⚠ Enter a name.',true);return;}
   ftoList.push(name);
   document.getElementById('nftoName').value='';
   renderFTOEditor();
-  showToast(`✓ FTO "${name}" added.`);
+  showToast(`✓ FTO "${name}" added.`); scheduleSave();
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -1210,6 +1427,7 @@ function updatePosition(i,v){
   const old=positions[i]; positions[i]=v;
   members.forEach(m=>{if(m.position===old)m.position=v;});
   renderMainRoster();
+  scheduleSave();
 }
 function deletePosition(i){
   const removed=positions[i];
@@ -1218,7 +1436,7 @@ function deletePosition(i){
   renderPositionEditor();
   populateSelect('mmPosition',positions,true);
   renderMainRoster();
-  showToast(`Position "${removed}" removed.`);
+  showToast(`Position "${removed}" removed.`); scheduleSave();
 }
 function addPosition(){
   const name=document.getElementById('nposName').value.trim();
@@ -1228,7 +1446,7 @@ function addPosition(){
   document.getElementById('nposName').value='';
   renderPositionEditor();
   populateSelect('mmPosition',positions,true);
-  showToast(`✓ Position "${name}" added.`);
+  showToast(`✓ Position "${name}" added.`); scheduleSave();
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -1495,8 +1713,49 @@ function normalizeHex(val){
 // INIT
 // ══════════════════════════════════════════════════════════════════
 applyTheme('navy-gold', true);
-renderMainRoster();
-renderStats();
+
+// Check for share token or existing session
+(async()=>{
+  const params=new URLSearchParams(window.location.search);
+  const token=params.get('share');
+  if(token){
+    // Load roster by share token without login
+    const {data:row}=await sb.from('rosters').select('*').eq('share_token',token).eq('share_enabled',true).single();
+    if(row){
+      isAdmin=true;
+      currentRosterId=row.id;
+      rankGroups=row.rank_groups||[];
+      subdivisions=row.subdivisions||[];
+      positions=row.positions||[];
+      ftoList=row.fto_list||[];
+      members=row.members||[];
+      trainees=row.trainees||[];
+      globalPrefix=row.prefix||'';
+      traineePrefix=row.trainee_prefix||'';
+      deptName=row.dept_name||'My Department';
+      nextMemberId=members.length>0?Math.max(...members.map(m=>m.id||0))+1:1;
+      nextTraineeId=trainees.length>0?Math.max(...trainees.map(t=>t.id||0))+1:1;
+      document.getElementById('deptTitle').textContent=deptName;
+      document.getElementById('loginBtn').style.display='none';
+      document.getElementById('logoutBtn').style.display='inline-block';
+      document.getElementById('adminBadge').style.display='inline-block';
+      document.getElementById('editorNavBtn').style.display='inline-block';
+      document.getElementById('addTraineeBtn').style.display='inline-block';
+      initCallsigns();
+      showToast('✓ Shared roster loaded.');
+    } else {
+      showToast('⚠ Invalid or disabled share link.',true);
+    }
+  } else {
+    // Check existing session
+    const {data:{session}}=await sb.auth.getSession();
+    if(session){
+      await loginSuccess(session.user);
+    }
+  }
+  renderMainRoster();
+  renderStats();
+})();
 </script>
 </body>
 </html>
