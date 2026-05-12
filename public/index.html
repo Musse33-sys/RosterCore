@@ -318,39 +318,33 @@ main{padding:32px 40px;max-width:1600px;margin:0 auto;}
   <!-- PREFIX -->
   <div class="editor-section">
     <h3>Department Name</h3>
-    
     <div style="display:flex;gap:10px;align-items:center;max-width:400px;">
       <input type="text" class="form-input" id="deptNameInput" placeholder="e.g. San Andreas Game Warden" style="flex:1;" oninput="updateDeptName(this.value)">
     </div>
   </div>
   <div class="editor-divider"></div>
 
+  <!-- TRAINEE PREFIX -->
   <div class="editor-section">
-    <h3>Global Callsign Prefix</h3>
-    
+    <h3>Trainee Callsign Prefix</h3>
     <div style="display:flex;gap:10px;align-items:center;max-width:340px;">
-      <input type="text" class="form-input" id="prefixInput" value="" style="max-width:120px;" oninput="updatePrefix(this.value)">
-      <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--slate-lt);">Preview: <span id="prefixPreview" style="color:#6ecf8a;">1W-##</span></span>
+      <input type="text" class="form-input" id="traineePrefixInput" value="" style="max-width:100px;" oninput="updateTraineePrefix(this.value)">
+      <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--slate-lt);">Preview: <span id="traineePrefixPreview" style="color:#b39ddb;">##</span></span>
     </div>
   </div>
   <div class="editor-divider"></div>
 
   <!-- RANK GROUPS -->
   <div class="editor-section">
-    <h3>Rank Groups &amp; Slot Ranges</h3>
-    
-    <div class="col-lbl" style="grid-template-columns:1fr 70px 70px 28px 28px 28px;"><span>Group Name</span><span>From #</span><span>To #</span><span style="text-align:center">↑</span><span style="text-align:center">↓</span><span style="text-align:center">✕</span></div>
+    <h3>Rank Groups</h3>
+    <div class="col-lbl" style="grid-template-columns:1fr 28px 28px 28px;"><span>Group Name</span><span style="text-align:center">↑</span><span style="text-align:center">↓</span><span style="text-align:center">✕</span></div>
     <div class="edit-list" id="rankGroupList"></div>
     <div class="add-row-form">
-      <input type="text"   id="ngName" placeholder="New rank group name…">
-      <input type="number" id="ngFrom" placeholder="From" min="1" style="width:80px;">
-      <input type="number" id="ngTo"   placeholder="To"   min="1" style="width:80px;">
+      <input type="text" id="ngName" placeholder="New rank group name…">
       <button class="btn btn-primary btn-sm" onclick="addRankGroup()">+ Add</button>
     </div>
   </div>
   <div class="editor-divider"></div>
-
-  <!-- SUBDIVISIONS -->
   <div class="editor-section">
     <h3>Subdivisions</h3>
     
@@ -376,16 +370,6 @@ main{padding:32px 40px;max-width:1600px;margin:0 auto;}
     </div>
   </div>
   <div class="editor-divider"></div>
-
-  <!-- TRAINEE PREFIX -->
-  <div class="editor-section">
-    <h3>Trainee Callsign Prefix</h3>
-    
-    <div style="display:flex;gap:10px;align-items:center;max-width:340px;">
-      <input type="text" class="form-input" id="traineePrefixInput" value="" style="max-width:100px;" oninput="updateTraineePrefix(this.value)">
-      <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--slate-lt);">Preview: <span id="traineePrefixPreview" style="color:#b39ddb;">G-01</span></span>
-    </div>
-  </div>
 
 </div>
 
@@ -633,7 +617,7 @@ async function loginSuccess(user){
 }
 
 async function doLogout(){
-  await sb.auth.signOut();
+  await sb.auth.signOut({ scope: 'global' });
   isAdmin=false; currentRosterId=null; currentUserId=null;
   // Reset all data
   members=[]; trainees=[]; rankGroups=[]; subdivisions=[];
@@ -986,26 +970,19 @@ function renderMainRoster(){
   rankGroups.forEach((g,gi) => {
     if(fRG && fRG!==g.name) return;
 
-    // Build slot rows
-    let rows = '';
-    let groupHasVisible = false;
+    const groupMembers = members.filter(m => {
+      if(m.rankGroup!==g.name) return false;
+      if(search && !m.name.toLowerCase().includes(search.toLowerCase()) && !(m.callsign||'').toLowerCase().includes(search.toLowerCase())) return false;
+      if(fSD && !(m.subdivs||[]).includes(fSD)) return false;
+      if(fST && m.status!==fST) return false;
+      return true;
+    });
 
-    for(let slot=g.from; slot<=g.to; slot++){
-      const m = members.find(mb => mb.rankGroup===g.name && mb.callsignNum===slot);
+    if(fRG===''&&!groupMembers.length&&(search||fSD||fST)) return;
 
-      if(m){
-        // Apply filters
-        if(search && !m.name.toLowerCase().includes(search)) { rows+=emptySlotRow(slot); continue; }
-        if(fSD && !(m.subdivs||[]).includes(fSD)) { rows+=emptySlotRow(slot); continue; }
-        if(fST && m.status!==fST) { rows+=emptySlotRow(slot); continue; }
-        groupHasVisible=true;
-        rows+=filledRow(m, gi);
-      } else {
-        rows+=emptySlotRow(slot);
-      }
-    }
-
-    if(fRG===''&&!groupHasVisible&&(search||fSD||fST)) return; // hide whole group if filtered out
+    const rows = groupMembers.length
+      ? groupMembers.map(m=>filledRow(m,gi)).join('')
+      : `<tr class="empty-row"><td colspan="${isAdmin?9:8}" style="color:var(--gold-dim);font-family:'JetBrains Mono',monospace;font-size:11px;padding:14px 16px;text-align:center;letter-spacing:1px;">— NO MEMBERS —</td></tr>`;
 
     if(gi>0) html+=`<div class="rank-group-spacer"></div>`;
     html+=`
@@ -1360,8 +1337,6 @@ function renderEditor(){
 
   renderPositionEditor();
   document.getElementById('deptNameInput').value=deptName;
-  document.getElementById('prefixInput').value=globalPrefix;
-  document.getElementById('prefixPreview').textContent=globalPrefix ? globalPrefix+'-##' : '##';
   document.getElementById('traineePrefixInput').value=traineePrefix;
   document.getElementById('traineePrefixPreview').textContent=traineePrefix ? traineePrefix+'-##' : '##';
 }
@@ -1388,18 +1363,14 @@ function updateTraineePrefix(val){
 // RANK GROUP EDITOR
 function renderRankGroupEditor(){
   document.getElementById('rankGroupList').innerHTML=rankGroups.map((g,i)=>`
-    <div class="edit-row" style="grid-template-columns:1fr 70px 70px 28px 28px 28px;">
-      <input type="text"   value="${g.name}" oninput="updateRGName(${i},this.value)">
-      <input type="number" value="${g.from}"  oninput="updateRGFrom(${i},this.value)" min="1">
-      <input type="number" value="${g.to}"    oninput="updateRGTo(${i},this.value)"   min="1">
+    <div class="edit-row" style="grid-template-columns:1fr 28px 28px 28px;">
+      <input type="text" value="${g.name}" oninput="updateRGName(${i},this.value)">
       <button class="icon-btn" onclick="moveRG(${i},-1)" ${i===0?'disabled':''}>↑</button>
       <button class="icon-btn" onclick="moveRG(${i}, 1)" ${i===rankGroups.length-1?'disabled':''}>↓</button>
       <button class="del-btn"  onclick="deleteRG(${i})">×</button>
     </div>`).join('');
 }
 function updateRGName(i,v){rankGroups[i].name=v;renderMainRoster();scheduleSave();}
-function updateRGFrom(i,v){rankGroups[i].from=parseInt(v)||1;renderMainRoster();scheduleSave();}
-function updateRGTo(i,v){rankGroups[i].to=parseInt(v)||1;renderMainRoster();scheduleSave();}
 function moveRG(i,d){
   const j=i+d;if(j<0||j>=rankGroups.length)return;
   [rankGroups[i],rankGroups[j]]=[rankGroups[j],rankGroups[i]];
@@ -1410,19 +1381,15 @@ function deleteRG(i){
   const removed=rankGroups[i].name;
   rankGroups.splice(i,1);
   const fallback=rankGroups[rankGroups.length-1].name;
-  members.forEach(m=>{if(m.rankGroup===removed){m.rankGroup=fallback;m.callsignNum=lowestAvailableSlot(fallback,m.id);}});
+  members.forEach(m=>{if(m.rankGroup===removed)m.rankGroup=fallback;});
   renderRankGroupEditor();renderMainRoster();renderStats();
   showToast(`Group "${removed}" removed.`); scheduleSave();
 }
 function addRankGroup(){
   const name=document.getElementById('ngName').value.trim();
-  const from=parseInt(document.getElementById('ngFrom').value)||1;
-  const to=parseInt(document.getElementById('ngTo').value)||1;
   if(!name){showToast('⚠ Enter a group name.',true);return;}
-  rankGroups.push({name,from,to});
+  rankGroups.push({name});
   document.getElementById('ngName').value='';
-  document.getElementById('ngFrom').value='';
-  document.getElementById('ngTo').value='';
   renderRankGroupEditor();refreshAllSelects();
   showToast(`✓ Group "${name}" added.`); scheduleSave();
 }
@@ -1791,12 +1758,6 @@ applyTheme('navy-gold', true);
       showToast('✓ Shared roster loaded.');
     } else {
       showToast('⚠ Invalid or disabled share link.',true);
-    }
-  } else {
-    // Check existing session
-    const {data:{session}}=await sb.auth.getSession();
-    if(session){
-      await loginSuccess(session.user);
     }
   }
   renderMainRoster();
