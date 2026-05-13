@@ -1330,12 +1330,26 @@ async function createDepartment(){
   const errEl=document.getElementById('createDeptError');
   errEl.classList.add('hidden');
   if(!name||!email||!password){errEl.textContent='⚠ All fields required.';errEl.classList.remove('hidden');return;}
-  // Create auth user
-  const {data,error}=await sb.auth.admin ? sb.auth.admin.createUser({email,password,email_confirm:true}) : sb.auth.signUp({email,password,options:{data:{department_name:name}}});
+  if(password.length<6){errEl.textContent='⚠ Password must be at least 6 characters.';errEl.classList.remove('hidden');return;}
+
+  // Sign up the new department user
+  const {data,error}=await sb.auth.signUp({
+    email, password,
+    options:{data:{department_name:name}}
+  });
   if(error){errEl.textContent='⚠ '+error.message;errEl.classList.remove('hidden');return;}
+  if(!data.user){errEl.textContent='⚠ Account created but needs email confirmation. Check Supabase auth settings.';errEl.classList.remove('hidden');return;}
+
+  // Create department record manually
+  const {error:deptErr}=await sb.from('departments').insert({user_id:data.user.id, name});
+  if(deptErr){errEl.textContent='⚠ User created but dept record failed: '+deptErr.message;errEl.classList.remove('hidden');return;}
+
+  // Create roster data record
+  await sb.from('roster_data').insert({dept_id:(await sb.from('departments').select('id').eq('user_id',data.user.id).single()).data?.id});
+
   document.getElementById('createDeptModal').classList.add('hidden');
   await loadSuperAdminDepts();
-  showToast(`✓ Department "${name}" created.`);
+  showToast(`✓ Department "${name}" created! They can now log in.`);
 }
 
 async function deleteDept(deptId, userId, name){
