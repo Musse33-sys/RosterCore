@@ -328,23 +328,26 @@ main{padding:32px 40px;max-width:1600px;margin:0 auto;}
 
   <!-- TRAINEE PREFIX -->
   <div class="editor-section">
-    <h3>Trainee Callsign Prefix</h3>
-    <div style="display:flex;gap:10px;align-items:center;max-width:340px;">
-      <input type="text" class="form-input" id="traineePrefixInput" value="" style="max-width:100px;" oninput="updateTraineePrefix(this.value)">
-      <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--slate-lt);">Preview: <span id="traineePrefixPreview" style="color:#b39ddb;">##</span></span>
+    <h3>Trainee Callsign Format</h3>
+    <div style="display:flex;gap:10px;align-items:center;max-width:400px;flex-wrap:wrap;">
+      <input type="text" class="form-input" id="traineePrefixInput" value="" style="max-width:140px;" oninput="updateTraineePrefix(this.value)" placeholder="e.g. G-01 or G01">
+      <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--slate-lt);">Next: <span id="traineePrefixPreview" style="color:#b39ddb;">—</span></span>
     </div>
+    <p style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--slate);margin-top:8px;line-height:1.6;">Type your starting callsign. New trainees auto-increment from there.</p>
   </div>
   <div class="editor-divider"></div>
 
   <!-- RANK GROUPS -->
   <div class="editor-section">
     <h3>Rank Groups</h3>
-    <div class="col-lbl" style="grid-template-columns:1fr 28px 28px 28px;"><span>Group Name</span><span style="text-align:center">↑</span><span style="text-align:center">↓</span><span style="text-align:center">✕</span></div>
+    <div class="col-lbl" style="grid-template-columns:1fr 120px 28px 28px 28px;"><span>Group Name</span><span>Callsign Format</span><span style="text-align:center">↑</span><span style="text-align:center">↓</span><span style="text-align:center">✕</span></div>
     <div class="edit-list" id="rankGroupList"></div>
     <div class="add-row-form">
-      <input type="text" id="ngName" placeholder="New rank group name…">
+      <input type="text" id="ngName" placeholder="Group name…">
+      <input type="text" id="ngFormat" placeholder="e.g. 1W-01" style="width:120px;">
       <button class="btn btn-primary btn-sm" onclick="addRankGroup()">+ Add</button>
     </div>
+    <p style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--slate);margin-top:8px;line-height:1.6;">Callsign format sets the starting callsign for this group. New members auto-increment from there.</p>
   </div>
   <div class="editor-divider"></div>
   <div class="editor-section">
@@ -431,7 +434,7 @@ main{padding:32px 40px;max-width:1600px;margin:0 auto;}
       <div class="form-group"><label class="form-label">Callsign</label><input type="text" class="form-input" id="mmCallsign" placeholder="e.g. 1W-01, K9-03"></div>
     </div>
     <div class="form-row">
-      <div class="form-group"><label class="form-label">Rank Group</label><select class="form-select" id="mmRankGroup"></select></div>
+      <div class="form-group"><label class="form-label">Rank Group</label><select class="form-select" id="mmRankGroup" onchange="autoFillCallsign()"></select></div>
       <div class="form-group"><label class="form-label">Position</label><select class="form-select" id="mmPosition"><option value="">— None —</option></select></div>
     </div>
     <div class="form-row">
@@ -473,11 +476,11 @@ main{padding:32px 40px;max-width:1600px;margin:0 auto;}
     <div class="modal-sub"   id="tmSub">Enter trainee details.</div>
     <div class="form-row">
       <div class="form-group"><label class="form-label">Full Name</label><input type="text" class="form-input" id="tmName" placeholder="John Smith"></div>
-      <div class="form-group"><label class="form-label">Discord ID</label><input type="text" class="form-input" id="tmDiscord" placeholder="123456789…"></div>
+      <div class="form-group"><label class="form-label">Callsign</label><input type="text" class="form-input" id="tmCallsign" placeholder="Auto-assigned"></div>
     </div>
     <div class="form-row">
+      <div class="form-group"><label class="form-label">Discord ID</label><input type="text" class="form-input" id="tmDiscord" placeholder="123456789…"></div>
       <div class="form-group"><label class="form-label">DOH (Date of Hire)</label><input type="date" class="form-input" id="tmDOH"></div>
-      <div class="form-group"><label class="form-label">Assigned FTO</label><select class="form-select" id="tmFTO"><option value="">— None —</option></select></div>
     </div>
     <div class="form-row">
       <div class="form-group"><label class="form-label">Status</label>
@@ -1012,7 +1015,7 @@ function renderTraineeRoster(){
     return;
   }
   let rows = trainees.map((t,i) => {
-    const cs = formatTraineeCallsign(t.callsignNum);
+    const cs = t.callsign||'—';
     const adminCol = isAdmin?`<td><div class="row-actions admin-acts" style="opacity:1;">
       <button class="btn btn-graduate" onclick="graduateTrainee(${t.id})">★ Graduate</button>
       <button class="btn btn-outline btn-sm" onclick="openEditTrainee(${t.id})">Edit</button>
@@ -1116,12 +1119,13 @@ function openAddMember(){
   editingMemberId=null;
   refreshAllSelects();
   document.getElementById('mmTitle').textContent='Add Member';
-  document.getElementById('mmSub').textContent='Enter personnel details.';
+  document.getElementById('mmSub').textContent='Callsign auto-assigned from rank group format.';
   document.getElementById('mmName').value='';
-  document.getElementById('mmCallsign').value='';
   document.getElementById('mmDiscord').value='';
   document.getElementById('mmDOH').value=new Date().toISOString().split('T')[0];
-  document.getElementById('mmRankGroup').value=rankGroups[rankGroups.length-1]?.name||'';
+  const defaultGroup=rankGroups[rankGroups.length-1]?.name||'';
+  document.getElementById('mmRankGroup').value=defaultGroup;
+  document.getElementById('mmCallsign').value=nextMemberCallsign(defaultGroup);
   document.getElementById('mmStatus').value='Active';
   document.getElementById('mmPosition').value='';
   document.getElementById('mmS1').value='';
@@ -1132,6 +1136,12 @@ function openAddMember(){
   document.getElementById('mmIsFTO').checked=false;
   document.getElementById('mmNotes').value='';
   document.getElementById('memberModal').style.display='flex';
+}
+
+function autoFillCallsign(){
+  if(editingMemberId!==null) return; // don't auto-fill when editing
+  const rg=document.getElementById('mmRankGroup').value;
+  document.getElementById('mmCallsign').value=nextMemberCallsign(rg);
 }
 function openEditMember(id){
   const m=members.find(mb=>mb.id===id);if(!m)return;
@@ -1208,11 +1218,11 @@ function openAddTrainee(){
   editingTraineeId=null;
   refreshAllSelects();
   document.getElementById('tmTitle').textContent='Add Trainee';
-  document.getElementById('tmSub').textContent='Trainee will be auto-assigned the next available G-## callsign.';
+  document.getElementById('tmSub').textContent='Callsign auto-assigned from your trainee format.';
   document.getElementById('tmName').value='';
+  document.getElementById('tmCallsign').value=nextTraineeCallsign();
   document.getElementById('tmDiscord').value='';
   document.getElementById('tmDOH').value=new Date().toISOString().split('T')[0];
-  document.getElementById('tmFTO').value='';
   document.getElementById('tmStatus').value='Active';
   document.getElementById('tmStrikes').value='0';
   document.getElementById('tmNotes').value='';
@@ -1225,9 +1235,9 @@ function openEditTrainee(id){
   document.getElementById('tmTitle').textContent='Edit Trainee';
   document.getElementById('tmSub').textContent='Update trainee details.';
   document.getElementById('tmName').value=t.name;
+  document.getElementById('tmCallsign').value=t.callsign||'';
   document.getElementById('tmDiscord').value=t.discord||'';
   document.getElementById('tmDOH').value=t.doh||'';
-  document.getElementById('tmFTO').value=t.fto||'';
   document.getElementById('tmStatus').value=t.status;
   document.getElementById('tmStrikes').value=t.strikes||0;
   document.getElementById('tmNotes').value=t.notes||'';
@@ -1237,22 +1247,20 @@ function closeTraineeModal(){ document.getElementById('traineeModal').style.disp
 
 function saveTrainee(){
   const name=document.getElementById('tmName').value.trim();
+  const callsign=document.getElementById('tmCallsign').value.trim();
   const discord=document.getElementById('tmDiscord').value.trim();
   const doh=document.getElementById('tmDOH').value;
-  const fto=document.getElementById('tmFTO').value;
   const status=document.getElementById('tmStatus').value;
   const strikes=parseInt(document.getElementById('tmStrikes').value)||0;
   const notes=document.getElementById('tmNotes').value.trim();
   if(!name){showToast('⚠ Name is required.',true);return;}
   if(editingTraineeId!==null){
     const idx=trainees.findIndex(t=>t.id===editingTraineeId);
-    trainees[idx]={...trainees[idx],name,discord,doh,fto,status,strikes,notes};
+    trainees[idx]={...trainees[idx],name,callsign,discord,doh,status,strikes,notes};
     showToast('✓ Trainee updated.');
   } else {
-    const slot=lowestTraineeSlot();
-    if(slot===null){showToast('⚠ All trainee slots full (G-100).',true);return;}
-    trainees.push({id:nextTraineeId++,name,discord,doh,fto,status,strikes,notes,callsignNum:slot});
-    showToast(`✓ ${name} added as ${formatTraineeCallsign(slot)}.`);
+    trainees.push({id:nextTraineeId++,name,callsign,discord,doh,status,strikes,notes});
+    showToast(`✓ ${name} added as ${callsign||'—'}.`);
   }
   closeTraineeModal();
   renderTraineeRoster(); renderStats();
@@ -1266,7 +1274,7 @@ function openDelModal(id, type){
   deletingId=id; deletingType=type;
   const rec=type==='member'?members.find(m=>m.id===id):trainees.find(t=>t.id===id);
   if(!rec)return;
-  const cs=type==='member'?formatCallsign(rec.callsignNum):formatTraineeCallsign(rec.callsignNum);
+  const cs=type==='member'?(rec.callsign||'—'):(rec.callsign||'—');
   document.getElementById('delName').textContent=`${cs} — ${rec.name}`;
   document.getElementById('delModal').style.display='flex';
 }
@@ -1311,24 +1319,61 @@ function updatePrefix(val){
   renderMainRoster();
   scheduleSave();
 }
+// ══════════════════════════════════════════════════════════════════
+// SMART CALLSIGN AUTO-INCREMENT
+// Takes a format like "5101" or "1W-01" or "G-01"
+// Finds the trailing number, increments it, keeps the prefix
+// ══════════════════════════════════════════════════════════════════
+function parseCallsignFormat(fmt){
+  if(!fmt) return null;
+  const m = fmt.match(/^(.*?)(\d+)$/);
+  if(!m) return {prefix: fmt, num: 0, padLen: 0};
+  return {prefix: m[1], num: parseInt(m[2]), padLen: m[2].length};
+}
+
+function formatCallsignFromParts(prefix, num, padLen){
+  return prefix + String(num).padStart(padLen, '0');
+}
+
+function nextAvailableCallsign(format, existingCallsigns){
+  const parsed = parseCallsignFormat(format);
+  if(!parsed) return format;
+  let n = parsed.num;
+  const used = existingCallsigns.map(c => {
+    const p = parseCallsignFormat(c);
+    return p && p.prefix === parsed.prefix ? p.num : null;
+  }).filter(x => x !== null);
+  while(used.includes(n)) n++;
+  return formatCallsignFromParts(parsed.prefix, n, parsed.padLen);
+}
+
+function nextTraineeCallsign(){
+  if(!traineePrefix) return '';
+  const existing = trainees.map(t => t.callsign).filter(Boolean);
+  return nextAvailableCallsign(traineePrefix, existing);
+}
+
 function updateTraineePrefix(val){
-  traineePrefix=val||'';
-  document.getElementById('traineePrefixPreview').textContent=val||'';
-  renderTraineeRoster();
+  traineePrefix = val||'';
+  const preview = document.getElementById('traineePrefixPreview');
+  if(preview) preview.textContent = val ? nextAvailableCallsign(val, trainees.map(t=>t.callsign).filter(Boolean)) : '—';
   scheduleSave();
 }
+
 
 // RANK GROUP EDITOR
 function renderRankGroupEditor(){
   document.getElementById('rankGroupList').innerHTML=rankGroups.map((g,i)=>`
-    <div class="edit-row" style="grid-template-columns:1fr 28px 28px 28px;">
-      <input type="text" value="${g.name}" oninput="updateRGName(${i},this.value)">
+    <div class="edit-row" style="grid-template-columns:1fr 120px 28px 28px 28px;">
+      <input type="text" value="${g.name}" oninput="updateRGName(${i},this.value)" placeholder="Group name">
+      <input type="text" value="${g.format||''}" oninput="updateRGFormat(${i},this.value)" placeholder="e.g. 1W-01">
       <button class="icon-btn" onclick="moveRG(${i},-1)" ${i===0?'disabled':''}>↑</button>
       <button class="icon-btn" onclick="moveRG(${i}, 1)" ${i===rankGroups.length-1?'disabled':''}>↓</button>
       <button class="del-btn"  onclick="deleteRG(${i})">×</button>
     </div>`).join('');
 }
 function updateRGName(i,v){rankGroups[i].name=v;renderMainRoster();scheduleSave();}
+function updateRGFormat(i,v){rankGroups[i].format=v;scheduleSave();}
 function moveRG(i,d){
   const j=i+d;if(j<0||j>=rankGroups.length)return;
   [rankGroups[i],rankGroups[j]]=[rankGroups[j],rankGroups[i]];
@@ -1345,11 +1390,20 @@ function deleteRG(i){
 }
 function addRankGroup(){
   const name=document.getElementById('ngName').value.trim();
+  const format=document.getElementById('ngFormat').value.trim();
   if(!name){showToast('⚠ Enter a group name.',true);return;}
-  rankGroups.push({name});
+  rankGroups.push({name,format});
   document.getElementById('ngName').value='';
+  document.getElementById('ngFormat').value='';
   renderRankGroupEditor();refreshAllSelects();
   showToast(`✓ Group "${name}" added.`); scheduleSave();
+}
+
+function nextMemberCallsign(rankGroup){
+  const g = rankGroups.find(r=>r.name===rankGroup);
+  if(!g||!g.format) return '';
+  const existing = members.filter(m=>m.rankGroup===rankGroup).map(m=>m.callsign).filter(Boolean);
+  return nextAvailableCallsign(g.format, existing);
 }
 
 // SUBDIV EDITOR
@@ -1717,6 +1771,12 @@ applyTheme('navy-gold', true);
       showToast('✓ Shared roster loaded.');
     } else {
       showToast('⚠ Invalid or disabled share link.',true);
+    }
+  } else {
+    // Auto-login if session exists
+    const {data:{session}}=await sb.auth.getSession();
+    if(session){
+      await loginSuccess(session.user);
     }
   }
   renderMainRoster();
