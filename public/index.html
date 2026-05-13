@@ -1298,23 +1298,6 @@ function addSubdivision(){
 // ══════════════════════════════════════════════════════════════
 // SUPER ADMIN
 // ══════════════════════════════════════════════════════════════
-async function loadSuperAdminDepts(){
-  const {data:depts} = await sb.from('departments').select('*').order('created_at');
-  const tbody = document.getElementById('deptTableBody');
-  if(!depts||!depts.length){
-    tbody.innerHTML=`<tr><td colspan="4" style="text-align:center;padding:24px;color:var(--text3);font-family:'JetBrains Mono',monospace;font-size:12px;">No departments yet. Create one above.</td></tr>`;
-    return;
-  }
-  // Get user emails from auth
-  tbody.innerHTML=depts.map(d=>`
-    <tr>
-      <td><div class="dept-name-cell">${d.name}</div></td>
-      <td><div class="dept-email-cell">${d.user_id}</div></td>
-      <td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);">${new Date(d.created_at).toLocaleDateString()}</td>
-      <td><button class="btn btn-danger" onclick="deleteDept('${d.id}','${d.user_id}','${d.name}')">Delete</button></td>
-    </tr>`).join('');
-}
-
 function openCreateDept(){
   document.getElementById('createDeptModal').classList.remove('hidden');
   document.getElementById('createDeptError').classList.add('hidden');
@@ -1333,27 +1316,43 @@ async function createDepartment(){
   if(password.length<6){errEl.textContent='⚠ Password must be at least 6 characters.';errEl.classList.remove('hidden');return;}
 
   // Sign up the new department user
-  const {data,error}=await sb.auth.signUp({
-    email, password,
-    options:{data:{department_name:name}}
-  });
+  const {data,error}=await sb.auth.signUp({email,password,options:{data:{department_name:name}}});
   if(error){errEl.textContent='⚠ '+error.message;errEl.classList.remove('hidden');return;}
-  if(!data.user){errEl.textContent='⚠ Account created but needs email confirmation. Check Supabase auth settings.';errEl.classList.remove('hidden');return;}
+  if(!data.user){errEl.textContent='⚠ Check that email confirmation is disabled in Supabase.';errEl.classList.remove('hidden');return;}
 
-  // Create department record manually
-  const {error:deptErr}=await sb.from('departments').insert({user_id:data.user.id, name});
-  if(deptErr){errEl.textContent='⚠ User created but dept record failed: '+deptErr.message;errEl.classList.remove('hidden');return;}
+  // Insert department record right away
+  const {error:dErr}=await sb.from('departments').insert({user_id:data.user.id,name});
+  if(dErr){errEl.textContent='⚠ '+dErr.message;errEl.classList.remove('hidden');return;}
 
-  // Create roster data record
-  await sb.from('roster_data').insert({dept_id:(await sb.from('departments').select('id').eq('user_id',data.user.id).single()).data?.id});
+  // Insert empty roster data
+  const {data:dept}=await sb.from('departments').select('id').eq('user_id',data.user.id).single();
+  if(dept) await sb.from('roster_data').insert({dept_id:dept.id});
 
   document.getElementById('createDeptModal').classList.add('hidden');
   await loadSuperAdminDepts();
-  showToast(`✓ Department "${name}" created! They can now log in.`);
+  showToast(`✓ "${name}" created! Email: ${email}`);
 }
 
-async function deleteDept(deptId, userId, name){
+async function loadSuperAdminDepts(){
+  const {data:depts,error}=await sb.from('departments').select('*').order('created_at',{ascending:false});
+  const tbody=document.getElementById('deptTableBody');
+  if(!tbody) return;
+  if(error||!depts||!depts.length){
+    tbody.innerHTML=`<tr><td colspan="4" style="text-align:center;padding:24px;color:var(--text3);font-family:'JetBrains Mono',monospace;font-size:12px;">No departments yet. Click "+ Create Department" to add one.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML=depts.map(d=>`
+    <tr>
+      <td><div class="dept-name-cell">${d.name}</div></td>
+      <td><div class="dept-email-cell" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);">${d.user_id}</div></td>
+      <td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);">${new Date(d.created_at).toLocaleDateString()}</td>
+      <td><button class="btn btn-danger" onclick="deleteDept('${d.id}','${d.name}')">Delete</button></td>
+    </tr>`).join('');
+}
+
+async function deleteDept(deptId, name){
   if(!confirm(`Delete department "${name}"? This cannot be undone.`)) return;
+  await sb.from('roster_data').delete().eq('dept_id',deptId);
   await sb.from('departments').delete().eq('id',deptId);
   await loadSuperAdminDepts();
   showToast(`Department "${name}" deleted.`);
