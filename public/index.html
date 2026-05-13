@@ -310,6 +310,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
       </div>
       <div class="header-right">
         <span class="admin-pill hidden" id="adminPill">⬡ Admin</span>
+        <button class="btn btn-ghost btn-sm hidden" id="loginFromPublicBtn" onclick="showAuthModal()" style="font-size:10px;">Admin Login</button>
         <button class="btn btn-outline btn-sm hidden" id="shareBtn" onclick="openShareModal()">Share</button>
         <button class="logout-btn" onclick="doLogout()">Logout</button>
       </div>
@@ -539,13 +540,26 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 
 <!-- SHARE MODAL -->
 <div class="modal-overlay hidden" id="shareModal" onclick="if(event.target===this)this.classList.add('hidden')">
-  <div class="modal" style="max-width:460px;">
+  <div class="modal" style="max-width:500px;">
     <div class="modal-title">Share Roster</div>
-    <div class="modal-sub">Anyone with this link can view and edit your roster.</div>
-    <div class="share-url" id="shareUrl" onclick="copyShareLink()" title="Click to copy">Generating link…</div>
-    <div style="display:flex;gap:8px;">
-      <button class="btn btn-primary btn-sm" onclick="copyShareLink()">Copy Link</button>
-      <button class="btn btn-danger" onclick="disableShare()">Disable</button>
+    <div class="modal-sub">Share your roster with your community.</div>
+
+    <div class="form-group">
+      <label class="form-label">Public Link — Read Only</label>
+      <div class="share-url" id="publicUrl" onclick="copyPublicLink()" title="Click to copy">Generating…</div>
+      <button class="btn btn-primary btn-sm" onclick="copyPublicLink()">Copy Public Link</button>
+    </div>
+
+    <div class="form-group" style="margin-top:16px;">
+      <label class="form-label">Edit Link — Staff Access</label>
+      <div class="share-url" id="shareUrl" onclick="copyShareLink()" title="Click to copy">Generating…</div>
+      <div style="display:flex;gap:8px;margin-top:8px;">
+        <button class="btn btn-outline btn-sm" onclick="copyShareLink()">Copy Edit Link</button>
+        <button class="btn btn-danger" onclick="disableShare()">Disable Edit Link</button>
+      </div>
+    </div>
+
+    <div style="margin-top:16px;">
       <button class="btn btn-ghost btn-sm" onclick="document.getElementById('shareModal').classList.add('hidden')">Close</button>
     </div>
   </div>
@@ -814,24 +828,31 @@ async function loadByShareToken(token){
 
 async function openShareModal(){
   document.getElementById('shareModal').classList.remove('hidden');
-  const {data:rd} = await sb.from('roster_data').select('share_token,share_enabled').eq('id',rosterDataId).single();
+  // Public read-only link (always available, uses dept ID)
+  document.getElementById('publicUrl').textContent=location.origin+location.pathname+'?dept='+deptId;
+  // Edit link (share token)
+  const {data:rd}=await sb.from('roster_data').select('share_token,share_enabled').eq('id',rosterDataId).single();
   if(rd&&rd.share_enabled&&rd.share_token){
     document.getElementById('shareUrl').textContent=location.origin+location.pathname+'?share='+rd.share_token;
   } else {
-    const token = Math.random().toString(36).slice(2)+Math.random().toString(36).slice(2);
+    const token=Math.random().toString(36).slice(2)+Math.random().toString(36).slice(2);
     await sb.from('roster_data').update({share_token:token,share_enabled:true}).eq('id',rosterDataId);
     document.getElementById('shareUrl').textContent=location.origin+location.pathname+'?share='+token;
   }
 }
+function copyPublicLink(){
+  const t=document.getElementById('publicUrl').textContent;
+  navigator.clipboard.writeText(t).then(()=>showToast('✓ Public link copied!'));
+}
 async function disableShare(){
   await sb.from('roster_data').update({share_enabled:false}).eq('id',rosterDataId);
-  document.getElementById('shareUrl').textContent='Share link disabled.';
-  showToast('Share link disabled.');
+  document.getElementById('shareUrl').textContent='Edit link disabled.';
+  showToast('Edit link disabled.');
 }
 function copyShareLink(){
   const t=document.getElementById('shareUrl').textContent;
-  if(t.includes('disabled')){showToast('⚠ Link is disabled.',true);return;}
-  navigator.clipboard.writeText(t).then(()=>showToast('✓ Link copied!'));
+  if(t.includes('disabled')){showToast('⚠ Edit link is disabled.',true);return;}
+  navigator.clipboard.writeText(t).then(()=>showToast('✓ Edit link copied!'));
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -1448,9 +1469,32 @@ document.addEventListener('keydown',e=>{
 (async()=>{
   applyTheme('dark-steel');
 
-  // Check for share token first
   const params=new URLSearchParams(window.location.search);
   const token=params.get('share');
+  const deptParam=params.get('dept');
+
+  // Public read-only view via ?dept=ID
+  if(deptParam){
+    const {data:rd}=await sb.from('roster_data').select('*').eq('dept_id',deptParam).single();
+    if(rd){
+      rosterDataId=rd.id;
+      const {data:dept}=await sb.from('departments').select('*').eq('id',deptParam).single();
+      if(dept){deptId=dept.id;deptName=dept.name||'Department';}
+      rankGroups=rd.rank_groups||[]; subdivisions=rd.subdivisions||[];
+      positions=rd.positions||[]; traineeFormat=rd.trainee_format||'';
+      activeTheme=rd.theme||'dark-steel'; members=rd.members||[]; trainees=rd.trainees||[];
+      applyTheme(activeTheme);
+      document.getElementById('headerName').textContent=deptName;
+      document.getElementById('landingPage').style.display='none';
+      document.getElementById('appPage').style.display='flex';
+      // Show login button so admins can log in from public view
+      document.getElementById('loginFromPublicBtn').classList.remove('hidden');
+      renderAll();
+      return;
+    }
+  }
+
+  // Share token (edit access)
   if(token){
     const {data:rd}=await sb.from('roster_data').select('*').eq('share_token',token).eq('share_enabled',true).single();
     if(rd){
@@ -1464,13 +1508,15 @@ document.addEventListener('keydown',e=>{
       document.getElementById('headerName').textContent=deptName;
       document.getElementById('landingPage').style.display='none';
       document.getElementById('appPage').style.display='flex';
+      currentUser={email:'shared'};
+      ['adminPill','addMemberBtn','addTraineeBtn','editorTab'].forEach(id=>document.getElementById(id).classList.remove('hidden'));
       renderAll();
-      showToast('Viewing shared roster: '+deptName);
+      showToast('Edit access granted via share link.');
       return;
     }
   }
 
-  // Check existing session (auto-login)
+  // Auto-login if session exists
   const {data:{session}}=await sb.auth.getSession();
   if(session){
     await onLoginSuccess(session.user);
