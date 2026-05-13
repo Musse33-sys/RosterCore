@@ -125,7 +125,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 /* MAIN CONTENT */
 .app-main{flex:1;padding:28px 32px;max-width:1600px;margin:0 auto;width:100%;}
 
-/* TAB SYSTEM */
 .tab-panel{display:none;}.tab-panel.active{display:block;}
 
 /* ══════════════════════════════════════
@@ -326,7 +325,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   <main class="app-main">
 
     <!-- ROSTER TAB -->
-    <div class="tab-panel active" id="tab-roster">
+    <div class="tab-panel active" style="display:block;" id="tab-roster">
       <div class="stats-bar" id="statsBar"></div>
       <div class="filter-bar">
         <input class="filter-input" id="searchInput" placeholder="Search name or callsign…" oninput="renderRoster()">
@@ -342,7 +341,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
     </div>
 
     <!-- TRAINEES TAB -->
-    <div class="tab-panel hidden" id="tab-trainees">
+    <div class="tab-panel" style="display:none;" id="tab-trainees">
       <div class="section-hdr">
         <div class="section-title">Trainee <span>Roster</span></div>
         <button class="btn btn-primary btn-sm hidden" id="addTraineeBtn" onclick="openAddTrainee()">+ Add Trainee</button>
@@ -352,7 +351,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
     </div>
 
     <!-- EDITOR TAB -->
-    <div class="tab-panel hidden" id="tab-editor">
+    <div class="tab-panel" style="display:none;" id="tab-editor">
       <div class="editor-wrap">
         <div class="editor-notice">⬡ Changes save automatically. Build your roster structure here.</div>
 
@@ -421,7 +420,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
     </div>
 
     <!-- SUPER ADMIN TAB -->
-    <div class="tab-panel hidden" id="tab-superadmin">
+    <div class="tab-panel" id="tab-superadmin" style="display:none;">
       <div class="sa-panel">
         <div class="sa-notice">⬡ SUPER ADMIN — Only you can see this panel. Create and manage department accounts here.</div>
         <div class="section-hdr">
@@ -430,7 +429,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
         </div>
         <div class="divider"></div>
         <table class="dept-table">
-          <thead><tr><th>Department</th><th>Email</th><th>Created</th><th>Actions</th></tr></thead>
+          <thead><tr><th>Department</th><th>User ID</th><th>Created</th><th>Actions</th></tr></thead>
           <tbody id="deptTableBody"></tbody>
         </table>
       </div>
@@ -821,10 +820,10 @@ function copyShareLink(){
 // TABS
 // ══════════════════════════════════════════════════════════════
 function switchTab(name, btn){
-  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p=>{p.style.display='none';p.classList.remove('active');});
   document.querySelectorAll('.nav-tab').forEach(b=>b.classList.remove('active'));
   const panel = document.getElementById('tab-'+name);
-  if(panel) panel.classList.add('active');
+  if(panel){panel.style.display='block';panel.classList.add('active');}
   if(btn) btn.classList.add('active');
   if(name==='editor') renderEditor();
   if(name==='superadmin') loadSuperAdminDepts();
