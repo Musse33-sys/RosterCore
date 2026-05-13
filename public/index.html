@@ -17,6 +17,7 @@
 /* THEME OVERRIDES — injected by JS */
 .theme-preset-btn{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;padding:10px 16px;border-radius:3px;cursor:pointer;transition:all .2s;border:2px solid transparent;display:flex;flex-direction:column;gap:4px;align-items:flex-start;min-width:130px;}
 .theme-preset-btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.4);}
+.tab-content{display:none;}.tab-content.active{display:block;}
 .theme-preset-btn.active-theme{border-color:#fff !important;box-shadow:0 0 0 3px rgba(255,255,255,.2);}
 .theme-preset-btn .t-name{font-size:12px;font-weight:700;}
 .theme-preset-btn .t-swatch{display:flex;gap:4px;margin-top:2px;}
@@ -404,21 +405,13 @@ main{padding:32px 40px;max-width:1600px;margin:0 auto;}
 
 <!-- SHARE MODAL -->
 <div class="modal-overlay" id="shareModal" style="display:none;" onclick="if(event.target===this)this.style.display='none'">
-  <div class="modal" style="max-width:480px;">
+  <div class="modal" style="max-width:460px;">
     <div class="modal-title">Share Roster Access</div>
-    <div class="modal-sub">Invite people to edit your roster via email.</div>
+    <div class="modal-sub">Anyone with this link can edit your roster. Share it however you like — Discord, WhatsApp, email.</div>
     <div class="form-group">
-      <label class="form-label">Invite by Email</label>
-      <div style="display:flex;gap:8px;">
-        <input type="email" class="form-input" id="inviteEmail" placeholder="colleague@example.com" style="flex:1;">
-        <button class="btn btn-primary btn-sm" onclick="sendInvite()">Send Invite</button>
-      </div>
+      <label class="form-label">Share Link</label>
+      <div id="shareUrlBox" style="background:rgba(7,14,28,.7);border:1px solid rgba(201,168,76,.2);padding:12px 14px;border-radius:2px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--gold);word-break:break-all;cursor:pointer;min-height:44px;" onclick="copyShareLink()" title="Click to copy"></div>
     </div>
-    <div class="form-group">
-      <label class="form-label">Or share this link directly</label>
-      <div id="shareUrlBox" style="background:rgba(7,14,28,.7);border:1px solid rgba(201,168,76,.2);padding:10px 13px;border-radius:2px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gold);word-break:break-all;cursor:pointer;" onclick="copyShareLink()" title="Click to copy"></div>
-    </div>
-    <div id="invitedList" style="margin-bottom:16px;"></div>
     <div style="display:flex;gap:10px;">
       <button class="btn btn-primary btn-sm" onclick="copyShareLink()">Copy Link</button>
       <button class="btn btn-danger" onclick="disableShare()">Disable Link</button>
@@ -707,64 +700,24 @@ let shareToken = null;
 
 async function openShare(){
   document.getElementById('shareModal').style.display='flex';
-  const {data}=await sb.from('rosters').select('share_token,share_enabled,invited_emails').eq('id',currentRosterId).single();
+  const {data}=await sb.from('rosters').select('share_token,share_enabled').eq('id',currentRosterId).single();
   if(data&&data.share_enabled&&data.share_token){
     shareToken=data.share_token;
     document.getElementById('shareUrlBox').textContent=window.location.origin+window.location.pathname+'?share='+data.share_token;
-    renderInvitedList(data.invited_emails||[]);
   } else {
     await generateShareLink();
   }
 }
-
 async function generateShareLink(){
   shareToken=Math.random().toString(36).slice(2)+Math.random().toString(36).slice(2);
   await sb.from('rosters').update({share_token:shareToken,share_enabled:true}).eq('id',currentRosterId);
   document.getElementById('shareUrlBox').textContent=window.location.origin+window.location.pathname+'?share='+shareToken;
-  renderInvitedList([]);
 }
-
-async function sendInvite(){
-  const email=document.getElementById('inviteEmail').value.trim();
-  if(!email){showToast('⚠ Enter an email address.',true);return;}
-  const link=window.location.origin+window.location.pathname+'?share='+shareToken;
-  // Save email to invited list
-  const {data}=await sb.from('rosters').select('invited_emails').eq('id',currentRosterId).single();
-  const list=[...(data?.invited_emails||[])];
-  if(!list.includes(email)) list.push(email);
-  await sb.from('rosters').update({invited_emails:list}).eq('id',currentRosterId);
-  // Send email via mailto (simple approach)
-  window.open(`mailto:${email}?subject=You've been invited to ${deptName} Roster&body=You've been invited to access the ${deptName} roster on RosterCore.%0A%0AClick this link to access:%0A${encodeURIComponent(link)}`);
-  document.getElementById('inviteEmail').value='';
-  renderInvitedList(list);
-  showToast(`✓ Invite sent to ${email}`);
-}
-
-function renderInvitedList(list){
-  const el=document.getElementById('invitedList');
-  if(!list.length){el.innerHTML='';return;}
-  el.innerHTML=`<label class="form-label" style="margin-bottom:8px;display:block;">People with access</label>`+
-    list.map(e=>`<div style="display:flex;align-items:center;justify-content:space-between;background:rgba(7,14,28,.5);border:1px solid rgba(201,168,76,.1);padding:8px 12px;border-radius:2px;margin-bottom:6px;">
-      <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--cream-dk);">${e}</span>
-      <button class="btn btn-danger" style="padding:3px 8px;font-size:10px;" onclick="removeInvite('${e}')">Remove</button>
-    </div>`).join('');
-}
-
-async function removeInvite(email){
-  const {data}=await sb.from('rosters').select('invited_emails').eq('id',currentRosterId).single();
-  const list=(data?.invited_emails||[]).filter(e=>e!==email);
-  await sb.from('rosters').update({invited_emails:list}).eq('id',currentRosterId);
-  renderInvitedList(list);
-  showToast(`${email} removed.`);
-}
-
 async function disableShare(){
-  await sb.from('rosters').update({share_enabled:false,invited_emails:[]}).eq('id',currentRosterId);
+  await sb.from('rosters').update({share_enabled:false}).eq('id',currentRosterId);
   document.getElementById('shareUrlBox').textContent='Share link disabled.';
-  renderInvitedList([]);
   showToast('Share link disabled.');
 }
-
 function copyShareLink(){
   const txt=document.getElementById('shareUrlBox').textContent;
   if(txt.includes('disabled')){showToast('⚠ Share link is disabled.',true);return;}
