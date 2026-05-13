@@ -353,7 +353,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
     <!-- EDITOR TAB -->
     <div class="tab-panel" style="display:none;" id="tab-editor">
       <div class="editor-wrap">
-        <div class="editor-notice">⬡ Changes save automatically. Build your roster structure here.</div>
+        <div class="editor-notice">⬡ Changes save automatically. Build your roster structure here. <button class="btn btn-primary btn-sm" onclick="saveRoster()" style="margin-left:12px;">Save Now</button></div>
 
         <!-- DEPT NAME -->
         <div class="editor-section">
@@ -372,14 +372,15 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
         <!-- RANK GROUPS -->
         <div class="editor-section">
           <div class="editor-h3">Rank Groups</div>
-          <div class="col-labels" style="grid-template-columns:1fr 130px 28px 28px 28px;"><span>Group Name</span><span>Callsign Format</span><span></span><span></span><span></span></div>
+          <div class="col-labels" style="grid-template-columns:1fr 100px 100px 28px 28px 28px;"><span>Group Name</span><span>From</span><span>To</span><span></span><span></span><span></span></div>
           <div class="edit-list" id="rgList"></div>
           <div class="add-form">
             <input class="add-input" id="rgNewName" placeholder="Group name (e.g. Administration)">
-            <input class="add-input" id="rgNewFormat" placeholder="Format (e.g. 1W-01)" style="max-width:160px;">
+            <input class="add-input" id="rgNewFrom" placeholder="e.g. 1W-01" style="max-width:110px;">
+            <input class="add-input" id="rgNewTo" placeholder="e.g. 1W-06" style="max-width:110px;">
             <button class="btn btn-primary btn-sm" onclick="addRankGroup()">+ Add</button>
           </div>
-          <p style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);margin-top:8px;line-height:1.7;">Top = highest rank. Format sets the starting callsign — new members auto-increment from there.</p>
+          <p style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);margin-top:8px;line-height:1.7;">Top = highest rank. "From" and "To" define the callsign range for that group. Vacant slots show automatically.</p>
         </div>
         <div class="editor-divider"></div>
 
@@ -628,29 +629,41 @@ function parseFormat(fmt){
   return {prefix:m[1], num:parseInt(m[2]), pad:m[2].length};
 }
 
-function nextCallsign(format, usedCallsigns){
-  const p = parseFormat(format);
-  if(!p) return format||'';
-  const used = usedCallsigns.map(c=>{
-    const q = parseFormat(c||'');
-    return q && q.prefix===p.prefix ? q.num : null;
-  }).filter(x=>x!==null);
-  let n = p.num;
-  while(used.includes(n)) n++;
-  return p.prefix + String(n).padStart(p.pad,'0');
+function buildCallsign(prefix, num, pad){
+  return prefix + String(num).padStart(pad,'0');
+}
+
+// Generate all slots in a range e.g. 1W-01 to 1W-06 = [1W-01, 1W-02, ..., 1W-06]
+function getRangeSlots(from, to){
+  if(!from) return [];
+  const pFrom = parseFormat(from);
+  if(!pFrom) return [from];
+  if(!to){ return [from]; }
+  const pTo = parseFormat(to);
+  if(!pTo || pTo.prefix !== pFrom.prefix) return [from];
+  const slots = [];
+  for(let n=pFrom.num; n<=pTo.num; n++){
+    slots.push(buildCallsign(pFrom.prefix, n, pFrom.pad));
+  }
+  return slots;
 }
 
 function nextMemberCallsign(groupName, excludeId=null){
   const g = rankGroups.find(r=>r.name===groupName);
-  if(!g||!g.format) return '';
+  if(!g||!g.from) return '';
+  const slots = getRangeSlots(g.from, g.to);
   const used = members.filter(m=>m.rankGroup===groupName && m.id!==excludeId).map(m=>m.callsign);
-  return nextCallsign(g.format, used);
+  return slots.find(s=>!used.includes(s)) || '';
 }
 
 function nextTraineeCallsign(excludeId=null){
   if(!traineeFormat) return '';
+  const p = parseFormat(traineeFormat);
+  if(!p) return traineeFormat;
   const used = trainees.filter(t=>t.id!==excludeId).map(t=>t.callsign);
-  return nextCallsign(traineeFormat, used);
+  let n = p.num;
+  while(used.includes(buildCallsign(p.prefix,n,p.pad))) n++;
+  return buildCallsign(p.prefix,n,p.pad);
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -690,14 +703,19 @@ function scheduleSave(){
 }
 
 async function saveRoster(){
-  if(!rosterDataId) return;
-  await sb.from('roster_data').update({
+  if(!rosterDataId){ showToast('⚠ No roster ID — try logging out and back in.',true); return; }
+  const {error:e1} = await sb.from('roster_data').update({
     rank_groups: rankGroups, subdivisions: subdivisions,
     positions: positions, trainee_format: traineeFormat,
     theme: activeTheme, members: members, trainees: trainees,
     updated_at: new Date().toISOString()
   }).eq('id', rosterDataId);
-  await sb.from('departments').update({name: deptName}).eq('id', deptId);
+  const {error:e2} = await sb.from('departments').update({name: deptName}).eq('id', deptId);
+  if(e1||e2){
+    showToast('⚠ Save failed: '+(e1?.message||e2?.message),true);
+  } else {
+    showToast('✓ Saved.');
+  }
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -916,8 +934,43 @@ function renderRoster(){
     }).sort((a,b)=>(a.callsign||'').localeCompare(b.callsign||''));
 
     const actionsCols = currentUser ? '<th>Actions</th>' : '';
-    const rows = gMembers.length
-      ? gMembers.map(m=>`
+    const slots = getRangeSlots(g.from, g.to);
+
+    const rows = slots.length
+      ? slots.map(slot=>{
+          const m = gMembers.find(mb=>mb.callsign===slot);
+          if(m){
+            return `<tr class="row-filled">
+              <td><span class="cs-filled">${m.callsign||'—'}</span></td>
+              <td>
+                <div class="member-name">${m.name}
+                  ${m.isFTO?`<span class="fto-badge">FTO</span>`:''}
+                  ${m.volunteer?`<span style="font-family:'JetBrains Mono',monospace;font-size:9px;background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.3);color:var(--purple);padding:1px 6px;border-radius:2px;">VOL</span>`:''}
+                </div>
+                ${m.position?`<div class="member-pos">${m.position}</div>`:''}
+              </td>
+              <td>${sdBadges(m.subdivs)}</td>
+              <td>${statusPill(m.status)}</td>
+              <td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);">${fmtDate(m.doh)}</td>
+              <td style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${m.discord||''}">${m.discord||'—'}</td>
+              <td>${strikeBadge(m.strikes||0)}</td>
+              <td style="font-size:11px;color:var(--text2);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${m.notes||''}">${m.notes||'—'}</td>
+              ${currentUser?`<td><div class="row-acts">
+                ${gi>0?`<button class="btn-promote btn" onclick="promote(${m.id})">▲</button>`:''}
+                ${gi<rankGroups.length-1?`<button class="btn-demote btn" onclick="demote(${m.id})">▼</button>`:''}
+                <button class="btn btn-ghost btn-xs" onclick="openEditMember(${m.id})">Edit</button>
+                <button class="btn btn-danger" onclick="openConfirmDelete(${m.id},'member')">✕</button>
+              </div></td>`:''}
+            </tr>`;
+          } else {
+            // Vacant slot
+            return `<tr class="row-empty">
+              <td><span class="cs-empty">${slot}</span></td>
+              <td colspan="${currentUser?8:7}" style="color:var(--border2);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;padding:10px 12px;">— VACANT —</td>
+            </tr>`;
+          }
+        }).join('')
+      : gMembers.map(m=>`
         <tr class="row-filled">
           <td><span class="cs-filled">${m.callsign||'—'}</span></td>
           <td>
@@ -930,17 +983,16 @@ function renderRoster(){
           <td>${sdBadges(m.subdivs)}</td>
           <td>${statusPill(m.status)}</td>
           <td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);">${fmtDate(m.doh)}</td>
-          <td style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${m.discord||''}">${m.discord||'—'}</td>
+          <td style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);">${m.discord||'—'}</td>
           <td>${strikeBadge(m.strikes||0)}</td>
-          <td style="font-size:11px;color:var(--text2);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${m.notes||''}">${m.notes||'—'}</td>
+          <td style="font-size:11px;color:var(--text2);">${m.notes||'—'}</td>
           ${currentUser?`<td><div class="row-acts">
             ${gi>0?`<button class="btn-promote btn" onclick="promote(${m.id})">▲</button>`:''}
             ${gi<rankGroups.length-1?`<button class="btn-demote btn" onclick="demote(${m.id})">▼</button>`:''}
             <button class="btn btn-ghost btn-xs" onclick="openEditMember(${m.id})">Edit</button>
             <button class="btn btn-danger" onclick="openConfirmDelete(${m.id},'member')">✕</button>
           </div></td>`:''}
-        </tr>`).join('')
-      : `<tr class="row-empty"><td colspan="${currentUser?9:8}" style="text-align:center;padding:16px;font-family:'JetBrains Mono',monospace;font-size:11px;">— NO MEMBERS IN THIS GROUP —</td></tr>`;
+        </tr>`).join('') || `<tr class="row-empty"><td colspan="${currentUser?9:8}" style="text-align:center;padding:16px;font-family:'JetBrains Mono',monospace;font-size:11px;">— NO MEMBERS —</td></tr>`;
 
     html+=`
     <div class="rank-group fade-up">
@@ -1233,16 +1285,18 @@ function updateTraineeFormatPreview(){
 
 function renderRGList(){
   document.getElementById('rgList').innerHTML=rankGroups.map((g,i)=>`
-    <div class="edit-row" style="grid-template-columns:1fr 130px 28px 28px 28px;">
+    <div class="edit-row" style="grid-template-columns:1fr 100px 100px 28px 28px 28px;">
       <input class="edit-input" value="${g.name}" oninput="updateRGName(${i},this.value)" placeholder="Group name">
-      <input class="edit-input" value="${g.format||''}" oninput="updateRGFormat(${i},this.value)" placeholder="e.g. 1W-01">
+      <input class="edit-input" value="${g.from||''}" oninput="updateRGFrom(${i},this.value)" placeholder="e.g. 1W-01">
+      <input class="edit-input" value="${g.to||''}" oninput="updateRGTo(${i},this.value)" placeholder="e.g. 1W-06">
       <button class="icon-btn" onclick="moveRG(${i},-1)" ${i===0?'disabled':''}>↑</button>
       <button class="icon-btn" onclick="moveRG(${i},1)" ${i===rankGroups.length-1?'disabled':''}>↓</button>
       <button class="del-btn" onclick="deleteRG(${i})">×</button>
     </div>`).join('');
 }
 function updateRGName(i,v){ rankGroups[i].name=v; renderRoster(); scheduleSave(); }
-function updateRGFormat(i,v){ rankGroups[i].format=v; scheduleSave(); }
+function updateRGFrom(i,v){ rankGroups[i].from=v; scheduleSave(); }
+function updateRGTo(i,v){ rankGroups[i].to=v; scheduleSave(); }
 function moveRG(i,d){ const j=i+d; if(j<0||j>=rankGroups.length)return; [rankGroups[i],rankGroups[j]]=[rankGroups[j],rankGroups[i]]; renderRGList(); renderRoster(); }
 function deleteRG(i){
   if(rankGroups.length<=1){showToast('⚠ Need at least one group.',true);return;}
@@ -1252,11 +1306,13 @@ function deleteRG(i){
 }
 function addRankGroup(){
   const name=document.getElementById('rgNewName').value.trim();
-  const format=document.getElementById('rgNewFormat').value.trim();
+  const from=document.getElementById('rgNewFrom').value.trim();
+  const to=document.getElementById('rgNewTo').value.trim();
   if(!name){showToast('⚠ Enter a group name.',true);return;}
-  rankGroups.push({name,format});
+  rankGroups.push({name,from,to});
   document.getElementById('rgNewName').value='';
-  document.getElementById('rgNewFormat').value='';
+  document.getElementById('rgNewFrom').value='';
+  document.getElementById('rgNewTo').value='';
   renderRGList(); scheduleSave(); showToast(`✓ "${name}" added.`);
 }
 
