@@ -543,9 +543,9 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 
 <!-- SHARE MODAL -->
 <div class="modal-overlay hidden" id="shareModal" onclick="if(event.target===this)this.classList.add('hidden')">
-  <div class="modal" style="max-width:500px;">
+  <div class="modal" style="max-width:520px;">
     <div class="modal-title">Share Roster</div>
-    <div class="modal-sub">Share your roster with your community.</div>
+    <div class="modal-sub">Manage who can view and edit your roster.</div>
 
     <div class="form-group">
       <label class="form-label">Public Link — Read Only</label>
@@ -555,6 +555,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 
     <div class="form-group" style="margin-top:16px;">
       <label class="form-label">Edit Link — Staff Access</label>
+      <p style="font-size:12px;color:var(--text2);margin-bottom:8px;">Anyone who opens this link must enter their name to get edit access. You can remove them anytime.</p>
       <div class="share-url" id="shareUrl" onclick="copyShareLink()" title="Click to copy">Generating…</div>
       <div style="display:flex;gap:8px;margin-top:8px;">
         <button class="btn btn-outline btn-sm" onclick="copyShareLink()">Copy Edit Link</button>
@@ -562,9 +563,29 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
       </div>
     </div>
 
+    <div style="margin-top:20px;">
+      <label class="form-label">People with Edit Access</label>
+      <div id="accessList" style="margin-top:8px;display:flex;flex-direction:column;gap:6px;"></div>
+    </div>
+
     <div style="margin-top:16px;">
       <button class="btn btn-ghost btn-sm" onclick="document.getElementById('shareModal').classList.add('hidden')">Close</button>
     </div>
+  </div>
+</div>
+
+<!-- NAME GATE — shown when someone opens edit link -->
+<div class="modal-overlay hidden" id="nameGateModal">
+  <div class="modal" style="max-width:400px;">
+    <div class="auth-seal" style="width:64px;height:64px;font-size:26px;margin:0 auto 16px;">🦅</div>
+    <div class="modal-title" style="text-align:center;">Enter Your Name</div>
+    <div class="modal-sub" style="text-align:center;">To get edit access to this roster, enter your name. The roster owner can remove your access at any time.</div>
+    <div class="form-error hidden" id="nameGateError"></div>
+    <div class="form-group">
+      <label class="form-label">Your Name</label>
+      <input class="form-input" id="nameGateInput" placeholder="e.g. John Smith" autocomplete="off">
+    </div>
+    <button class="btn btn-primary w-full" style="padding:13px;font-size:12px;letter-spacing:2px;" onclick="submitNameGate()">Get Edit Access</button>
   </div>
 </div>
 
@@ -727,12 +748,12 @@ async function saveRoster(){
     theme: activeTheme, members: members, trainees: trainees,
     updated_at: new Date().toISOString()
   }).eq('id', rosterDataId);
-  const {error:e2} = await sb.from('departments').update({name: deptName}).eq('id', deptId);
-  if(e1||e2){
-    showToast('⚠ Save failed: '+(e1?.message||e2?.message),true);
-  } else {
-    showToast('✓ Saved.');
+  // Only update dept name if logged in as owner (not shared access)
+  if(currentUser && currentUser.email !== 'shared' && deptId){
+    await sb.from('departments').update({name: deptName}).eq('id', deptId);
   }
+  if(e1){ showToast('⚠ Save failed: '+e1.message,true); }
+  else { showToast('✓ Saved.'); }
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -829,33 +850,114 @@ async function loadByShareToken(token){
   document.getElementById('headerName').textContent=deptName;
 }
 
+// ══════════════════════════════════════════════════════════════
+// SHARE & ACCESS CONTROL
+// ══════════════════════════════════════════════════════════════
+let currentAccessToken = null;
+
 async function openShareModal(){
   document.getElementById('shareModal').classList.remove('hidden');
-  // Public read-only link (always available, uses dept ID)
   document.getElementById('publicUrl').textContent=location.origin+location.pathname+'?dept='+deptId;
-  // Edit link (share token)
   const {data:rd}=await sb.from('roster_data').select('share_token,share_enabled').eq('id',rosterDataId).single();
-  if(rd&&rd.share_enabled&&rd.share_token){
-    document.getElementById('shareUrl').textContent=location.origin+location.pathname+'?share='+rd.share_token;
-  } else {
-    const token=Math.random().toString(36).slice(2)+Math.random().toString(36).slice(2);
+  let token = rd?.share_token;
+  if(!rd?.share_enabled || !token){
+    token=Math.random().toString(36).slice(2)+Math.random().toString(36).slice(2);
     await sb.from('roster_data').update({share_token:token,share_enabled:true}).eq('id',rosterDataId);
-    document.getElementById('shareUrl').textContent=location.origin+location.pathname+'?share='+token;
   }
+  document.getElementById('shareUrl').textContent=location.origin+location.pathname+'?share='+token;
+  await loadAccessList();
 }
+
+async function loadAccessList(){
+  const {data:list}=await sb.from('roster_access').select('*').eq('roster_id',rosterDataId).order('created_at');
+  const el=document.getElementById('accessList');
+  if(!list||!list.length){
+    el.innerHTML=`<p style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);">No one has edit access yet.</p>`;
+    return;
+  }
+  el.innerHTML=list.map(a=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;background:var(--bg3);border:1px solid var(--border);padding:8px 12px;border-radius:var(--radius);">
+      <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text);">👤 ${a.name}</span>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);">${new Date(a.created_at).toLocaleDateString()}</span>
+        <button class="btn btn-danger" onclick="revokeAccess('${a.id}','${a.name}')">Remove</button>
+      </div>
+    </div>`).join('');
+}
+
+async function revokeAccess(id, name){
+  await sb.from('roster_access').delete().eq('id',id);
+  await loadAccessList();
+  showToast(`✓ ${name}'s access removed.`);
+}
+
 function copyPublicLink(){
-  const t=document.getElementById('publicUrl').textContent;
-  navigator.clipboard.writeText(t).then(()=>showToast('✓ Public link copied!'));
-}
-async function disableShare(){
-  await sb.from('roster_data').update({share_enabled:false}).eq('id',rosterDataId);
-  document.getElementById('shareUrl').textContent='Edit link disabled.';
-  showToast('Edit link disabled.');
+  navigator.clipboard.writeText(document.getElementById('publicUrl').textContent).then(()=>showToast('✓ Public link copied!'));
 }
 function copyShareLink(){
   const t=document.getElementById('shareUrl').textContent;
   if(t.includes('disabled')){showToast('⚠ Edit link is disabled.',true);return;}
   navigator.clipboard.writeText(t).then(()=>showToast('✓ Edit link copied!'));
+}
+async function disableShare(){
+  await sb.from('roster_data').update({share_enabled:false}).eq('id',rosterDataId);
+  await sb.from('roster_access').delete().eq('roster_id',rosterDataId);
+  document.getElementById('shareUrl').textContent='Edit link disabled.';
+  document.getElementById('accessList').innerHTML=`<p style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);">Edit link disabled. All access revoked.</p>`;
+  showToast('Edit link disabled. All access revoked.');
+}
+
+// ── NAME GATE ──────────────────────────────────────────────────
+async function showNameGate(shareToken){
+  // Check if they already have a valid access token in localStorage
+  const storedToken = localStorage.getItem('rc_access_'+shareToken);
+  if(storedToken){
+    const {data:access}=await sb.from('roster_access').select('*').eq('token',storedToken).single();
+    if(access){
+      // Valid — grant edit access
+      currentAccessToken=storedToken;
+      grantEditAccess(access.name);
+      return;
+    }
+    // Token revoked — clear it
+    localStorage.removeItem('rc_access_'+shareToken);
+  }
+  // Show name gate
+  document.getElementById('nameGateModal').classList.remove('hidden');
+  setTimeout(()=>document.getElementById('nameGateInput').focus(),50);
+  // Store share token for use in submit
+  document.getElementById('nameGateModal').dataset.shareToken=shareToken;
+}
+
+async function submitNameGate(){
+  const name=document.getElementById('nameGateInput').value.trim();
+  const errEl=document.getElementById('nameGateError');
+  const shareToken=document.getElementById('nameGateModal').dataset.shareToken;
+  errEl.classList.add('hidden');
+  if(!name){errEl.textContent='⚠ Please enter your name.';errEl.classList.remove('hidden');return;}
+
+  // Check share link is still valid
+  const {data:rd}=await sb.from('roster_data').select('id,share_enabled').eq('share_token',shareToken).single();
+  if(!rd||!rd.share_enabled){errEl.textContent='⚠ This edit link has been disabled.';errEl.classList.remove('hidden');return;}
+
+  // Create access record
+  const token=Math.random().toString(36).slice(2)+Date.now().toString(36);
+  const {error}=await sb.from('roster_access').insert({roster_id:rd.id,name,token});
+  if(error){errEl.textContent='⚠ '+error.message;errEl.classList.remove('hidden');return;}
+
+  // Store in localStorage
+  localStorage.setItem('rc_access_'+shareToken,token);
+  currentAccessToken=token;
+  document.getElementById('nameGateModal').classList.add('hidden');
+  grantEditAccess(name);
+  showToast(`✓ Welcome, ${name}! You have edit access.`);
+}
+
+function grantEditAccess(name){
+  currentUser={email:'shared', name};
+  ['adminPill','addMemberBtn','addTraineeBtn'].forEach(id=>document.getElementById(id).classList.remove('hidden'));
+  document.getElementById('adminPill').textContent='⬡ '+name;
+  renderAll();
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -1474,6 +1576,7 @@ function showToast(msg, warn=false){
 // ══════════════════════════════════════════════════════════════
 document.addEventListener('keydown',e=>{
   if(e.key==='Enter'&&!document.getElementById('authModal').classList.contains('hidden')) doLogin();
+  if(e.key==='Enter'&&!document.getElementById('nameGateModal').classList.contains('hidden')) submitNameGate();
 });
 
 // ══════════════════════════════════════════════════════════════
@@ -1507,7 +1610,7 @@ document.addEventListener('keydown',e=>{
     }
   }
 
-  // Share token (edit access)
+  // Share token (edit access — requires name gate)
   if(token){
     const {data:rd}=await sb.from('roster_data').select('*').eq('share_token',token).eq('share_enabled',true).single();
     if(rd){
@@ -1521,10 +1624,9 @@ document.addEventListener('keydown',e=>{
       document.getElementById('headerName').textContent=deptName;
       document.getElementById('landingPage').style.display='none';
       document.getElementById('appPage').style.display='flex';
-      currentUser={email:'shared'};
-      ['adminPill','addMemberBtn','addTraineeBtn','editorTab'].forEach(id=>document.getElementById(id).classList.remove('hidden'));
       renderAll();
-      showToast('Edit access granted via share link.');
+      // Show name gate to get edit access
+      await showNameGate(token);
       return;
     }
   }
