@@ -291,6 +291,7 @@ main{padding:32px 40px;max-width:1600px;margin:0 auto;}
       <option value="">All Status</option>
       <option>Active</option><option>Inactive</option><option>LOA</option><option>Part Time</option>
     </select>
+    <button class="btn btn-primary btn-sm" id="addMemberBtn" onclick="openAddMember()" style="display:none;">+ Add Member</button>
   </div>
   <div id="mainRosterWrap"></div>
 </div>
@@ -602,6 +603,8 @@ async function loginSuccess(user){
   document.getElementById('shareBtn').style.display='inline-block';
   document.getElementById('editorNavBtn').style.display='inline-block';
   document.getElementById('addTraineeBtn').style.display='inline-block';
+      document.getElementById('addMemberBtn').style.display='inline-block';
+  document.getElementById('addMemberBtn').style.display='inline-block';
   document.getElementById('landingPage').style.display='none';
   document.getElementById('rosterApp').style.display='block';
   await loadRoster(user.id);
@@ -621,6 +624,7 @@ async function doLogout(){
   document.getElementById('shareBtn').style.display='none';
   document.getElementById('editorNavBtn').style.display='none';
   document.getElementById('addTraineeBtn').style.display='none';
+  document.getElementById('addMemberBtn').style.display='none';
   document.getElementById('deptTitle').textContent='My Department';
   document.getElementById('landingPage').style.display='flex';
   document.getElementById('rosterApp').style.display='none';
@@ -808,6 +812,7 @@ function doLogin(){
     document.getElementById('adminBadge').style.display='inline-block';
     document.getElementById('editorNavBtn').style.display='inline-block';
     document.getElementById('addTraineeBtn').style.display='inline-block';
+      document.getElementById('addMemberBtn').style.display='inline-block';
     renderMainRoster(); renderStats();
     showToast('✓ Welcome back, Administrator.');
   } else {
@@ -1291,7 +1296,7 @@ function renderEditor(){
   renderPositionEditor();
   document.getElementById('deptNameInput').value=deptName;
   document.getElementById('traineePrefixInput').value=traineePrefix;
-  document.getElementById('traineePrefixPreview').textContent=traineePrefix ? traineePrefix+'-##' : '##';
+  document.getElementById('traineePrefixPreview').textContent=traineePrefix||'';
 }
 
 function updateDeptName(val){
@@ -1302,13 +1307,13 @@ function updateDeptName(val){
 
 function updatePrefix(val){
   globalPrefix=val||'';
-  document.getElementById('prefixPreview').textContent=val ? val+'-##' : '##';
+  document.getElementById('prefixPreview').textContent=val||'';
   renderMainRoster();
   scheduleSave();
 }
 function updateTraineePrefix(val){
   traineePrefix=val||'';
-  document.getElementById('traineePrefixPreview').textContent=val ? val+'-##' : '##';
+  document.getElementById('traineePrefixPreview').textContent=val||'';
   renderTraineeRoster();
   scheduleSave();
 }
@@ -1705,6 +1710,7 @@ applyTheme('navy-gold', true);
       document.getElementById('adminBadge').style.display='inline-block';
       document.getElementById('editorNavBtn').style.display='inline-block';
       document.getElementById('addTraineeBtn').style.display='inline-block';
+      document.getElementById('addMemberBtn').style.display='inline-block';
       document.getElementById('landingPage').style.display='none';
       document.getElementById('rosterApp').style.display='block';
       initCallsigns();
