@@ -373,12 +373,13 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
         <!-- RANK GROUPS -->
         <div class="editor-section">
           <div class="editor-h3">Rank Groups</div>
-          <div class="col-labels" style="grid-template-columns:1fr 100px 100px 28px 28px 28px;"><span>Group Name</span><span>From</span><span>To</span><span></span><span></span><span></span></div>
+          <div class="col-labels" style="grid-template-columns:1fr 100px 100px 140px 28px 28px 28px;"><span>Group Name</span><span>From</span><span>To</span><span>Position</span><span></span><span></span><span></span></div>
           <div class="edit-list" id="rgList"></div>
           <div class="add-form">
             <input class="add-input" id="rgNewName" placeholder="Group name (e.g. Administration)">
             <input class="add-input" id="rgNewFrom" placeholder="e.g. 1W-01" style="max-width:110px;">
             <input class="add-input" id="rgNewTo" placeholder="e.g. 1W-06" style="max-width:110px;">
+            <input class="add-input" id="rgNewPos" placeholder="Position (e.g. Director)" style="max-width:150px;">
             <button class="btn btn-primary btn-sm" onclick="addRankGroup()">+ Add</button>
           </div>
           <p style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);margin-top:8px;line-height:1.7;">Top = highest rank. "From" and "To" define the callsign range for that group. Vacant slots show automatically.</p>
@@ -968,7 +969,7 @@ function renderRoster(){
                   ${m.isFTO?`<span class="fto-badge">FTO</span>`:''}
                   ${m.volunteer?`<span style="font-family:'JetBrains Mono',monospace;font-size:9px;background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.3);color:var(--purple);padding:1px 6px;border-radius:2px;">VOL</span>`:''}
                 </div>
-                ${m.position?`<div class="member-pos">${m.position}</div>`:''}
+                ${(m.position||g.position)?`<div class="member-pos">${m.position||g.position}</div>`:''}
               </td>
               <td>${sdBadges(m.subdivs)}</td>
               <td>${statusPill(m.status)}</td>
@@ -999,7 +1000,7 @@ function renderRoster(){
               ${m.isFTO?`<span class="fto-badge">FTO</span>`:''}
               ${m.volunteer?`<span style="font-family:'JetBrains Mono',monospace;font-size:9px;background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.3);color:var(--purple);padding:1px 6px;border-radius:2px;">VOL</span>`:''}
             </div>
-            ${m.position?`<div class="member-pos">${m.position}</div>`:''}
+            ${(m.position||g.position)?`<div class="member-pos">${m.position||g.position}</div>`:''}
           </td>
           <td>${sdBadges(m.subdivs)}</td>
           <td>${statusPill(m.status)}</td>
@@ -1306,10 +1307,11 @@ function updateTraineeFormatPreview(){
 
 function renderRGList(){
   document.getElementById('rgList').innerHTML=rankGroups.map((g,i)=>`
-    <div class="edit-row" style="grid-template-columns:1fr 100px 100px 28px 28px 28px;">
+    <div class="edit-row" style="grid-template-columns:1fr 100px 100px 140px 28px 28px 28px;">
       <input class="edit-input" value="${g.name}" oninput="updateRGName(${i},this.value)" placeholder="Group name">
       <input class="edit-input" value="${g.from||''}" oninput="updateRGFrom(${i},this.value)" placeholder="e.g. 1W-01">
       <input class="edit-input" value="${g.to||''}" oninput="updateRGTo(${i},this.value)" placeholder="e.g. 1W-06">
+      <input class="edit-input" value="${g.position||''}" oninput="updateRGPos(${i},this.value)" placeholder="Position title">
       <button class="icon-btn" onclick="moveRG(${i},-1)" ${i===0?'disabled':''}>↑</button>
       <button class="icon-btn" onclick="moveRG(${i},1)" ${i===rankGroups.length-1?'disabled':''}>↓</button>
       <button class="del-btn" onclick="deleteRG(${i})">×</button>
@@ -1318,6 +1320,7 @@ function renderRGList(){
 function updateRGName(i,v){ rankGroups[i].name=v; renderRoster(); scheduleSave(); }
 function updateRGFrom(i,v){ rankGroups[i].from=v; scheduleSave(); }
 function updateRGTo(i,v){ rankGroups[i].to=v; scheduleSave(); }
+function updateRGPos(i,v){ rankGroups[i].position=v; renderRoster(); scheduleSave(); }
 function moveRG(i,d){ const j=i+d; if(j<0||j>=rankGroups.length)return; [rankGroups[i],rankGroups[j]]=[rankGroups[j],rankGroups[i]]; renderRGList(); renderRoster(); }
 function deleteRG(i){
   if(rankGroups.length<=1){showToast('⚠ Need at least one group.',true);return;}
@@ -1329,11 +1332,13 @@ function addRankGroup(){
   const name=document.getElementById('rgNewName').value.trim();
   const from=document.getElementById('rgNewFrom').value.trim();
   const to=document.getElementById('rgNewTo').value.trim();
+  const position=document.getElementById('rgNewPos').value.trim();
   if(!name){showToast('⚠ Enter a group name.',true);return;}
-  rankGroups.push({name,from,to});
+  rankGroups.push({name,from,to,position});
   document.getElementById('rgNewName').value='';
   document.getElementById('rgNewFrom').value='';
   document.getElementById('rgNewTo').value='';
+  document.getElementById('rgNewPos').value='';
   renderRGList(); scheduleSave(); showToast(`✓ "${name}" added.`);
 }
 
