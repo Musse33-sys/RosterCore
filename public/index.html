@@ -1726,28 +1726,30 @@ function toggleMenu(id, e){
   const isOpen=menu.style.display==='block';
   if(isOpen){ menu.style.display='none'; openMenuId=null; return; }
 
-  // Position menu using fixed coords based on button
   const btn=e.currentTarget;
   const btnRect=btn.getBoundingClientRect();
   const viewportH=window.innerHeight;
   const viewportW=window.innerWidth;
 
+  // Show offscreen first to measure height
+  menu.style.visibility='hidden';
   menu.style.display='block';
   menu.style.position='fixed';
-  menu.style.minWidth='160px';
+  const menuH=menu.offsetHeight||100;
+  const menuW=menu.offsetWidth||160;
+  menu.style.visibility='visible';
 
-  // Horizontal: align right edge of menu with right edge of button, but don't overflow left
-  let left=btnRect.right-160;
+  // Horizontal positioning
+  let left=btnRect.right-menuW;
   if(left<8) left=8;
-  if(left+160>viewportW) left=viewportW-168;
+  if(left+menuW>viewportW-8) left=viewportW-menuW-8;
   menu.style.left=left+'px';
 
-  // Vertical: prefer below button, if no room go above
-  const menuH=menu.offsetHeight||120;
-  if(btnRect.bottom+menuH+8<viewportH){
-    menu.style.top=(btnRect.bottom+4)+'px';
-  } else {
+  // Vertical: open upward if not enough space below
+  if(btnRect.bottom+menuH+8>viewportH){
     menu.style.top=(btnRect.top-menuH-4)+'px';
+  } else {
+    menu.style.top=(btnRect.bottom+4)+'px';
   }
 
   openMenuId=id;
