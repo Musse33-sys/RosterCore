@@ -548,6 +548,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
       <button class="nav-tab" onclick="switchTab('trainees',this)">Trainee Roster</button>
       <button class="nav-tab" onclick="switchTab('members',this)">All Members</button>
       <button class="nav-tab hidden" id="editorTab" onclick="switchTab('editor',this)">Editor</button>
+      <button class="nav-tab hidden" id="promoTab" onclick="switchTab('promotions',this)">Promotions</button>
       <button class="nav-tab hidden" id="saTab" onclick="switchTab('superadmin',this)">⬡ Super Admin</button>
     </nav>
   </header>
@@ -588,6 +589,32 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
       </div>
       <div class="divider"></div>
       <div id="allMembersWrap"></div>
+    </div>
+
+    <!-- PROMOTIONS TAB -->
+    <div class="tab-panel" style="display:none;" id="tab-promotions">
+      <div class="section-hdr">
+        <div class="section-title">Promotion <span>Log</span></div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-primary btn-sm" onclick="generatePromoAnnouncement()">📋 Generate Announcement</button>
+          <button class="btn btn-danger" onclick="clearPromoLog()">Clear Log</button>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div id="promoWrap"></div>
+    </div>
+
+    <!-- PROMO ANNOUNCEMENT MODAL -->
+    <div class="modal-overlay hidden" id="promoModal" onclick="if(event.target===this)this.classList.add('hidden')">
+      <div class="modal" style="max-width:540px;">
+        <div class="modal-title">Promotion Announcement</div>
+        <div class="modal-sub">Copy and paste into Discord.</div>
+        <div id="promoAnnouncementText" style="background:var(--bg3);border:1px solid var(--border);padding:16px;border-radius:var(--radius);font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text);white-space:pre-wrap;max-height:400px;overflow-y:auto;line-height:1.8;"></div>
+        <div class="modal-footer">
+          <button class="btn btn-ghost" onclick="document.getElementById('promoModal').classList.add('hidden')">Close</button>
+          <button class="btn btn-primary" onclick="copyPromoAnnouncement()">Copy to Clipboard</button>
+        </div>
+      </div>
     </div>
 
     <!-- EDITOR TAB -->
@@ -910,6 +937,7 @@ let positions = [];
 let traineeFormat = '';
 let traineeFormatTo = '';
 let customTags = [];
+let promotions = [];
 let activeTheme = 'dark-steel';
 let members = [];
 let trainees = [];
@@ -1022,6 +1050,7 @@ async function loadDepartment(userId){
   positions = rd.positions||[];
   traineeFormat = rd.trainee_format||''; traineeFormatTo = rd.trainee_format_to||'';
   customTags = rd.custom_tags||[];
+  promotions = rd.promotions||[];
   activeTheme = rd.theme||'dark-steel';
   members = rd.members||[];
   trainees = rd.trainees||[];
@@ -1038,7 +1067,7 @@ async function saveRoster(){
   if(!rosterDataId){ showToast('⚠ No roster ID — try logging out and back in.',true); return; }
   const {error:e1} = await sb.from('roster_data').update({
     rank_groups: rankGroups, subdivisions: subdivisions,
-    positions: positions, trainee_format: traineeFormat, trainee_format_to: traineeFormatTo, custom_tags: customTags,
+    positions: positions, trainee_format: traineeFormat, trainee_format_to: traineeFormatTo, custom_tags: customTags, promotions: promotions,
     theme: activeTheme, members: members, trainees: trainees,
     updated_at: new Date().toISOString()
   }).eq('id', rosterDataId);
@@ -1102,6 +1131,7 @@ async function onLoginSuccess(user){
   document.getElementById('headerName').textContent = deptName;
   document.getElementById('adminPill').classList.remove('hidden');
   document.getElementById('editorTab').classList.remove('hidden');
+  document.getElementById('promoTab').classList.remove('hidden');
   document.getElementById('addMemberBtn').classList.remove('hidden');
   document.getElementById('addTraineeBtn').classList.remove('hidden');
   document.getElementById('shareBtn').classList.remove('hidden');
@@ -1125,7 +1155,7 @@ async function doLogout(){
   traineeFormat=''; traineeFormatTo=''; deptName=''; activeTheme='dark-steel';
   document.getElementById('appPage').style.display='none';
   document.getElementById('landingPage').style.display='flex';
-  ['saTab','editorTab','adminPill','addMemberBtn','addTraineeBtn','shareBtn','loginFromPublicBtn'].forEach(id=>{
+  ['saTab','editorTab','promoTab','adminPill','addMemberBtn','addTraineeBtn','shareBtn','loginFromPublicBtn'].forEach(id=>{
     const el=document.getElementById(id);
     if(el) el.classList.add('hidden');
   });
@@ -1143,7 +1173,7 @@ async function loadByShareToken(token){
   const {data:dept} = await sb.from('departments').select('*').eq('id',rd.dept_id).single();
   if(dept){ deptId=dept.id; deptName=dept.name||'Department'; }
   rankGroups=rd.rank_groups||[]; subdivisions=rd.subdivisions||[];
-  positions=rd.positions||[]; traineeFormat=rd.trainee_format||''; traineeFormatTo=rd.trainee_format_to||''; customTags=rd.custom_tags||[];
+  positions=rd.positions||[]; traineeFormat=rd.trainee_format||''; traineeFormatTo=rd.trainee_format_to||''; customTags=rd.custom_tags||[]; promotions=rd.promotions||[];
   activeTheme=rd.theme||'dark-steel'; members=rd.members||[]; trainees=rd.trainees||[];
   applyTheme(activeTheme);
   document.getElementById('headerName').textContent=deptName;
@@ -1380,6 +1410,120 @@ function grantEditAccess(name){
 }
 
 // ══════════════════════════════════════════════════════════════
+// PROMOTIONS
+// ══════════════════════════════════════════════════════════════
+function renderPromotions(){
+  const wrap=document.getElementById('promoWrap');
+  if(!promotions.length){
+    wrap.innerHTML=`<div class="empty-state"><div class="empty-icon">🎖️</div><div class="empty-text">No promotions logged yet.<br><br>Use the <span>▲ promote</span> button on any member to log a promotion here.</div></div>`;
+    return;
+  }
+
+  // Sort by rank group index (highest first), then by date
+  const sorted=[...promotions].sort((a,b)=>{
+    if(a.toGroupIndex!==b.toGroupIndex) return a.toGroupIndex-b.toGroupIndex;
+    return new Date(b.date)-new Date(a.date);
+  });
+
+  // Group by toGroup
+  const grouped={};
+  sorted.forEach(p=>{
+    if(!grouped[p.toGroup]) grouped[p.toGroup]=[];
+    grouped[p.toGroup].push(p);
+  });
+
+  // Color palette for rank groups
+  const colors=['#fbbf24','#60a5fa','#4ade80','#f87171','#a78bfa','#fb923c','#7ec8e3','#e879f9'];
+
+  let html='';
+  let colorIdx=0;
+  Object.entries(grouped).forEach(([group,promos])=>{
+    const color=colors[colorIdx%colors.length];
+    colorIdx++;
+    const rows=promos.map(p=>`
+      <div style="display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--border);">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--accent);min-width:70px;">${p.toCS||'—'}</div>
+        <div style="flex:1;">
+          <span style="font-weight:600;color:var(--text);font-size:13px;">${p.name}</span>
+        </div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);">
+          <span style="color:var(--red);">${p.fromCS||'—'}</span>
+          <span style="color:var(--text3);margin:0 6px;">→</span>
+          <span style="color:var(--green);">${p.toCS||'—'}</span>
+        </div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);min-width:80px;text-align:right;">${fmtDate(p.date.split('T')[0])}</div>
+        <button class="btn btn-danger" style="padding:3px 8px;font-size:10px;" onclick="removePromo(${p.id})">✕</button>
+      </div>`).join('');
+
+    html+=`
+      <div style="margin-bottom:14px;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;">
+        <div style="background:${color}18;border-bottom:1px solid ${color}44;padding:10px 16px;display:flex;align-items:center;gap:10px;">
+          <div style="width:10px;height:10px;border-radius:50%;background:${color};flex-shrink:0;"></div>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:${color};">${group}</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);margin-left:auto;">${promos.length} promotion${promos.length>1?'s':''}</span>
+        </div>
+        ${rows}
+      </div>`;
+  });
+
+  wrap.innerHTML=html;
+}
+
+function removePromo(id){
+  promotions=promotions.filter(p=>p.id!==id);
+  renderPromotions();
+  scheduleSave();
+}
+
+async function clearPromoLog(){
+  if(!confirm('Clear all promotion logs? This cannot be undone.')) return;
+  promotions=[];
+  renderPromotions();
+  scheduleSave();
+  showToast('Promotion log cleared.');
+}
+
+function generatePromoAnnouncement(){
+  if(!promotions.length){showToast('⚠ No promotions to announce.',true);return;}
+
+  const sorted=[...promotions].sort((a,b)=>{
+    if(a.toGroupIndex!==b.toGroupIndex) return a.toGroupIndex-b.toGroupIndex;
+    return new Date(b.date)-new Date(a.date);
+  });
+
+  const grouped={};
+  sorted.forEach(p=>{
+    if(!grouped[p.toGroup]) grouped[p.toGroup]=[];
+    grouped[p.toGroup].push(p);
+  });
+
+  const today=new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+  let text=`${deptName.toUpperCase()} — PROMOTION ANNOUNCEMENT\n`;
+  text+=`${'─'.repeat(40)}\n`;
+  text+=`📅 ${today}\n\n`;
+
+  Object.entries(grouped).forEach(([group,promos])=>{
+    text+=`【 ${group.toUpperCase()} 】\n`;
+    promos.forEach(p=>{
+      text+=`  • ${p.name} — ${p.fromCS} → ${p.toCS}\n`;
+    });
+    text+='\n';
+  });
+
+  text+=`${'─'.repeat(40)}\n`;
+  text+=`Congratulations to all promoted personnel!\n`;
+  text+=`— ${deptName} Command`;
+
+  document.getElementById('promoAnnouncementText').textContent=text;
+  document.getElementById('promoModal').classList.remove('hidden');
+}
+
+function copyPromoAnnouncement(){
+  const text=document.getElementById('promoAnnouncementText').textContent;
+  navigator.clipboard.writeText(text).then(()=>showToast('✓ Copied to clipboard!'));
+}
+
+// ══════════════════════════════════════════════════════════════
 // TABS
 // ══════════════════════════════════════════════════════════════
 function switchTab(name, btn){
@@ -1391,6 +1535,7 @@ function switchTab(name, btn){
   if(name==='editor') renderEditor();
   if(name==='superadmin') loadSuperAdminDepts();
   if(name==='members') renderAllMembers();
+  if(name==='promotions') renderPromotions();
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -1773,10 +1918,22 @@ function promote(id){
   if(gi<=0){showToast('⚠ Already at highest rank.',true);return;}
   const newGroup=rankGroups[gi-1].name;
   const newCS=nextMemberCallsign(newGroup,id);
-  const old=m.callsign;
+  const oldCS=m.callsign;
+  const oldGroup=m.rankGroup;
   m.rankGroup=newGroup; m.callsign=newCS;
-  renderRoster(); renderStats(); scheduleSave();
-  showToast(`▲ ${m.name} promoted to ${newGroup} → ${newCS} (was ${old})`);
+  // Log promotion
+  promotions.push({
+    id: Date.now(),
+    name: m.name,
+    fromGroup: oldGroup,
+    toGroup: newGroup,
+    fromCS: oldCS,
+    toCS: newCS,
+    date: new Date().toISOString(),
+    toGroupIndex: gi-1
+  });
+  renderRoster(); renderStats(); renderAllMembers(); scheduleSave();
+  showToast(`▲ ${m.name} promoted to ${newGroup} → ${newCS}`);
 }
 function demote(id){
   const m=members.find(mb=>mb.id===id); if(!m)return;
@@ -2235,7 +2392,7 @@ document.addEventListener('keydown',e=>{
       const {data:dept}=await sb.from('departments').select('*').eq('id',deptParam).single();
       if(dept){deptId=dept.id;deptName=dept.name||'Department';}
       rankGroups=rd.rank_groups||[]; subdivisions=rd.subdivisions||[];
-      positions=rd.positions||[]; traineeFormat=rd.trainee_format||''; traineeFormatTo=rd.trainee_format_to||''; customTags=rd.custom_tags||[];
+      positions=rd.positions||[]; traineeFormat=rd.trainee_format||''; traineeFormatTo=rd.trainee_format_to||''; customTags=rd.custom_tags||[]; promotions=rd.promotions||[];
       activeTheme=rd.theme||'dark-steel'; members=rd.members||[]; trainees=rd.trainees||[];
       applyTheme(activeTheme);
       document.getElementById('headerName').textContent=deptName;
@@ -2256,7 +2413,7 @@ document.addEventListener('keydown',e=>{
       const {data:dept}=await sb.from('departments').select('*').eq('id',rd.dept_id).single();
       if(dept){deptId=dept.id;deptName=dept.name||'Department';}
       rankGroups=rd.rank_groups||[]; subdivisions=rd.subdivisions||[];
-      positions=rd.positions||[]; traineeFormat=rd.trainee_format||''; traineeFormatTo=rd.trainee_format_to||''; customTags=rd.custom_tags||[];
+      positions=rd.positions||[]; traineeFormat=rd.trainee_format||''; traineeFormatTo=rd.trainee_format_to||''; customTags=rd.custom_tags||[]; promotions=rd.promotions||[];
       activeTheme=rd.theme||'dark-steel'; members=rd.members||[]; trainees=rd.trainees||[];
       applyTheme(activeTheme);
       document.getElementById('headerName').textContent=deptName;
@@ -2276,7 +2433,7 @@ document.addEventListener('keydown',e=>{
     return;
   }
 
-  
+  // No session — show landing
 })();
 </script>
 </body>
