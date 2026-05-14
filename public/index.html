@@ -78,7 +78,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 /* ══════════════════════════════════════
    LANDING PAGE
 ══════════════════════════════════════ */
-#landingPage{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;background:var(--bg);}
+#landingPage{min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:0;background:var(--bg);overflow-y:auto;}
 #landingPage::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 70% 50% at 50% 0%,rgba(201,168,76,.06) 0%,transparent 60%);pointer-events:none;}
 .landing-seal{width:90px;height:90px;border-radius:50%;background:radial-gradient(circle,var(--accent) 0%,var(--accent3) 60%,#1a1000 100%);display:flex;align-items:center;justify-content:center;font-size:38px;box-shadow:0 0 0 3px var(--accent3),0 0 0 8px rgba(201,168,76,.08),var(--shadow);margin:0 auto 28px;}
 .landing-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(56px,10vw,100px);letter-spacing:6px;color:var(--text);line-height:1;text-align:center;margin-bottom:12px;}
@@ -290,17 +290,112 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 
 <!-- ══════════ LANDING ══════════ -->
 <div id="landingPage">
-  <div class="landing-seal">🦅</div>
-  <div class="landing-title">Roster<span>Core</span></div>
-  <p class="landing-sub">Professional roster management for FiveM roleplay departments. Built for serious servers.</p>
-  <div class="landing-features">
-    <div class="feat"><div class="feat-icon">⚡</div><div class="feat-title">Auto Callsigns</div><div class="feat-desc">Set a format per rank group. New members get the next available callsign automatically.</div></div>
-    <div class="feat"><div class="feat-icon">🎯</div><div class="feat-title">Full Control</div><div class="feat-desc">Promote, demote, edit, remove. Everything updates instantly with one click.</div></div>
-    <div class="feat"><div class="feat-icon">🎓</div><div class="feat-title">Trainee Roster</div><div class="feat-desc">Separate trainee tab with its own callsign format. Graduate to main roster in one click.</div></div>
-    <div class="feat"><div class="feat-icon">💾</div><div class="feat-title">Cloud Saved</div><div class="feat-desc">All data saves to the cloud instantly. Never lose your roster again.</div></div>
+
+  <!-- HERO -->
+  <div style="text-align:center;padding:80px 24px 60px;width:100%;max-width:860px;">
+    <div class="landing-seal">🦅</div>
+    <div class="landing-title">Roster<span>Core</span></div>
+    <p class="landing-sub">Professional roster management for FiveM roleplay departments. Built for serious servers.</p>
+    <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;">
+      <button class="btn btn-primary" style="font-size:13px;padding:14px 40px;" onclick="showAuthModal()">Department Login</button>
+      <button class="btn btn-outline" style="font-size:13px;padding:14px 40px;" onclick="showStaffLoginModal()">Staff Login</button>
+    </div>
   </div>
-  <button class="btn btn-primary" style="font-size:13px;padding:14px 40px;" onclick="showAuthModal()">Department Login</button>
-  <button class="btn btn-outline" style="font-size:13px;padding:14px 40px;margin-top:12px;" onclick="showStaffLoginModal()">Staff Login</button>
+
+  <!-- FEATURES -->
+  <div class="landing-features">
+    <div class="feat"><div class="feat-icon">⚡</div><div class="feat-title">Auto Callsigns</div><div class="feat-desc">Set a callsign range per rank group. New members get assigned automatically.</div></div>
+    <div class="feat"><div class="feat-icon">🎯</div><div class="feat-title">Full Control</div><div class="feat-desc">Promote, demote, edit, remove. Everything updates instantly with one click.</div></div>
+    <div class="feat"><div class="feat-icon">🎓</div><div class="feat-title">Trainee Roster</div><div class="feat-desc">Separate trainee tab. Graduate to main roster in one click.</div></div>
+    <div class="feat"><div class="feat-icon">🔒</div><div class="feat-title">Staff Accounts</div><div class="feat-desc">Create accounts for your staff. Remove access anytime if someone goes rogue.</div></div>
+  </div>
+
+  <!-- DOCS -->
+  <div style="max-width:860px;width:100%;padding:0 24px 80px;">
+
+    <!-- HOW IT WORKS -->
+    <div style="margin-bottom:48px;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:3px;color:var(--text);text-align:center;margin-bottom:6px;">How It Works</div>
+      <div style="height:1px;background:linear-gradient(90deg,transparent,var(--accent3),transparent);margin-bottom:32px;"></div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;">
+
+        <div style="background:var(--bg2);border:1px solid var(--border);border-top:2px solid var(--accent3);padding:22px;">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:8px;">Step 1</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;color:var(--text);margin-bottom:8px;">Get an Account</div>
+          <p style="font-size:13px;color:var(--text2);line-height:1.7;">Contact <span style="color:var(--accent);font-family:'JetBrains Mono',monospace;">musse_33</span> on Discord to request a department account. Each department gets their own private roster.</p>
+        </div>
+
+        <div style="background:var(--bg2);border:1px solid var(--border);border-top:2px solid var(--accent3);padding:22px;">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:8px;">Step 2</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;color:var(--text);margin-bottom:8px;">Build Your Roster</div>
+          <p style="font-size:13px;color:var(--text2);line-height:1.7;">Log in and go to the <strong style="color:var(--text);">Editor</strong> tab. Set up your rank groups, callsign ranges, positions, subdivisions and custom tags.</p>
+        </div>
+
+        <div style="background:var(--bg2);border:1px solid var(--border);border-top:2px solid var(--accent3);padding:22px;">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:8px;">Step 3</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;color:var(--text);margin-bottom:8px;">Add Your Staff</div>
+          <p style="font-size:13px;color:var(--text2);line-height:1.7;">Go to <strong style="color:var(--text);">Share & Access</strong> to create staff accounts. Your staff log in with <strong style="color:var(--text);">Staff Login</strong> and can help manage the roster.</p>
+        </div>
+
+        <div style="background:var(--bg2);border:1px solid var(--border);border-top:2px solid var(--accent3);padding:22px;">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:8px;">Step 4</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;color:var(--text);margin-bottom:8px;">Share Publicly</div>
+          <p style="font-size:13px;color:var(--text2);line-height:1.7;">Click <strong style="color:var(--text);">Share</strong> and copy the public link. Post it in your Discord so your whole community can view the roster anytime.</p>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- FAQ -->
+    <div style="margin-bottom:48px;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:3px;color:var(--text);text-align:center;margin-bottom:6px;">FAQ</div>
+      <div style="height:1px;background:linear-gradient(90deg,transparent,var(--accent3),transparent);margin-bottom:32px;"></div>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div style="background:var(--bg2);border:1px solid var(--border);padding:18px 22px;">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1px;color:var(--accent);margin-bottom:6px;">How do I get access?</div>
+            <p style="font-size:13px;color:var(--text2);line-height:1.7;margin:0;">Contact <span style="color:var(--accent);font-family:'JetBrains Mono',monospace;">musse_33</span> on Discord. Only approved departments get an account — there is no public registration.</p>
+          </div>
+          <div style="background:var(--bg2);border:1px solid var(--border);padding:18px 22px;">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1px;color:var(--accent);margin-bottom:6px;">Can my staff edit the roster?</div>
+            <p style="font-size:13px;color:var(--text2);line-height:1.7;margin:0;">Yes. Go to Share & Access, create a staff account for each person. They log in with Staff Login and get full edit access to your roster only.</p>
+          </div>
+          <div style="background:var(--bg2);border:1px solid var(--border);padding:18px 22px;">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1px;color:var(--accent);margin-bottom:6px;">What if someone misuses access?</div>
+            <p style="font-size:13px;color:var(--text2);line-height:1.7;margin:0;">Go to Share & Access and click Remove next to their name. Their account is deleted instantly and they can no longer log in.</p>
+          </div>
+          <div style="background:var(--bg2);border:1px solid var(--border);padding:18px 22px;">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1px;color:var(--accent);margin-bottom:6px;">Is the roster public?</div>
+            <p style="font-size:13px;color:var(--text2);line-height:1.7;margin:0;">The roster is read-only public — anyone with the public link can view it. Only logged-in staff can make changes.</p>
+          </div>
+          <div style="background:var(--bg2);border:1px solid var(--border);padding:18px 22px;">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1px;color:var(--accent);margin-bottom:6px;">Does data save automatically?</div>
+            <p style="font-size:13px;color:var(--text2);line-height:1.7;margin:0;">Yes. Every change saves to the cloud automatically within seconds. Your data is never lost on refresh.</p>
+          </div>
+          <div style="background:var(--bg2);border:1px solid var(--border);padding:18px 22px;">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1px;color:var(--accent);margin-bottom:6px;">What are callsign ranges?</div>
+            <p style="font-size:13px;color:var(--text2);line-height:1.7;margin:0;">In the Editor, each rank group has a From and To callsign (e.g. 1W-01 to 1W-06). New members get auto-assigned the lowest available slot in their group.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- CONTACT -->
+    <div style="background:var(--bg2);border:1px solid var(--border);border-top:2px solid var(--accent);padding:32px;text-align:center;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:3px;color:var(--text);margin-bottom:8px;">Want RosterCore for your department?</div>
+      <p style="font-size:14px;color:var(--text2);margin-bottom:20px;line-height:1.7;">Reach out on Discord and I'll get you set up with your own department account.</p>
+      <div style="display:inline-flex;align-items:center;gap:12px;background:var(--bg3);border:1px solid var(--border2);padding:14px 28px;border-radius:var(--radius);">
+        <span style="font-size:22px;">💬</span>
+        <div style="text-align:left;">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:3px;">Discord</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:700;color:var(--accent);">musse_33</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
 </div>
 
 <!-- ══════════ AUTH MODAL ══════════ -->
