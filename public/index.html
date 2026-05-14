@@ -1408,8 +1408,6 @@ function openAddMember(){
   document.getElementById('mmStatus').value='Active';
   document.getElementById('mmStrikes').value='0';
   document.getElementById('mmNotes').value='';
-  document.getElementById('mmFTO').checked=false;
-  document.getElementById('mmVolunteer').checked=false;
   populateTagCheckboxes([]);
   document.getElementById('memberModal').classList.remove('hidden');
 }
@@ -1440,8 +1438,6 @@ function openEditMember(id){
   document.getElementById('mmStatus').value=m.status||'Active';
   document.getElementById('mmStrikes').value=m.strikes||0;
   document.getElementById('mmNotes').value=m.notes||'';
-  document.getElementById('mmFTO').checked=!!m.isFTO;
-  document.getElementById('mmVolunteer').checked=!!m.volunteer;
   populateTagCheckboxes(m.tags||[]);
   document.getElementById('memberModal').classList.remove('hidden');
 }
@@ -1459,8 +1455,6 @@ function saveMember(){
     status:document.getElementById('mmStatus').value,
     strikes:parseInt(document.getElementById('mmStrikes').value)||0,
     notes:document.getElementById('mmNotes').value.trim(),
-    isFTO:document.getElementById('mmFTO').checked,
-    volunteer:document.getElementById('mmVolunteer').checked,
     tags:getSelectedTags(),
   };
   if(editingMemberId!==null){
