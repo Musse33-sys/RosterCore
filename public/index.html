@@ -413,7 +413,18 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
         </div>
         <div class="editor-divider"></div>
 
-        <!-- TRAINEE FORMAT -->
+        <!-- CUSTOM TAGS -->
+        <div class="editor-section">
+          <div class="editor-h3">Custom Tags</div>
+          <div class="edit-list" id="tagList"></div>
+          <div class="add-form">
+            <input class="add-input" id="tagNew" placeholder="Tag name (e.g. FTO, Volunteer, Sniper)">
+            <input type="color" id="tagNewColor" value="#7ec8e3" style="width:48px;height:38px;border:1px solid var(--border);border-radius:var(--radius);background:transparent;cursor:pointer;padding:2px;">
+            <button class="btn btn-primary btn-sm" onclick="addTag()">+ Add</button>
+          </div>
+          <p style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);margin-top:8px;line-height:1.7;">Tags appear as checkboxes when adding/editing members and as badges on the roster.</p>
+        </div>
+        <div class="editor-divider"></div>
         <div class="editor-section">
           <div class="editor-h3">Trainee Callsign Format</div>
           <div style="display:flex;gap:10px;align-items:center;max-width:360px;">
@@ -475,10 +486,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
       <div class="form-group"><label class="form-label">Strikes</label><input class="form-input" type="number" id="mmStrikes" value="0" min="0" max="99"></div>
     </div>
     <div class="form-group"><label class="form-label">Notes</label><input class="form-input" id="mmNotes" placeholder="Optional…"></div>
-    <div style="display:flex;gap:20px;margin-bottom:4px;">
-      <label class="form-check"><input type="checkbox" id="mmFTO"> <span>FTO</span></label>
-      <label class="form-check"><input type="checkbox" id="mmVolunteer"> <span>Volunteer</span></label>
-    </div>
+    <div id="mmTagsWrap" style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:10px;"></div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeMemberModal()">Cancel</button>
       <button class="btn btn-primary" id="mmSaveBtn" onclick="saveMember()">Save Member</button>
@@ -645,6 +653,7 @@ let rankGroups = [];
 let subdivisions = [];
 let positions = [];
 let traineeFormat = '';
+let customTags = [];
 let activeTheme = 'dark-steel';
 let members = [];
 let trainees = [];
@@ -756,6 +765,7 @@ async function loadDepartment(userId){
   subdivisions = rd.subdivisions||[];
   positions = rd.positions||[];
   traineeFormat = rd.trainee_format||'';
+  customTags = rd.custom_tags||[];
   activeTheme = rd.theme||'dark-steel';
   members = rd.members||[];
   trainees = rd.trainees||[];
@@ -772,7 +782,7 @@ async function saveRoster(){
   if(!rosterDataId){ showToast('⚠ No roster ID — try logging out and back in.',true); return; }
   const {error:e1} = await sb.from('roster_data').update({
     rank_groups: rankGroups, subdivisions: subdivisions,
-    positions: positions, trainee_format: traineeFormat,
+    positions: positions, trainee_format: traineeFormat, custom_tags: customTags,
     theme: activeTheme, members: members, trainees: trainees,
     updated_at: new Date().toISOString()
   }).eq('id', rosterDataId);
@@ -877,7 +887,7 @@ async function loadByShareToken(token){
   const {data:dept} = await sb.from('departments').select('*').eq('id',rd.dept_id).single();
   if(dept){ deptId=dept.id; deptName=dept.name||'Department'; }
   rankGroups=rd.rank_groups||[]; subdivisions=rd.subdivisions||[];
-  positions=rd.positions||[]; traineeFormat=rd.trainee_format||'';
+  positions=rd.positions||[]; traineeFormat=rd.trainee_format||''; customTags=rd.custom_tags||[];
   activeTheme=rd.theme||'dark-steel'; members=rd.members||[]; trainees=rd.trainees||[];
   applyTheme(activeTheme);
   document.getElementById('headerName').textContent=deptName;
@@ -1223,8 +1233,7 @@ function renderRoster(){
               <td><span class="cs-filled">${m.callsign||'—'}</span></td>
               <td class="name-td">
                 <div class="member-name">${m.name}
-                  ${m.isFTO?`<span class="fto-badge">FTO</span>`:''}
-                  ${m.volunteer?`<span style="font-family:'JetBrains Mono',monospace;font-size:9px;background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.3);color:var(--purple);padding:1px 6px;border-radius:2px;">VOL</span>`:''}
+                  ${(m.tags||[]).map(tag=>{const t=customTags.find(ct=>ct.name===tag);const c=t?t.color:'#7ec8e3';return`<span style="font-family:'JetBrains Mono',monospace;font-size:9px;background:${c}18;border:1px solid ${c}55;color:${c};padding:1px 6px;border-radius:2px;">${tag}</span>`;}).join('')}
                 </div>
                 ${(m.position||g.position)?`<div class="member-pos">${m.position||g.position}</div>`:''}
               </td>
@@ -1254,8 +1263,7 @@ function renderRoster(){
           <td><span class="cs-filled">${m.callsign||'—'}</span></td>
           <td class="name-td">
             <div class="member-name">${m.name}
-              ${m.isFTO?`<span class="fto-badge">FTO</span>`:''}
-              ${m.volunteer?`<span style="font-family:'JetBrains Mono',monospace;font-size:9px;background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.3);color:var(--purple);padding:1px 6px;border-radius:2px;">VOL</span>`:''}
+              ${(m.tags||[]).map(tag=>{const t=customTags.find(ct=>ct.name===tag);const c=t?t.color:'#7ec8e3';return`<span style="font-family:'JetBrains Mono',monospace;font-size:9px;background:${c}18;border:1px solid ${c}55;color:${c};padding:1px 6px;border-radius:2px;">${tag}</span>`;}).join('')}
             </div>
             ${(m.position||g.position)?`<div class="member-pos">${m.position||g.position}</div>`:''}
           </td>
@@ -1402,6 +1410,7 @@ function openAddMember(){
   document.getElementById('mmNotes').value='';
   document.getElementById('mmFTO').checked=false;
   document.getElementById('mmVolunteer').checked=false;
+  populateTagCheckboxes([]);
   document.getElementById('memberModal').classList.remove('hidden');
 }
 function onGroupChange(){
@@ -1433,6 +1442,7 @@ function openEditMember(id){
   document.getElementById('mmNotes').value=m.notes||'';
   document.getElementById('mmFTO').checked=!!m.isFTO;
   document.getElementById('mmVolunteer').checked=!!m.volunteer;
+  populateTagCheckboxes(m.tags||[]);
   document.getElementById('memberModal').classList.remove('hidden');
 }
 function closeMemberModal(){ document.getElementById('memberModal').classList.add('hidden'); }
@@ -1451,6 +1461,7 @@ function saveMember(){
     notes:document.getElementById('mmNotes').value.trim(),
     isFTO:document.getElementById('mmFTO').checked,
     volunteer:document.getElementById('mmVolunteer').checked,
+    tags:getSelectedTags(),
   };
   if(editingMemberId!==null){
     const i=members.findIndex(m=>m.id===editingMemberId);
@@ -1538,6 +1549,7 @@ function renderEditor(){
   renderRGList();
   renderPosList();
   renderSDList();
+  renderTagList();
 }
 
 function renderThemesGrid(){
@@ -1640,9 +1652,56 @@ function addSubdivision(){
   renderSDList(); scheduleSave(); showToast(`✓ "${name}" added.`);
 }
 
-// ══════════════════════════════════════════════════════════════
-// SUPER ADMIN
-// ══════════════════════════════════════════════════════════════
+function addSubdivision(){
+  const name=document.getElementById('sdNew').value.trim();
+  const color=document.getElementById('sdNewColor').value;
+  if(!name)return;
+  subdivisions.push({name,color}); document.getElementById('sdNew').value='';
+  renderSDList(); scheduleSave(); showToast(`✓ "${name}" added.`);
+}
+
+// ── CUSTOM TAGS ────────────────────────────────────────────────
+function renderTagList(){
+  const el=document.getElementById('tagList');
+  if(!el) return;
+  el.innerHTML=customTags.map((t,i)=>`
+    <div class="edit-row" style="grid-template-columns:1fr 60px 28px;">
+      <input class="edit-input" value="${t.name}" oninput="updateTagName(${i},this.value)" placeholder="Tag name">
+      <input type="color" class="color-input" value="${t.color||'#7ec8e3'}" oninput="updateTagColor(${i},this.value)">
+      <button class="del-btn" onclick="deleteTag(${i})">×</button>
+    </div>`).join('');
+}
+function updateTagName(i,v){ customTags[i].name=v; renderRoster(); scheduleSave(); }
+function updateTagColor(i,v){ customTags[i].color=v; renderRoster(); scheduleSave(); }
+function deleteTag(i){
+  const removed=customTags[i].name;
+  customTags.splice(i,1);
+  members.forEach(m=>{ m.tags=(m.tags||[]).filter(t=>t!==removed); });
+  renderTagList(); renderRoster(); scheduleSave();
+}
+function addTag(){
+  const name=document.getElementById('tagNew').value.trim();
+  const color=document.getElementById('tagNewColor').value;
+  if(!name)return;
+  customTags.push({name,color});
+  document.getElementById('tagNew').value='';
+  renderTagList(); scheduleSave(); showToast(`✓ "${name}" added.`);
+}
+
+function populateTagCheckboxes(selectedTags){
+  const wrap=document.getElementById('mmTagsWrap');
+  if(!wrap) return;
+  if(!customTags.length){ wrap.innerHTML=''; return; }
+  wrap.innerHTML=customTags.map(t=>`
+    <label class="form-check">
+      <input type="checkbox" name="mmTag" value="${t.name}" ${(selectedTags||[]).includes(t.name)?'checked':''} style="accent-color:${t.color||'var(--accent)'};">
+      <span style="color:${t.color||'var(--text2)'};">${t.name}</span>
+    </label>`).join('');
+}
+
+function getSelectedTags(){
+  return [...document.querySelectorAll('input[name="mmTag"]:checked')].map(cb=>cb.value);
+}
 function openCreateDept(){
   document.getElementById('createDeptModal').classList.remove('hidden');
   document.getElementById('createDeptError').classList.add('hidden');
@@ -1751,7 +1810,7 @@ document.addEventListener('keydown',e=>{
       const {data:dept}=await sb.from('departments').select('*').eq('id',deptParam).single();
       if(dept){deptId=dept.id;deptName=dept.name||'Department';}
       rankGroups=rd.rank_groups||[]; subdivisions=rd.subdivisions||[];
-      positions=rd.positions||[]; traineeFormat=rd.trainee_format||'';
+      positions=rd.positions||[]; traineeFormat=rd.trainee_format||''; customTags=rd.custom_tags||[];
       activeTheme=rd.theme||'dark-steel'; members=rd.members||[]; trainees=rd.trainees||[];
       applyTheme(activeTheme);
       document.getElementById('headerName').textContent=deptName;
@@ -1772,7 +1831,7 @@ document.addEventListener('keydown',e=>{
       const {data:dept}=await sb.from('departments').select('*').eq('id',rd.dept_id).single();
       if(dept){deptId=dept.id;deptName=dept.name||'Department';}
       rankGroups=rd.rank_groups||[]; subdivisions=rd.subdivisions||[];
-      positions=rd.positions||[]; traineeFormat=rd.trainee_format||'';
+      positions=rd.positions||[]; traineeFormat=rd.trainee_format||''; customTags=rd.custom_tags||[];
       activeTheme=rd.theme||'dark-steel'; members=rd.members||[]; trainees=rd.trainees||[];
       applyTheme(activeTheme);
       document.getElementById('headerName').textContent=deptName;
