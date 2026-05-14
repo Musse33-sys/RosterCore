@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>RosterCore</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 56 56'><circle cx='28' cy='28' r='25' stroke='%23c9a84c' stroke-width='2.5' fill='none' stroke-dasharray='58 24' stroke-dashoffset='-6'/><text x='28' y='23' text-anchor='middle' font-family='sans-serif' font-size='16' font-weight='700' fill='white'>R</text><text x='28' y='41' text-anchor='middle' font-family='sans-serif' font-size='16' font-weight='700' fill='%23c9a84c'>C</text></svg>">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -286,9 +286,91 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .confirm-modal .modal-title{color:var(--red);}
 
 @media(max-width:768px){
-  .header-inner{padding:12px 16px;}.app-nav{padding:0 16px;}.app-main{padding:20px 14px;}
-  .form-row{grid-template-columns:1fr;}.stats-bar{flex-wrap:wrap;}
-  .stat{min-width:calc(50% - 5px);}
+  /* LAYOUT */
+  .header-inner{padding:10px 14px;gap:8px;}
+  .header-center{padding:0 8px;}
+  .header-name{font-size:18px;letter-spacing:2px;}
+  .header-dept{font-size:8px;letter-spacing:2px;}
+  .header-sub{display:none;}
+  .header-right{gap:6px;}
+  .header-right span{display:none;}
+  .admin-pill{font-size:8px;padding:3px 7px;}
+  .logout-btn{font-size:8px;padding:5px 8px;}
+  .app-nav{padding:0 8px;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  .nav-tab{font-size:9px;letter-spacing:1px;padding:10px 10px;}
+  .app-main{padding:14px 12px;}
+
+  /* STATS */
+  .stats-bar{gap:6px;}
+  .stat{min-width:calc(33.33% - 4px);padding:10px 10px;}
+  .stat-val{font-size:28px;}
+  .stat-label{font-size:8px;letter-spacing:1px;}
+
+  /* FILTER BAR */
+  .filter-bar{gap:6px;}
+  .filter-input{width:100%;font-size:11px;}
+  .filter-select{font-size:10px;padding:7px 8px;}
+  .btn{font-size:10px;padding:7px 12px;letter-spacing:1px;}
+  .btn-sm{font-size:9px;padding:5px 9px;}
+  .btn-xs{font-size:9px;padding:3px 7px;}
+
+  /* ROSTER TABLE - horizontal scroll */
+  .rg-wrap{flex-direction:column;}
+  .rg-label{writing-mode:horizontal-tb;transform:none;min-width:unset;padding:6px 12px;font-size:9px;letter-spacing:2px;border-right:none;border-bottom:1px solid var(--border);}
+  .rg-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  .roster-table{font-size:11px;min-width:600px;}
+  .roster-table thead th{padding:7px 8px;font-size:8px;}
+  .roster-table td{padding:7px 8px;}
+  .members-table{min-width:560px;}
+  .members-table thead th{padding:7px 8px;font-size:8px;}
+  .members-table td{padding:7px 8px;}
+  .rank-group+.rank-group{margin-top:12px;}
+
+  /* MODALS */
+  .modal{padding:20px;width:96vw;}
+  .modal-title{font-size:20px;}
+  .auth-modal{padding:24px;width:96vw;}
+  .auth-title{font-size:22px;}
+  .form-row{grid-template-columns:1fr;}
+  .form-input{font-size:16px;} /* prevent zoom on iOS */
+  .form-select{font-size:16px;}
+
+  /* EDITOR */
+  .editor-wrap{max-width:100%;}
+  .edit-row{gap:4px;}
+  .add-form{flex-wrap:wrap;}
+  .add-input{min-width:0;flex:1;}
+  .themes-grid{gap:6px;}
+  .theme-btn{min-width:calc(50% - 3px);font-size:9px;padding:8px 10px;}
+
+  /* SECTION HEADER */
+  .section-hdr{flex-direction:column;align-items:flex-start;gap:10px;}
+
+  /* LANDING */
+  .landing-title{font-size:clamp(42px,12vw,72px);letter-spacing:3px;}
+  .landing-sub{font-size:14px;}
+  .landing-features{grid-template-columns:1fr 1fr;gap:10px;}
+  .feat{padding:16px;}
+
+  /* SHARE MODAL */
+  .share-url{font-size:10px;}
+
+  /* SA TABLE */
+  .dept-table{font-size:12px;}
+  .dept-table th,.dept-table td{padding:8px 10px;}
+
+  /* ACTION MENU */
+  .action-menu{right:auto;left:0;}
+}
+
+@media(max-width:480px){
+  .stats-bar{gap:5px;}
+  .stat{min-width:calc(50% - 3px);}
+  .landing-features{grid-template-columns:1fr;}
+  .header-name{font-size:16px;}
+  .nav-tab{font-size:8px;padding:9px 8px;letter-spacing:.5px;}
+  .theme-btn{min-width:calc(50% - 3px);}
+  .col-labels{display:none;}
 }
 </style>
 </head>
