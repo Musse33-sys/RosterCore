@@ -604,7 +604,20 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
       <div id="promoWrap"></div>
     </div>
 
-    <!-- PROMO ANNOUNCEMENT MODAL -->
+    <!-- CHANGE PASSWORD MODAL (super admin) -->
+<div class="modal-overlay hidden" id="changePwModal" onclick="if(event.target===this)this.classList.add('hidden')">
+  <div class="modal" style="max-width:400px;">
+    <div class="modal-title">Change Password</div>
+    <div class="modal-sub" id="changePwSub">Set a new password for this department.</div>
+    <div class="form-error hidden" id="changePwError"></div>
+    <div class="form-group"><label class="form-label">New Password</label><input class="form-input" type="password" id="changePwInput" placeholder="Min 6 characters"></div>
+    <div class="form-group"><label class="form-label">Confirm Password</label><input class="form-input" type="password" id="changePwConfirm" placeholder="Repeat password"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="document.getElementById('changePwModal').classList.add('hidden')">Cancel</button>
+      <button class="btn btn-primary" onclick="doChangePassword()">Update Password</button>
+    </div>
+  </div>
+</div>
     <div class="modal-overlay hidden" id="promoModal" onclick="if(event.target===this)this.classList.add('hidden')">
       <div class="modal" style="max-width:540px;">
         <div class="modal-title">Promotion Announcement</div>
@@ -716,7 +729,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
         </div>
         <div class="divider"></div>
         <table class="dept-table">
-          <thead><tr><th>Department</th><th>User ID</th><th>Created</th><th>Actions</th></tr></thead>
+          <thead><tr><th>Department</th><th>Email</th><th>Password</th><th>Created</th><th>Actions</th></tr></thead>
           <tbody id="deptTableBody"></tbody>
         </table>
       </div>
@@ -2306,7 +2319,7 @@ async function createDepartment(){
   if(!data.user){errEl.textContent='⚠ Check that email confirmation is disabled in Supabase.';errEl.classList.remove('hidden');return;}
 
   // Insert department record right away
-  const {error:dErr}=await sb.from('departments').insert({user_id:data.user.id,name});
+  const {error:dErr}=await sb.from('departments').insert({user_id:data.user.id, name, email});
   if(dErr){errEl.textContent='⚠ '+dErr.message;errEl.classList.remove('hidden');return;}
 
   // Insert empty roster data
@@ -2329,13 +2342,40 @@ async function loadSuperAdminDepts(){
   tbody.innerHTML=depts.map(d=>`
     <tr>
       <td><div class="dept-name-cell">${d.name}</div></td>
-      <td><div class="dept-email-cell" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);">${d.user_id}</div></td>
+      <td><div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);">${d.email||'—'}</div></td>
+      <td><div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text2);">${d.password_hint||'—'}</div></td>
       <td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);">${new Date(d.created_at).toLocaleDateString()}</td>
-      <td><button class="btn btn-danger" onclick="deleteDept('${d.id}','${d.name}')">Delete</button></td>
+      <td style="display:flex;gap:6px;">
+        <button class="btn btn-outline btn-sm" onclick="openChangePw('${d.user_id}','${d.name}')">Change Password</button>
+        <button class="btn btn-danger" onclick="deleteDept('${d.id}','${d.name}')">Delete</button>
+      </td>
     </tr>`).join('');
 }
 
-async function deleteDept(deptId, name){
+let changePwUserId = null;
+
+function openChangePw(userId, name){
+  changePwUserId = userId;
+  document.getElementById('changePwSub').textContent=`Set a new password for ${name}.`;
+  document.getElementById('changePwInput').value='';
+  document.getElementById('changePwConfirm').value='';
+  document.getElementById('changePwError').classList.add('hidden');
+  document.getElementById('changePwModal').classList.remove('hidden');
+}
+
+async function doChangePassword(){
+  const pwd=document.getElementById('changePwInput').value;
+  const confirm=document.getElementById('changePwConfirm').value;
+  const errEl=document.getElementById('changePwError');
+  errEl.classList.add('hidden');
+  if(pwd.length<6){errEl.textContent='⚠ Password must be at least 6 characters.';errEl.classList.remove('hidden');return;}
+  if(pwd!==confirm){errEl.textContent='⚠ Passwords do not match.';errEl.classList.remove('hidden');return;}
+
+  // Store new password in departments table as a plain note for the admin to share
+  await sb.from('departments').update({password_hint:pwd}).eq('user_id',changePwUserId);
+  document.getElementById('changePwModal').classList.add('hidden');
+  showToast('✓ New password saved. Share it with the department manually.');
+}
   if(!confirm(`Delete department "${name}"? This cannot be undone.`)) return;
   await sb.from('roster_data').delete().eq('dept_id',deptId);
   await sb.from('departments').delete().eq('id',deptId);
