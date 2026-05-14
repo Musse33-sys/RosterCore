@@ -161,8 +161,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .rg-table-wrap{flex:1;overflow-x:auto;}
 .roster-table{width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed;}
 .roster-table thead th{background:var(--bg3);border-bottom:1px solid var(--border2);font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);padding:10px 12px;text-align:left;white-space:nowrap;font-weight:500;overflow:hidden;}
-.roster-table tbody tr.row-filled{background:var(--bg2);border-bottom:1px solid var(--border);transition:filter .1s;}
-.roster-table tbody tr.row-filled:hover{filter:brightness(1.18);}
+.roster-table tbody tr.row-filled{background:var(--bg2);border-bottom:1px solid var(--border);}
+.roster-table tbody tr.row-filled:hover{background:var(--bg3);}
 .roster-table tbody tr.row-empty{background:var(--bg);border-bottom:1px solid rgba(42,47,61,.5);}
 .roster-table td{padding:8px 12px;vertical-align:middle;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .roster-table td.name-td{white-space:normal;overflow:visible;}
@@ -272,7 +272,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .action-menu-wrap{position:relative;display:inline-block;}
 .action-menu-btn{background:var(--bg3);border:1px solid var(--border);color:var(--text2);padding:5px 10px;border-radius:var(--radius);cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;transition:all .15s;}
 .action-menu-btn:hover{border-color:var(--accent);color:var(--accent);}
-.action-menu{position:fixed;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius);min-width:160px;z-index:1000;box-shadow:var(--shadow);overflow:hidden;}
+.action-menu{position:fixed;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius);min-width:160px;z-index:9999;box-shadow:0 8px 32px rgba(0,0,0,.8);overflow:hidden;}
 .action-menu button{display:block;width:100%;text-align:left;padding:9px 14px;background:none;border:none;color:var(--text2);font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;transition:background .1s;letter-spacing:.5px;}
 .action-menu button:hover{background:var(--bg3);color:var(--text);}
 .action-menu button.danger{color:var(--red);}
