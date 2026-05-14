@@ -256,7 +256,22 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 /* SHARE MODAL */
 .share-url{background:var(--bg3);border:1px solid var(--border2);padding:10px 13px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);word-break:break-all;cursor:pointer;border-radius:var(--radius);min-height:42px;margin-bottom:14px;}
 
-/* ANIMATIONS */
+/* MEMBERS TAB */
+.members-table{width:100%;border-collapse:collapse;font-size:13px;}
+.members-table thead th{background:var(--bg3);border-bottom:1px solid var(--border2);font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);padding:10px 14px;text-align:left;white-space:nowrap;}
+.members-table tbody tr{background:var(--bg2);border-bottom:1px solid var(--border);transition:background .1s;}
+.members-table tbody tr:hover{background:var(--bg3);}
+.members-table td{padding:11px 14px;vertical-align:middle;color:var(--text2);}
+.trainee-row td{opacity:.8;}
+.action-menu-wrap{position:relative;display:inline-block;}
+.action-menu-btn{background:var(--bg3);border:1px solid var(--border);color:var(--text2);padding:5px 10px;border-radius:var(--radius);cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;transition:all .15s;}
+.action-menu-btn:hover{border-color:var(--accent);color:var(--accent);}
+.action-menu{position:absolute;right:0;top:100%;margin-top:4px;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius);min-width:160px;z-index:100;box-shadow:var(--shadow);overflow:hidden;}
+.action-menu button{display:block;width:100%;text-align:left;padding:9px 14px;background:none;border:none;color:var(--text2);font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;transition:background .1s;letter-spacing:.5px;}
+.action-menu button:hover{background:var(--bg3);color:var(--text);}
+.action-menu button.danger{color:var(--red);}
+.action-menu button.danger:hover{background:rgba(248,113,113,.08);}
+.action-menu .divider-menu{height:1px;background:var(--border);margin:3px 0;}
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 .fade-up{animation:fadeUp .25s ease both;}
 
@@ -321,6 +336,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
     <nav class="app-nav">
       <button class="nav-tab active" onclick="switchTab('roster',this)">Main Roster</button>
       <button class="nav-tab" onclick="switchTab('trainees',this)">Trainee Roster</button>
+      <button class="nav-tab" onclick="switchTab('members',this)">All Members</button>
       <button class="nav-tab hidden" id="editorTab" onclick="switchTab('editor',this)">Editor</button>
       <button class="nav-tab hidden" id="saTab" onclick="switchTab('superadmin',this)">⬡ Super Admin</button>
     </nav>
@@ -352,6 +368,16 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
       </div>
       <div class="divider"></div>
       <div id="traineeWrap"></div>
+    </div>
+
+    <!-- MEMBERS TAB -->
+    <div class="tab-panel" style="display:none;" id="tab-members">
+      <div class="section-hdr">
+        <div class="section-title">All <span>Members</span></div>
+        <input class="filter-input" id="membersSearch" placeholder="Search name or callsign…" oninput="renderAllMembers()" style="width:200px;">
+      </div>
+      <div class="divider"></div>
+      <div id="allMembersWrap"></div>
     </div>
 
     <!-- EDITOR TAB -->
@@ -1134,6 +1160,7 @@ function switchTab(name, btn){
   if(btn) btn.classList.add('active');
   if(name==='editor') renderEditor();
   if(name==='superadmin') loadSuperAdminDepts();
+  if(name==='members') renderAllMembers();
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -1350,8 +1377,104 @@ function renderTrainees(){
 }
 
 // ══════════════════════════════════════════════════════════════
-// PROMOTE / DEMOTE / GRADUATE
+// ALL MEMBERS TAB
 // ══════════════════════════════════════════════════════════════
+let openMenuId = null;
+
+function renderAllMembers(){
+  const search=(document.getElementById('membersSearch')?.value||'').toLowerCase();
+  const all = [
+    ...members.map(m=>({...m,_type:'member'})),
+    ...trainees.map(t=>({...t,_type:'trainee'}))
+  ].filter(m=>!search||m.name.toLowerCase().includes(search)||(m.callsign||'').toLowerCase().includes(search))
+   .sort((a,b)=>{
+     if(a._type!==b._type) return a._type==='member'?-1:1;
+     if(a._type==='member') return rgIndex(a.rankGroup)-rgIndex(b.rankGroup);
+     return 0;
+   });
+
+  const wrap=document.getElementById('allMembersWrap');
+  if(!all.length){
+    wrap.innerHTML=`<div class="empty-state"><div class="empty-icon">👥</div><div class="empty-text">No members yet.</div></div>`;
+    return;
+  }
+
+  const rows=all.map(m=>{
+    const isTrainee=m._type==='trainee';
+    const gi=isTrainee?-1:rgIndex(m.rankGroup);
+    const group=isTrainee?'Trainee':m.rankGroup||'—';
+    const groupColor=isTrainee?'var(--purple)':'var(--accent)';
+    const tags=(m.tags||[]).map(tag=>{
+      const t=customTags.find(ct=>ct.name===tag);
+      const c=t?t.color:'#7ec8e3';
+      return`<span style="font-family:'JetBrains Mono',monospace;font-size:9px;background:${c}18;border:1px solid ${c}55;color:${c};padding:1px 5px;border-radius:2px;">${tag}</span>`;
+    }).join(' ');
+
+    const menuId=`menu_${m._type}_${m.id}`;
+    const menu=currentUser?`
+      <div class="action-menu-wrap">
+        <button class="action-menu-btn" onclick="toggleMenu('${menuId}',event)">Actions ▾</button>
+        <div class="action-menu" id="${menuId}" style="display:none;">
+          ${isTrainee?`
+            <button onclick="graduate(${m.id});closeMenu()">★ Graduate</button>
+            <button onclick="openEditTrainee(${m.id});closeMenu()">✎ Edit</button>
+            <div class="divider-menu"></div>
+            <button class="danger" onclick="openConfirmDelete(${m.id},'trainee');closeMenu()">✕ Remove</button>
+          `:`
+            ${gi>0?`<button onclick="promote(${m.id});closeMenu()">▲ Promote</button>`:''}
+            ${gi<rankGroups.length-1&&gi>=0?`<button onclick="demote(${m.id});closeMenu()">▼ Demote</button>`:''}
+            <button onclick="openEditMember(${m.id});closeMenu()">✎ Edit</button>
+            <div class="divider-menu"></div>
+            <button class="danger" onclick="openConfirmDelete(${m.id},'member');closeMenu()">✕ Remove</button>
+          `}
+        </div>
+      </div>`:'-';
+
+    return`<tr class="${isTrainee?'trainee-row':''}">
+      <td><span style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:${isTrainee?'var(--purple)':'var(--green)'};">${m.callsign||'—'}</span></td>
+      <td>
+        <div style="font-weight:600;color:var(--text);font-size:13px;">${m.name} ${tags}</div>
+        ${m.position?`<div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);margin-top:2px;">${m.position}</div>`:''}
+      </td>
+      <td><span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:${groupColor};">${group}</span></td>
+      <td>${statusPill(m.status)}</td>
+      <td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);">${fmtDate(m.doh)}</td>
+      <td style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);">${m.discord||'—'}</td>
+      <td>${strikeBadge(m.strikes||0)}</td>
+      <td>${menu}</td>
+    </tr>`;
+  }).join('');
+
+  wrap.innerHTML=`
+    <table class="members-table">
+      <thead><tr>
+        <th>Callsign</th><th>Name</th><th>Rank Group</th><th>Status</th>
+        <th>DOH</th><th>Discord ID</th><th>Strikes</th><th>Actions</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+function toggleMenu(id, e){
+  e.stopPropagation();
+  if(openMenuId&&openMenuId!==id){
+    const prev=document.getElementById(openMenuId);
+    if(prev) prev.style.display='none';
+  }
+  const menu=document.getElementById(id);
+  if(!menu) return;
+  const isOpen=menu.style.display==='block';
+  menu.style.display=isOpen?'none':'block';
+  openMenuId=isOpen?null:id;
+}
+function closeMenu(){
+  if(openMenuId){
+    const m=document.getElementById(openMenuId);
+    if(m) m.style.display='none';
+    openMenuId=null;
+  }
+}
+document.addEventListener('click',()=>closeMenu());
 function promote(id){
   const m=members.find(mb=>mb.id===id); if(!m)return;
   const gi=rgIndex(m.rankGroup);
@@ -1763,6 +1886,7 @@ function renderAll(){
   renderStats();
   renderRoster();
   renderTrainees();
+  if(document.getElementById('tab-members')?.classList.contains('active')) renderAllMembers();
 }
 
 // ══════════════════════════════════════════════════════════════
