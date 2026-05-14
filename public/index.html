@@ -284,7 +284,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
     <div class="feat"><div class="feat-icon">🎓</div><div class="feat-title">Trainee Roster</div><div class="feat-desc">Separate trainee tab with its own callsign format. Graduate to main roster in one click.</div></div>
     <div class="feat"><div class="feat-icon">💾</div><div class="feat-title">Cloud Saved</div><div class="feat-desc">All data saves to the cloud instantly. Never lose your roster again.</div></div>
   </div>
-  <button class="btn btn-primary" style="font-size:13px;padding:14px 40px;" onclick="showAuthModal()">Login to Your Roster</button>
+  <button class="btn btn-primary" style="font-size:13px;padding:14px 40px;" onclick="showAuthModal()">Department Login</button>
+  <button class="btn btn-outline" style="font-size:13px;padding:14px 40px;margin-top:12px;" onclick="showStaffLoginModal()">Staff Login</button>
 </div>
 
 <!-- ══════════ AUTH MODAL ══════════ -->
@@ -543,34 +544,61 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 
 <!-- SHARE MODAL -->
 <div class="modal-overlay hidden" id="shareModal" onclick="if(event.target===this)this.classList.add('hidden')">
-  <div class="modal" style="max-width:520px;">
-    <div class="modal-title">Share Roster</div>
-    <div class="modal-sub">Manage who can view and edit your roster.</div>
+  <div class="modal" style="max-width:540px;">
+    <div class="modal-title">Share & Access</div>
+    <div class="modal-sub">Manage public access and staff accounts for your roster.</div>
 
+    <!-- PUBLIC LINK -->
     <div class="form-group">
       <label class="form-label">Public Link — Read Only</label>
       <div class="share-url" id="publicUrl" onclick="copyPublicLink()" title="Click to copy">Generating…</div>
       <button class="btn btn-primary btn-sm" onclick="copyPublicLink()">Copy Public Link</button>
     </div>
 
-    <div class="form-group" style="margin-top:16px;">
-      <label class="form-label">Edit Link — Staff Access</label>
-      <p style="font-size:12px;color:var(--text2);margin-bottom:8px;">Anyone who opens this link must enter their name to get edit access. You can remove them anytime.</p>
-      <div class="share-url" id="shareUrl" onclick="copyShareLink()" title="Click to copy">Generating…</div>
-      <div style="display:flex;gap:8px;margin-top:8px;">
-        <button class="btn btn-outline btn-sm" onclick="copyShareLink()">Copy Edit Link</button>
-        <button class="btn btn-danger" onclick="disableShare()">Disable Edit Link</button>
+    <div style="height:1px;background:var(--border);margin:16px 0;"></div>
+
+    <!-- STAFF ACCOUNTS -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <label class="form-label" style="margin:0;">Staff Accounts</label>
+      <button class="btn btn-primary btn-sm" onclick="showCreateProfile()">+ Create Account</button>
+    </div>
+
+    <!-- CREATE PROFILE FORM (hidden by default) -->
+    <div id="createProfileForm" style="display:none;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:12px;">
+      <div class="form-row">
+        <div class="form-group" style="margin-bottom:8px;"><label class="form-label">Name</label><input class="form-input" id="cpName" placeholder="e.g. John Smith"></div>
+        <div class="form-group" style="margin-bottom:8px;"><label class="form-label">Username</label><input class="form-input" id="cpUsername" placeholder="e.g. john.smith"></div>
+      </div>
+      <div class="form-group" style="margin-bottom:10px;"><label class="form-label">Password</label><input class="form-input" type="password" id="cpPassword" placeholder="Min 4 characters"></div>
+      <div class="form-error hidden" id="cpError"></div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-primary btn-sm" onclick="createProfile()">Create</button>
+        <button class="btn btn-ghost btn-sm" onclick="hideCreateProfile()">Cancel</button>
       </div>
     </div>
 
-    <div style="margin-top:20px;">
-      <label class="form-label">People with Edit Access</label>
-      <div id="accessList" style="margin-top:8px;display:flex;flex-direction:column;gap:6px;"></div>
-    </div>
+    <!-- STAFF LIST -->
+    <div id="profileList" style="display:flex;flex-direction:column;gap:6px;max-height:280px;overflow-y:auto;"></div>
 
     <div style="margin-top:16px;">
       <button class="btn btn-ghost btn-sm" onclick="document.getElementById('shareModal').classList.add('hidden')">Close</button>
     </div>
+  </div>
+</div>
+
+<!-- STAFF LOGIN MODAL -->
+<div class="modal-overlay hidden" id="staffLoginModal">
+  <div class="auth-modal">
+    <div class="auth-seal">🦅</div>
+    <div class="auth-title" id="staffLoginTitle">Staff Login</div>
+    <div class="auth-sub" id="staffLoginSub">Sign in to your roster</div>
+    <div class="form-error hidden" id="staffLoginError"></div>
+    <div class="form-group"><label class="form-label">Username</label><input class="form-input" id="staffUsername" placeholder="your.username" autocomplete="off"></div>
+    <div class="form-group"><label class="form-label">Password</label><input class="form-input" type="password" id="staffPassword" placeholder="••••••••"></div>
+    <button class="btn btn-primary w-full" style="padding:13px;font-size:12px;letter-spacing:2px;" onclick="doStaffLogin()">Sign In</button>
+    <p style="text-align:center;margin-top:14px;font-size:11px;color:var(--text2);font-family:'JetBrains Mono',monospace;">
+      Department owner? <a href="#" onclick="switchToOwnerLogin()" style="color:var(--accent);text-decoration:none;">Login here</a>
+    </p>
   </div>
 </div>
 
@@ -748,8 +776,8 @@ async function saveRoster(){
     theme: activeTheme, members: members, trainees: trainees,
     updated_at: new Date().toISOString()
   }).eq('id', rosterDataId);
-  // Only update dept name if logged in as owner (not shared access)
-  if(currentUser && currentUser.email !== 'shared' && deptId){
+  // Only update dept name if logged in as owner (not shared/staff access)
+  if(currentUser && currentUser.email !== 'shared' && currentUser.email !== 'staff' && deptId){
     await sb.from('departments').update({name: deptName}).eq('id', deptId);
   }
   if(e1){ showToast('⚠ Save failed: '+e1.message,true); }
@@ -822,14 +850,19 @@ async function onLoginSuccess(user){
 }
 
 async function doLogout(){
-  await sb.auth.signOut({scope:'global'});
+  // Only sign out from Supabase if logged in as dept owner
+  if(currentUser && currentUser.email !== 'shared' && currentUser.email !== 'staff'){
+    await sb.auth.signOut({scope:'global'});
+  }
   currentUser=null; isSuperAdmin=false; deptId=null; rosterDataId=null;
   members=[]; trainees=[]; rankGroups=[]; subdivisions=[]; positions=[];
   traineeFormat=''; deptName=''; activeTheme='dark-steel';
   document.getElementById('appPage').style.display='none';
   document.getElementById('landingPage').style.display='flex';
-  // Hide admin elements
-  ['saTab','editorTab','adminPill','addMemberBtn','addTraineeBtn','shareBtn'].forEach(id=>document.getElementById(id).classList.add('hidden'));
+  ['saTab','editorTab','adminPill','addMemberBtn','addTraineeBtn','shareBtn','loginFromPublicBtn'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.classList.add('hidden');
+  });
   applyTheme('dark-steel');
   showToast('Logged out.');
 }
@@ -851,26 +884,151 @@ async function loadByShareToken(token){
 }
 
 // ══════════════════════════════════════════════════════════════
-// SHARE & ACCESS CONTROL
+// SHARE & STAFF ACCOUNTS
 // ══════════════════════════════════════════════════════════════
 let currentAccessToken = null;
 
 async function openShareModal(){
   document.getElementById('shareModal').classList.remove('hidden');
   document.getElementById('publicUrl').textContent=location.origin+location.pathname+'?dept='+deptId;
-  const {data:rd}=await sb.from('roster_data').select('share_token,share_enabled').eq('id',rosterDataId).single();
-  let token = rd?.share_token;
-  if(!rd?.share_enabled || !token){
-    token=Math.random().toString(36).slice(2)+Math.random().toString(36).slice(2);
-    await sb.from('roster_data').update({share_token:token,share_enabled:true}).eq('id',rosterDataId);
-  }
-  document.getElementById('shareUrl').textContent=location.origin+location.pathname+'?share='+token;
-  await loadAccessList();
+  await loadProfileList();
 }
 
+function copyPublicLink(){
+  navigator.clipboard.writeText(document.getElementById('publicUrl').textContent).then(()=>showToast('✓ Public link copied!'));
+}
+
+// ── CREATE PROFILE ─────────────────────────────────────────────
+function showCreateProfile(){
+  document.getElementById('createProfileForm').style.display='block';
+  document.getElementById('cpName').value='';
+  document.getElementById('cpUsername').value='';
+  document.getElementById('cpPassword').value='';
+  document.getElementById('cpError').classList.add('hidden');
+  setTimeout(()=>document.getElementById('cpName').focus(),50);
+}
+function hideCreateProfile(){
+  document.getElementById('createProfileForm').style.display='none';
+}
+
+async function createProfile(){
+  const name=document.getElementById('cpName').value.trim();
+  const username=document.getElementById('cpUsername').value.trim().toLowerCase();
+  const password=document.getElementById('cpPassword').value;
+  const errEl=document.getElementById('cpError');
+  errEl.classList.add('hidden');
+  if(!name||!username||!password){errEl.textContent='⚠ All fields required.';errEl.classList.remove('hidden');return;}
+  if(password.length<4){errEl.textContent='⚠ Password must be at least 4 characters.';errEl.classList.remove('hidden');return;}
+
+  // Simple hash (not cryptographic — just for basic protection)
+  const hash = btoa(unescape(encodeURIComponent(password+'_rc_salt_'+username)));
+
+  const {error}=await sb.from('roster_profiles').insert({
+    roster_id: rosterDataId,
+    dept_id: deptId,
+    name, username,
+    password_hash: hash
+  });
+  if(error){
+    errEl.textContent=error.message.includes('unique')?'⚠ Username already taken.':'⚠ '+error.message;
+    errEl.classList.remove('hidden');
+    return;
+  }
+  hideCreateProfile();
+  await loadProfileList();
+  showToast(`✓ Account created for ${name}.`);
+}
+
+async function loadProfileList(){
+  const {data:profiles}=await sb.from('roster_profiles').select('*').eq('dept_id',deptId).order('created_at');
+  const el=document.getElementById('profileList');
+  if(!profiles||!profiles.length){
+    el.innerHTML=`<p style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);padding:8px 0;">No staff accounts yet. Create one above.</p>`;
+    return;
+  }
+  el.innerHTML=profiles.map(p=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;background:var(--bg3);border:1px solid var(--border);padding:10px 14px;border-radius:var(--radius);">
+      <div>
+        <div style="font-weight:600;color:var(--text);font-size:13px;">👤 ${p.name}</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);margin-top:2px;">@${p.username} · ${new Date(p.created_at).toLocaleDateString()}</div>
+      </div>
+      <button class="btn btn-danger" onclick="removeProfile('${p.id}','${p.name}')">Remove</button>
+    </div>`).join('');
+}
+
+async function removeProfile(id, name){
+  if(!confirm(`Remove ${name}'s account? They will no longer be able to log in.`)) return;
+  await sb.from('roster_profiles').delete().eq('id',id);
+  await loadProfileList();
+  showToast(`✓ ${name}'s account removed.`);
+}
+
+// ── STAFF LOGIN ─────────────────────────────────────────────────
+function showStaffLoginModal(){
+  document.getElementById('staffLoginModal').classList.remove('hidden');
+  document.getElementById('staffLoginError').classList.add('hidden');
+  document.getElementById('staffUsername').value='';
+  document.getElementById('staffPassword').value='';
+  setTimeout(()=>document.getElementById('staffUsername').focus(),50);
+}
+
+function switchToOwnerLogin(){
+  document.getElementById('staffLoginModal').classList.add('hidden');
+  showAuthModal();
+}
+
+async function doStaffLogin(){
+  const username=document.getElementById('staffUsername').value.trim().toLowerCase();
+  const password=document.getElementById('staffPassword').value;
+  const errEl=document.getElementById('staffLoginError');
+  errEl.classList.add('hidden');
+  if(!username||!password){errEl.textContent='⚠ Enter username and password.';errEl.classList.remove('hidden');return;}
+
+  const hash=btoa(unescape(encodeURIComponent(password+'_rc_salt_'+username)));
+  const {data:profile,error}=await sb.from('roster_profiles').select('*').eq('username',username).eq('password_hash',hash).single();
+
+  if(error||!profile){errEl.textContent='⚠ Invalid username or password.';errEl.classList.remove('hidden');return;}
+
+  // Load the roster this profile belongs to
+  const {data:rd}=await sb.from('roster_data').select('*').eq('id',profile.roster_id).single();
+  if(!rd){errEl.textContent='⚠ Roster not found.';errEl.classList.remove('hidden');return;}
+
+  const {data:dept}=await sb.from('departments').select('*').eq('id',rd.dept_id).single();
+
+  rosterDataId=rd.id;
+  deptId=rd.dept_id;
+  deptName=dept?.name||'Department';
+  rankGroups=rd.rank_groups||[];
+  subdivisions=rd.subdivisions||[];
+  positions=rd.positions||[];
+  traineeFormat=rd.trainee_format||'';
+  activeTheme=rd.theme||'dark-steel';
+  members=rd.members||[];
+  trainees=rd.trainees||[];
+  nextMemberId=members.length>0?Math.max(...members.map(m=>m.id||0))+1:1;
+  nextTraineeId=trainees.length>0?Math.max(...trainees.map(t=>t.id||0))+1:1;
+
+  applyTheme(activeTheme);
+  currentUser={email:'staff', name:profile.name, username:profile.username};
+
+  document.getElementById('staffLoginModal').classList.add('hidden');
+  document.getElementById('landingPage').style.display='none';
+  document.getElementById('appPage').style.display='flex';
+  document.getElementById('headerName').textContent=deptName;
+  document.getElementById('adminPill').classList.remove('hidden');
+  document.getElementById('adminPill').textContent='⬡ '+profile.name;
+  document.getElementById('addMemberBtn').classList.remove('hidden');
+  document.getElementById('addTraineeBtn').classList.remove('hidden');
+
+  renderAll();
+  showToast('Welcome, '+profile.name+'!');
+}
+
+// ── ACCESS LIST (name gate) ─────────────────────────────────────
 async function loadAccessList(){
   const {data:list}=await sb.from('roster_access').select('*').eq('roster_id',rosterDataId).order('created_at');
   const el=document.getElementById('accessList');
+  if(!el) return;
   if(!list||!list.length){
     el.innerHTML=`<p style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);">No one has edit access yet.</p>`;
     return;
@@ -885,26 +1043,21 @@ async function loadAccessList(){
     </div>`).join('');
 }
 
-async function revokeAccess(id, name){
+async function revokeAccess(id,name){
   await sb.from('roster_access').delete().eq('id',id);
   await loadAccessList();
   showToast(`✓ ${name}'s access removed.`);
 }
 
-function copyPublicLink(){
-  navigator.clipboard.writeText(document.getElementById('publicUrl').textContent).then(()=>showToast('✓ Public link copied!'));
-}
 function copyShareLink(){
-  const t=document.getElementById('shareUrl').textContent;
-  if(t.includes('disabled')){showToast('⚠ Edit link is disabled.',true);return;}
+  const t=document.getElementById('shareUrl')?.textContent;
+  if(!t||t.includes('disabled')){showToast('⚠ No share link.',true);return;}
   navigator.clipboard.writeText(t).then(()=>showToast('✓ Edit link copied!'));
 }
 async function disableShare(){
   await sb.from('roster_data').update({share_enabled:false}).eq('id',rosterDataId);
   await sb.from('roster_access').delete().eq('roster_id',rosterDataId);
-  document.getElementById('shareUrl').textContent='Edit link disabled.';
-  document.getElementById('accessList').innerHTML=`<p style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);">Edit link disabled. All access revoked.</p>`;
-  showToast('Edit link disabled. All access revoked.');
+  showToast('Share link disabled.');
 }
 
 // ── NAME GATE ──────────────────────────────────────────────────
@@ -1577,6 +1730,7 @@ function showToast(msg, warn=false){
 document.addEventListener('keydown',e=>{
   if(e.key==='Enter'&&!document.getElementById('authModal').classList.contains('hidden')) doLogin();
   if(e.key==='Enter'&&!document.getElementById('nameGateModal').classList.contains('hidden')) submitNameGate();
+  if(e.key==='Enter'&&!document.getElementById('staffLoginModal').classList.contains('hidden')) doStaffLogin();
 });
 
 // ══════════════════════════════════════════════════════════════
