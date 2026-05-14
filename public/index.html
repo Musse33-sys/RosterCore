@@ -81,10 +81,12 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 ══════════════════════════════════════ */
 #landingPage{min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:0;background:var(--bg);overflow-y:auto;}
 #landingPage::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 70% 50% at 50% 0%,rgba(201,168,76,.06) 0%,transparent 60%);pointer-events:none;}
-.landing-seal{margin:0 auto 28px;display:flex;align-items:center;justify-content:center;}
-.rc-logo circle{stroke:var(--accent);transition:stroke .3s;}
+.landing-seal{margin:0 auto 20px;display:flex;align-items:center;justify-content:center;}
+.rc-logo .rc-ring{stroke:var(--accent);transition:stroke .3s;}
+.rc-logo .rc-r{fill:var(--text);}
+.rc-logo .rc-r-stroke{stroke:var(--text);}
 .rc-logo .rc-c{fill:var(--accent);transition:fill .3s;}
-.rc-logo .rc-r{fill:var(--text);transition:fill .3s;}
+.rc-logo .rc-c-stroke{stroke:var(--accent);transition:stroke .3s;}
 .landing-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(56px,10vw,100px);letter-spacing:6px;color:var(--text);line-height:1;text-align:center;margin-bottom:12px;}
 .landing-title span{color:var(--accent);}
 .landing-sub{font-size:16px;color:var(--text2);text-align:center;max-width:440px;line-height:1.7;margin-bottom:40px;}
@@ -297,13 +299,14 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 
   <!-- HERO -->
   <div style="text-align:center;padding:80px 24px 60px;width:100%;max-width:860px;">
-    <div class="landing-seal"><svg class="rc-logo" width="90" height="90" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <circle cx="28" cy="28" r="25" stroke-width="2.5" fill="none" stroke-dasharray="58 24" stroke-dashoffset="-6"/>
-  <text x="18" y="31" font-family="Arial Black,Arial,sans-serif" font-size="20" font-weight="900" class="rc-r">R</text>
-  <text x="30" y="31" font-family="Arial Black,Arial,sans-serif" font-size="20" font-weight="900" class="rc-c">C</text>
+    <div class="landing-seal"><svg class="rc-logo" width="80" height="80" viewBox="0 0 90 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M 10 72 A 42 42 0 1 1 80 72" stroke-width="2" fill="none" class="rc-ring" stroke-linecap="round"/>
+  <text x="45" y="53" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="24" font-weight="900" fill="white" letter-spacing="3">R<tspan class="rc-c-stroke" fill="none" stroke="none"></tspan></text>
+  <text x="56" y="53" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="24" font-weight="900" letter-spacing="0" class="rc-c">C</text>
+  <text x="34" y="53" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="24" font-weight="900" fill="white">R</text>
 </svg></div>
     <div class="landing-title">Roster<span>Core</span></div>
-    <p class="landing-sub">Professional roster management for FiveM roleplay departments.</p>
+    <p class="landing-sub">Professional roster management for FiveM roleplay departments. Built for serious servers.</p>
     <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;">
       <button class="btn btn-primary" style="font-size:13px;padding:14px 40px;" onclick="showAuthModal()">Department Login</button>
       <button class="btn btn-outline" style="font-size:13px;padding:14px 40px;" onclick="showStaffLoginModal()">Staff Login</button>
@@ -409,10 +412,12 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 <!-- ══════════ AUTH MODAL ══════════ -->
 <div class="modal-overlay hidden" id="authModal" onclick="if(event.target===this)closeAuthModal()">
   <div class="auth-modal">
-    <div class="auth-seal"><svg class="rc-logo" width="44" height="44" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <circle cx="28" cy="28" r="25" stroke-width="2.5" fill="none" stroke-dasharray="58 24" stroke-dashoffset="-6"/>
-  <text x="18" y="31" font-family="Arial Black,Arial,sans-serif" font-size="20" font-weight="900" class="rc-r">R</text>
-  <text x="30" y="31" font-family="Arial Black,Arial,sans-serif" font-size="20" font-weight="900" class="rc-c">C</text>
+    <div class="auth-seal"><svg class="rc-logo" width="100" height="100" viewBox="0 0 90 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="45" cy="45" r="40" stroke-width="3" fill="none" stroke-dasharray="90 30" stroke-dashoffset="-8" class="rc-ring"/>
+  <rect x="18" y="26" width="4" height="38" class="rc-r" rx="2"/>
+  <path d="M22 26 H34 Q42 26 42 34 Q42 42 34 42 H22" stroke-width="4" fill="none" stroke-linejoin="round" stroke-linecap="round" class="rc-r-stroke"/>
+  <line x1="34" y1="42" x2="42" y2="64" stroke-width="4" stroke-linecap="round" class="rc-r-stroke"/>
+  <path d="M68 32 Q58 22 48 32 Q40 40 40 45 Q40 50 48 58 Q58 68 68 58" stroke-width="4.5" fill="none" stroke-linecap="round" class="rc-c-stroke"/>
 </svg></div>
     <div class="auth-title" id="authTitle">Welcome Back</div>
     <div class="auth-sub" id="authSub">Sign in to your department</div>
@@ -427,10 +432,12 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 <div id="appPage" style="display:none;flex-direction:column;min-height:100vh;">
   <header class="app-header">
     <div class="header-inner">
-      <div class="header-seal"><svg class="rc-logo" width="64" height="64" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <circle cx="28" cy="28" r="25" stroke-width="2.5" fill="none" stroke-dasharray="58 24" stroke-dashoffset="-6"/>
-  <text x="18" y="31" font-family="Arial Black,Arial,sans-serif" font-size="20" font-weight="900" class="rc-r">R</text>
-  <text x="30" y="31" font-family="Arial Black,Arial,sans-serif" font-size="20" font-weight="900" class="rc-c">C</text>
+      <div class="header-seal"><svg class="rc-logo" width="120" height="120" viewBox="0 0 90 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="45" cy="45" r="40" stroke-width="3" fill="none" stroke-dasharray="90 30" stroke-dashoffset="-8" class="rc-ring"/>
+  <rect x="18" y="26" width="4" height="38" class="rc-r" rx="2"/>
+  <path d="M22 26 H34 Q42 26 42 34 Q42 42 34 42 H22" stroke-width="4" fill="none" stroke-linejoin="round" stroke-linecap="round" class="rc-r-stroke"/>
+  <line x1="34" y1="42" x2="42" y2="64" stroke-width="4" stroke-linecap="round" class="rc-r-stroke"/>
+  <path d="M68 32 Q58 22 48 32 Q40 40 40 45 Q40 50 48 58 Q58 68 68 58" stroke-width="4.5" fill="none" stroke-linecap="round" class="rc-c-stroke"/>
 </svg></div>
       <div class="header-center">
         <div class="header-dept">RosterCore — Official Division Portal</div>
@@ -563,10 +570,17 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
         </div>
         <div class="editor-divider"></div>
         <div class="editor-section">
-          <div class="editor-h3">Trainee Callsign Format</div>
-          <div style="display:flex;gap:10px;align-items:center;max-width:360px;">
-            <input class="form-input" id="traineeFormatInput" placeholder="e.g. G-01" oninput="updateTraineeFormat(this.value)" style="max-width:140px;">
-            <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text2);">Next: <span id="traineeFormatPreview" style="color:var(--purple);">—</span></span>
+          <div class="editor-h3">Trainee Callsign Range</div>
+          <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;">
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label">From</label>
+              <input class="form-input" id="traineeFormatInput" placeholder="e.g. G-01" oninput="updateTraineeFormat(this.value)" style="max-width:120px;">
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label">To</label>
+              <input class="form-input" id="traineeFormatToInput" placeholder="e.g. G-200" oninput="updateTraineeFormatTo(this.value)" style="max-width:120px;">
+            </div>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text2);padding-bottom:2px;">Total slots: <span id="traineeFormatPreview" style="color:var(--purple);">—</span></span>
           </div>
         </div>
 
@@ -734,10 +748,12 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 <!-- STAFF LOGIN MODAL -->
 <div class="modal-overlay hidden" id="staffLoginModal">
   <div class="auth-modal">
-    <div class="auth-seal"><svg class="rc-logo" width="64" height="64" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <circle cx="28" cy="28" r="25" stroke-width="2.5" fill="none" stroke-dasharray="58 24" stroke-dashoffset="-6"/>
-  <text x="18" y="31" font-family="Arial Black,Arial,sans-serif" font-size="20" font-weight="900" class="rc-r">R</text>
-  <text x="30" y="31" font-family="Arial Black,Arial,sans-serif" font-size="20" font-weight="900" class="rc-c">C</text>
+    <div class="auth-seal"><svg class="rc-logo" width="120" height="120" viewBox="0 0 90 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="45" cy="45" r="40" stroke-width="3" fill="none" stroke-dasharray="90 30" stroke-dashoffset="-8" class="rc-ring"/>
+  <rect x="18" y="26" width="4" height="38" class="rc-r" rx="2"/>
+  <path d="M22 26 H34 Q42 26 42 34 Q42 42 34 42 H22" stroke-width="4" fill="none" stroke-linejoin="round" stroke-linecap="round" class="rc-r-stroke"/>
+  <line x1="34" y1="42" x2="42" y2="64" stroke-width="4" stroke-linecap="round" class="rc-r-stroke"/>
+  <path d="M68 32 Q58 22 48 32 Q40 40 40 45 Q40 50 48 58 Q58 68 68 58" stroke-width="4.5" fill="none" stroke-linecap="round" class="rc-c-stroke"/>
 </svg></div>
     <div class="auth-title" id="staffLoginTitle">Staff Login</div>
     <div class="auth-sub" id="staffLoginSub">Sign in to your roster</div>
@@ -754,10 +770,12 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 <!-- NAME GATE — shown when someone opens edit link -->
 <div class="modal-overlay hidden" id="nameGateModal">
   <div class="modal" style="max-width:400px;">
-    <div class="auth-seal"><svg class="rc-logo" width="64" height="64" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <circle cx="28" cy="28" r="25" stroke-width="2.5" fill="none" stroke-dasharray="58 24" stroke-dashoffset="-6"/>
-  <text x="18" y="31" font-family="Arial Black,Arial,sans-serif" font-size="20" font-weight="900" class="rc-r">R</text>
-  <text x="30" y="31" font-family="Arial Black,Arial,sans-serif" font-size="20" font-weight="900" class="rc-c">C</text>
+    <div class="auth-seal"><svg class="rc-logo" width="120" height="120" viewBox="0 0 90 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="45" cy="45" r="40" stroke-width="3" fill="none" stroke-dasharray="90 30" stroke-dashoffset="-8" class="rc-ring"/>
+  <rect x="18" y="26" width="4" height="38" class="rc-r" rx="2"/>
+  <path d="M22 26 H34 Q42 26 42 34 Q42 42 34 42 H22" stroke-width="4" fill="none" stroke-linejoin="round" stroke-linecap="round" class="rc-r-stroke"/>
+  <line x1="34" y1="42" x2="42" y2="64" stroke-width="4" stroke-linecap="round" class="rc-r-stroke"/>
+  <path d="M68 32 Q58 22 48 32 Q40 40 40 45 Q40 50 48 58 Q58 68 68 58" stroke-width="4.5" fill="none" stroke-linecap="round" class="rc-c-stroke"/>
 </svg></div>
     <div class="modal-title" style="text-align:center;">Enter Your Name</div>
     <div class="modal-sub" style="text-align:center;">To get edit access to this roster, enter your name. The roster owner can remove your access at any time.</div>
@@ -798,6 +816,7 @@ let rankGroups = [];
 let subdivisions = [];
 let positions = [];
 let traineeFormat = '';
+let traineeFormatTo = '';
 let customTags = [];
 let activeTheme = 'dark-steel';
 let members = [];
@@ -909,7 +928,7 @@ async function loadDepartment(userId){
   rankGroups = rd.rank_groups||[];
   subdivisions = rd.subdivisions||[];
   positions = rd.positions||[];
-  traineeFormat = rd.trainee_format||'';
+  traineeFormat = rd.trainee_format||''; traineeFormatTo = rd.trainee_format_to||'';
   customTags = rd.custom_tags||[];
   activeTheme = rd.theme||'dark-steel';
   members = rd.members||[];
@@ -927,7 +946,7 @@ async function saveRoster(){
   if(!rosterDataId){ showToast('⚠ No roster ID — try logging out and back in.',true); return; }
   const {error:e1} = await sb.from('roster_data').update({
     rank_groups: rankGroups, subdivisions: subdivisions,
-    positions: positions, trainee_format: traineeFormat, custom_tags: customTags,
+    positions: positions, trainee_format: traineeFormat, trainee_format_to: traineeFormatTo, custom_tags: customTags,
     theme: activeTheme, members: members, trainees: trainees,
     updated_at: new Date().toISOString()
   }).eq('id', rosterDataId);
@@ -1011,7 +1030,7 @@ async function doLogout(){
   }
   currentUser=null; isSuperAdmin=false; deptId=null; rosterDataId=null;
   members=[]; trainees=[]; rankGroups=[]; subdivisions=[]; positions=[];
-  traineeFormat=''; deptName=''; activeTheme='dark-steel';
+  traineeFormat=''; traineeFormatTo=''; deptName=''; activeTheme='dark-steel';
   document.getElementById('appPage').style.display='none';
   document.getElementById('landingPage').style.display='flex';
   ['saTab','editorTab','adminPill','addMemberBtn','addTraineeBtn','shareBtn','loginFromPublicBtn'].forEach(id=>{
@@ -1032,7 +1051,7 @@ async function loadByShareToken(token){
   const {data:dept} = await sb.from('departments').select('*').eq('id',rd.dept_id).single();
   if(dept){ deptId=dept.id; deptName=dept.name||'Department'; }
   rankGroups=rd.rank_groups||[]; subdivisions=rd.subdivisions||[];
-  positions=rd.positions||[]; traineeFormat=rd.trainee_format||''; customTags=rd.custom_tags||[];
+  positions=rd.positions||[]; traineeFormat=rd.trainee_format||''; traineeFormatTo=rd.trainee_format_to||''; customTags=rd.custom_tags||[];
   activeTheme=rd.theme||'dark-steel'; members=rd.members||[]; trainees=rd.trainees||[];
   applyTheme(activeTheme);
   document.getElementById('headerName').textContent=deptName;
@@ -1457,8 +1476,43 @@ function renderRoster(){
 // TRAINEE ROSTER
 // ══════════════════════════════════════════════════════════════
 function renderTrainees(){
+  const wrap=document.getElementById('traineeWrap');
+
+  // If range is set show all slots like main roster
+  if(traineeFormat && traineeFormatTo){
+    const slots=getRangeSlots(traineeFormat, traineeFormatTo);
+    const rows=slots.map(slot=>{
+      const t=trainees.find(tr=>tr.callsign===slot);
+      if(t) return`<tr class="row-filled">
+        <td><span class="cs-filled" style="color:var(--purple);">${t.callsign||'—'}</span></td>
+        <td><div class="member-name">${t.name}</div></td>
+        <td>${statusPill(t.status)}</td>
+        <td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);">${fmtDate(t.doh)}</td>
+        <td style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);">${t.discord||'—'}</td>
+        <td>${strikeBadge(t.strikes||0)}</td>
+        <td style="font-size:11px;color:var(--text2);">${t.notes||'—'}</td>
+        ${currentUser?`<td><div class="row-acts" style="opacity:1;">
+          <button class="btn btn-primary btn-xs" onclick="graduate(${t.id})">★ Graduate</button>
+          <button class="btn btn-ghost btn-xs" onclick="openEditTrainee(${t.id})">Edit</button>
+          <button class="btn btn-danger" onclick="openConfirmDelete(${t.id},'trainee')">✕</button>
+        </div></td>`:''}
+      </tr>`;
+      return`<tr class="row-empty">
+        <td><span class="cs-empty" style="color:rgba(167,139,250,.35);">${slot}</span></td>
+        <td colspan="${currentUser?7:6}" style="color:var(--border2);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;">— VACANT —</td>
+      </tr>`;
+    }).join('');
+    wrap.innerHTML=`<div class="rank-group"><div class="rg-wrap">
+      <div class="rg-label" style="background:rgba(167,139,250,.08);color:var(--purple);border-right-color:rgba(167,139,250,.3);">Trainees</div>
+      <div class="rg-table-wrap"><table class="roster-table">
+        <thead><tr><th>Callsign</th><th>Name</th><th>Status</th><th>DOH</th><th>Discord ID</th><th>Strikes</th><th>Notes</th>${currentUser?'<th>Actions</th>':''}</tr></thead>
+        <tbody>${rows}</tbody>
+      </table></div></div></div>`;
+    return;
+  }
+
   if(!trainees.length){
-    document.getElementById('traineeWrap').innerHTML=`<div class="empty-state"><div class="empty-icon">🎓</div><div class="empty-text">No trainees enrolled.</div></div>`;
+    wrap.innerHTML=`<div class="empty-state"><div class="empty-icon">🎓</div><div class="empty-text">No trainees enrolled.</div></div>`;
     return;
   }
   const rows = trainees.map(t=>`
@@ -1477,7 +1531,7 @@ function renderTrainees(){
       </div></td>`:''}
     </tr>`).join('');
 
-  document.getElementById('traineeWrap').innerHTML=`
+  wrap.innerHTML=`
     <div class="rank-group">
       <div class="rg-wrap">
         <div class="rg-label" style="background:rgba(167,139,250,.08);color:var(--purple);border-right-color:rgba(167,139,250,.3);">Trainees</div>
@@ -1780,6 +1834,8 @@ function confirmDelete(){
 function renderEditor(){
   document.getElementById('deptNameInput').value=deptName;
   document.getElementById('traineeFormatInput').value=traineeFormat;
+  const toEl=document.getElementById('traineeFormatToInput');
+  if(toEl) toEl.value=traineeFormatTo;
   updateTraineeFormatPreview();
   renderThemesGrid();
   renderRGList();
@@ -1811,9 +1867,22 @@ function updateTraineeFormat(val){
   updateTraineeFormatPreview();
   scheduleSave();
 }
+function updateTraineeFormatTo(val){
+  traineeFormatTo=val;
+  updateTraineeFormatPreview();
+  scheduleSave();
+}
 function updateTraineeFormatPreview(){
   const el=document.getElementById('traineeFormatPreview');
-  if(el) el.textContent=traineeFormat?nextTraineeCallsign():'—';
+  if(!el) return;
+  if(traineeFormat&&traineeFormatTo){
+    const slots=getRangeSlots(traineeFormat,traineeFormatTo);
+    el.textContent=slots.length+' slots';
+  } else if(traineeFormat){
+    el.textContent=nextTraineeCallsign()||'—';
+  } else {
+    el.textContent='—';
+  }
 }
 
 function renderRGList(){
@@ -2047,7 +2116,7 @@ document.addEventListener('keydown',e=>{
       const {data:dept}=await sb.from('departments').select('*').eq('id',deptParam).single();
       if(dept){deptId=dept.id;deptName=dept.name||'Department';}
       rankGroups=rd.rank_groups||[]; subdivisions=rd.subdivisions||[];
-      positions=rd.positions||[]; traineeFormat=rd.trainee_format||''; customTags=rd.custom_tags||[];
+      positions=rd.positions||[]; traineeFormat=rd.trainee_format||''; traineeFormatTo=rd.trainee_format_to||''; customTags=rd.custom_tags||[];
       activeTheme=rd.theme||'dark-steel'; members=rd.members||[]; trainees=rd.trainees||[];
       applyTheme(activeTheme);
       document.getElementById('headerName').textContent=deptName;
@@ -2068,7 +2137,7 @@ document.addEventListener('keydown',e=>{
       const {data:dept}=await sb.from('departments').select('*').eq('id',rd.dept_id).single();
       if(dept){deptId=dept.id;deptName=dept.name||'Department';}
       rankGroups=rd.rank_groups||[]; subdivisions=rd.subdivisions||[];
-      positions=rd.positions||[]; traineeFormat=rd.trainee_format||''; customTags=rd.custom_tags||[];
+      positions=rd.positions||[]; traineeFormat=rd.trainee_format||''; traineeFormatTo=rd.trainee_format_to||''; customTags=rd.custom_tags||[];
       activeTheme=rd.theme||'dark-steel'; members=rd.members||[]; trainees=rd.trainees||[];
       applyTheme(activeTheme);
       document.getElementById('headerName').textContent=deptName;
