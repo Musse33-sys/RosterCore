@@ -71,7 +71,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 #toast.warn{border-left-color:var(--red);}
 
 #landingPage{min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:0;background:var(--bg);overflow-y:auto;}
-#landingPage::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 70% 50% at 50% 0%,rgba(201,168,76,.06) 0%,transparent 60%);pointer-events:none;}
+#landingPage::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 70% 50% at 50% 0%,rgba(201,168,76,.06) 0%,transparent 60%);pointer-events:none;z-index:0;}
+#landingPage > *{position:relative;z-index:1;}
 .landing-seal{margin:0 auto 20px;display:flex;align-items:center;justify-content:center;}
 .rc-logo .rc-ring{stroke:var(--accent);transition:stroke .3s;}
 .rc-logo .rc-r{fill:var(--text);}
