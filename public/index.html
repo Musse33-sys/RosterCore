@@ -1133,9 +1133,22 @@ async function loadByShareToken(token){
 
 let currentAccessToken = null;
 
+function makeSlug(name){
+  const rand = Math.floor(1000 + Math.random() * 9000);
+  return name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'') + '-' + rand;
+}
+
 async function openShareModal(){
   document.getElementById('shareModal').classList.remove('hidden');
-  document.getElementById('publicUrl').textContent=location.origin+location.pathname+'?dept='+deptId;
+
+  // Get or create slug
+  const {data:dept} = await sb.from('departments').select('slug').eq('id',deptId).single();
+  let slug = dept?.slug;
+  if(!slug){
+    slug = makeSlug(deptName);
+    await sb.from('departments').update({slug}).eq('id',deptId);
+  }
+  document.getElementById('publicUrl').textContent=location.origin+location.pathname+'?dept='+slug;
   await loadProfileList();
 }
 
@@ -2404,22 +2417,30 @@ document.addEventListener('keydown',e=>{
 
   
   if(deptParam){
-    const {data:rd}=await sb.from('roster_data').select('*').eq('dept_id',deptParam).single();
-    if(rd){
-      rosterDataId=rd.id;
-      const {data:dept}=await sb.from('departments').select('*').eq('id',deptParam).single();
-      if(dept){deptId=dept.id;deptName=dept.name||'Department';}
-      rankGroups=rd.rank_groups||[]; subdivisions=rd.subdivisions||[];
-      positions=rd.positions||[]; traineeFormat=rd.trainee_format||''; traineeFormatTo=rd.trainee_format_to||''; customTags=rd.custom_tags||[]; promotions=rd.promotions||[]; customThemes=rd.custom_themes||[{name:'Custom 1',accent:'#c9a84c',bg:'#0a0c10'},{name:'Custom 2',accent:'#60a5fa',bg:'#080c14'}];
-      activeTheme=rd.theme||'dark-steel'; members=rd.members||[]; trainees=rd.trainees||[];
-      applyTheme(activeTheme);
-      document.getElementById('headerName').textContent=deptName;
-      document.getElementById('landingPage').style.display='none';
-      document.getElementById('appPage').style.display='flex';
-      
-      document.getElementById('loginFromPublicBtn').classList.remove('hidden');
-      renderAll();
-      return;
+    // Try slug first, then UUID
+    let deptRecord=null;
+    const {data:bySlug}=await sb.from('departments').select('*').eq('slug',deptParam).single();
+    if(bySlug){ deptRecord=bySlug; }
+    else {
+      const {data:byId}=await sb.from('departments').select('*').eq('id',deptParam).single();
+      if(byId) deptRecord=byId;
+    }
+    if(deptRecord){
+      const {data:rd}=await sb.from('roster_data').select('*').eq('dept_id',deptRecord.id).single();
+      if(rd){
+        rosterDataId=rd.id;
+        deptId=deptRecord.id; deptName=deptRecord.name||'Department';
+        rankGroups=rd.rank_groups||[]; subdivisions=rd.subdivisions||[];
+        positions=rd.positions||[]; traineeFormat=rd.trainee_format||''; traineeFormatTo=rd.trainee_format_to||''; customTags=rd.custom_tags||[]; promotions=rd.promotions||[]; customThemes=rd.custom_themes||[{name:'Custom 1',accent:'#c9a84c',bg:'#0a0c10'},{name:'Custom 2',accent:'#60a5fa',bg:'#080c14'}];
+        activeTheme=rd.theme||'dark-steel'; members=rd.members||[]; trainees=rd.trainees||[];
+        applyTheme(activeTheme);
+        document.getElementById('headerName').textContent=deptName;
+        document.getElementById('landingPage').style.display='none';
+        document.getElementById('appPage').style.display='flex';
+        document.getElementById('loginFromPublicBtn').classList.remove('hidden');
+        renderAll();
+        return;
+      }
     }
   }
 
