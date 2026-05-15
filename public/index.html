@@ -584,13 +584,14 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   </div>
 </div>
     <div class="modal-overlay hidden" id="promoModal" onclick="if(event.target===this)this.classList.add('hidden')">
-      <div class="modal" style="max-width:540px;">
+      <div class="modal" style="max-width:560px;">
         <div class="modal-title">Promotion Announcement</div>
-        <div class="modal-sub">Copy and paste into Discord.</div>
-        <div id="promoAnnouncementText" style="background:var(--bg3);border:1px solid var(--border);padding:16px;border-radius:var(--radius);font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text);white-space:pre-wrap;max-height:400px;overflow-y:auto;line-height:1.8;"></div>
+        <div class="modal-sub">Download as image to post in Discord.</div>
+        <div id="promoCard" style="background:#0a0c10;border:1px solid #2a2f3d;border-radius:6px;overflow:hidden;font-family:'JetBrains Mono',monospace;margin-bottom:16px;"></div>
         <div class="modal-footer">
           <button class="btn btn-ghost" onclick="document.getElementById('promoModal').classList.add('hidden')">Close</button>
-          <button class="btn btn-primary" onclick="copyPromoAnnouncement()">Copy to Clipboard</button>
+          <button class="btn btn-ghost" onclick="copyPromoAnnouncement()">Copy Text</button>
+          <button class="btn btn-primary" onclick="downloadPromoImage()">⬇ Download Image</button>
         </div>
       </div>
     </div>
@@ -1610,29 +1611,86 @@ function generatePromoAnnouncement(){
     grouped[p.toGroup].push(p);
   });
 
-  const today=new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
-  let text=`${deptName.toUpperCase()} — PROMOTION ANNOUNCEMENT\n`;
-  text+=`${'─'.repeat(40)}\n`;
-  text+=`📅 ${today}\n\n`;
+  const colors=['#fbbf24','#60a5fa','#4ade80','#f87171','#a78bfa','#fb923c','#7ec8e3','#e879f9'];
+  const today=new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}).toUpperCase();
 
+  let sectionsHtml='';
+  let colorIdx=0;
   Object.entries(grouped).forEach(([group,promos])=>{
-    text+=`【 ${group.toUpperCase()} 】\n`;
-    promos.forEach(p=>{
-      text+=`  • ${p.name} — ${p.fromCS} → ${p.toCS}\n`;
-    });
-    text+='\n';
+    const color=colors[colorIdx%colors.length];
+    colorIdx++;
+    const rows=promos.map((p,i)=>`
+      <div style="display:flex;align-items:center;gap:12px;padding:10px 16px;${i<promos.length-1?'border-bottom:1px solid #1a1e28':''}">
+        <span style="color:#4ade80;font-size:13px;font-weight:700;min-width:65px;font-family:'JetBrains Mono',monospace;">${p.toCS||'—'}</span>
+        <span style="color:#e8e4da;font-size:13px;flex:1;font-family:'JetBrains Mono',monospace;">${p.name}</span>
+        <span style="font-size:10px;color:#686460;font-family:'JetBrains Mono',monospace;">from <span style="color:#f87171;">${p.fromCS||'—'}</span></span>
+      </div>`).join('');
+    sectionsHtml+=`
+      <div style="border-radius:4px;overflow:hidden;margin-bottom:10px;">
+        <div style="background:${color}18;border-left:3px solid ${color};padding:8px 16px;">
+          <span style="font-size:10px;letter-spacing:2px;color:${color};font-weight:700;font-family:'JetBrains Mono',monospace;">${group.toUpperCase()}</span>
+        </div>
+        <div style="background:#12151c;">${rows}</div>
+      </div>`;
   });
 
-  text+=`${'─'.repeat(40)}\n`;
-  text+=`Congratulations to all promoted personnel!\n`;
-  text+=`— ${deptName} Command`;
+  const cardHtml=`
+    <div style="background:#0a0c10;border-bottom:3px solid #c9a84c;padding:20px 22px 14px;">
+      <div style="font-size:9px;letter-spacing:4px;color:#6b561f;margin-bottom:3px;font-family:'JetBrains Mono',monospace;">OFFICIAL ANNOUNCEMENT</div>
+      <div style="font-size:22px;font-weight:700;color:#e8e4da;letter-spacing:2px;font-family:sans-serif;">${deptName}</div>
+      <div style="font-size:10px;letter-spacing:3px;color:#c9a84c;margin-top:3px;font-family:'JetBrains Mono',monospace;">PROMOTION LIST — ${today}</div>
+    </div>
+    <div style="padding:14px 22px 10px;">${sectionsHtml}</div>
+    <div style="padding:10px 22px;border-top:1px solid #1a1e28;display:flex;align-items:center;justify-content:space-between;">
+      <span style="font-size:10px;color:#686460;font-family:'JetBrains Mono',monospace;">Signed by <span style="color:#c9a84c;">${currentUser?.name||deptName}</span></span>
+      <span style="font-size:9px;color:#363c50;letter-spacing:2px;font-family:'JetBrains Mono',monospace;">ROSTERCORE.SPACE</span>
+    </div>`;
 
-  document.getElementById('promoAnnouncementText').textContent=text;
+  document.getElementById('promoCard').innerHTML=cardHtml;
   document.getElementById('promoModal').classList.remove('hidden');
 }
 
+async function downloadPromoImage(){
+  const card=document.getElementById('promoCard');
+  try {
+    if(!window.html2canvas){
+      const script=document.createElement('script');
+      script.src='https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
+      document.head.appendChild(script);
+      await new Promise(r=>script.onload=r);
+    }
+    showToast('Generating image…');
+    const canvas=await html2canvas(card,{
+      backgroundColor:'#0a0c10',
+      scale:2,
+      useCORS:true,
+      logging:false
+    });
+    const link=document.createElement('a');
+    link.download=deptName.replace(/\s+/g,'-')+'-Promotions.png';
+    link.href=canvas.toDataURL('image/png');
+    link.click();
+    showToast('✓ Image downloaded!');
+  } catch(e){
+    showToast('⚠ Download failed. Try screenshot instead.',true);
+  }
+}
+
 function copyPromoAnnouncement(){
-  const text=document.getElementById('promoAnnouncementText').textContent;
+  const sorted=[...promotions].sort((a,b)=>{
+    if(a.toGroupIndex!==b.toGroupIndex) return a.toGroupIndex-b.toGroupIndex;
+    return new Date(b.date)-new Date(a.date);
+  });
+  const grouped={};
+  sorted.forEach(p=>{if(!grouped[p.toGroup])grouped[p.toGroup]=[];grouped[p.toGroup].push(p);});
+  const today=new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+  let text=`${deptName.toUpperCase()} — PROMOTION ANNOUNCEMENT\n${'─'.repeat(40)}\n📅 ${today}\n\n`;
+  Object.entries(grouped).forEach(([group,promos])=>{
+    text+=`【 ${group.toUpperCase()} 】\n`;
+    promos.forEach(p=>{text+=`  • ${p.name} — ${p.fromCS} → ${p.toCS}\n`;});
+    text+='\n';
+  });
+  text+=`${'─'.repeat(40)}\nCongratulations to all promoted personnel!\n— ${deptName} Command`;
   navigator.clipboard.writeText(text).then(()=>showToast('✓ Copied to clipboard!'));
 }
 
