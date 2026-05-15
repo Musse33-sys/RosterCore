@@ -2376,6 +2376,8 @@ async function doChangePassword(){
   document.getElementById('changePwModal').classList.add('hidden');
   showToast('✓ New password saved. Share it with the department manually.');
 }
+
+async function deleteDept(deptId, name){
   if(!confirm(`Delete department "${name}"? This cannot be undone.`)) return;
   await sb.from('roster_data').delete().eq('dept_id',deptId);
   await sb.from('departments').delete().eq('id',deptId);
