@@ -2168,11 +2168,11 @@ function renderThemesGrid(){
       <input class="edit-input" value="${ct.name}" oninput="customThemes[${i}].name=this.value;renderThemesGrid();scheduleSave();" style="max-width:100px;">
       <div style="display:flex;align-items:center;gap:6px;">
         <span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3);letter-spacing:1px;">ACCENT</span>
-        <input type="color" value="${ct.accent}" oninput="customThemes[${i}].accent=this.value;if(activeTheme==='custom-${i}')applyCustomTheme(${i});renderThemesGrid();scheduleSave();" style="width:32px;height:28px;border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;padding:1px;background:transparent;">
+        <input type="color" value="${ct.accent}" oninput="customThemes[${i}].accent=this.value;if(activeTheme==='custom-${i}')applyCustomTheme(${i});scheduleSave();" onchange="renderThemesGrid();" onclick="event.stopPropagation();" style="width:32px;height:28px;border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;padding:1px;background:transparent;">
       </div>
       <div style="display:flex;align-items:center;gap:6px;">
         <span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3);letter-spacing:1px;">BG</span>
-        <input type="color" value="${ct.bg}" oninput="customThemes[${i}].bg=this.value;if(activeTheme==='custom-${i}')applyCustomTheme(${i});renderThemesGrid();scheduleSave();" style="width:32px;height:28px;border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;padding:1px;background:transparent;">
+        <input type="color" value="${ct.bg}" oninput="customThemes[${i}].bg=this.value;if(activeTheme==='custom-${i}')applyCustomTheme(${i});scheduleSave();" onchange="renderThemesGrid();" onclick="event.stopPropagation();" style="width:32px;height:28px;border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;padding:1px;background:transparent;">
       </div>
       <button class="btn btn-primary btn-sm" onclick="selectCustomTheme(${i})" style="margin-left:auto;">Use</button>
     </div>`).join('');
