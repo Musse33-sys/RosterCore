@@ -952,6 +952,7 @@ let traineeFormat = '';
 let traineeFormatTo = '';
 let customTags = [];
 let promotions = [];
+let customThemes = [{name:'Custom 1',accent:'#c9a84c',bg:'#0a0c10'},{name:'Custom 2',accent:'#60a5fa',bg:'#080c14'}];
 let activeTheme = 'dark-steel';
 let members = [];
 let trainees = [];
@@ -984,13 +985,6 @@ const themes = [
   { id:'arctic', name:'Arctic',
     vars:{'--bg':'#f0f4f8','--bg2':'#ffffff','--bg3':'#e8edf5','--bg4':'#dde4f0','--border':'#c8d4e8','--border2':'#a8bcd8','--accent':'#1e40af','--accent2':'#3b82f6','--accent3':'#93c5fd','--text':'#1e2a3a','--text2':'#4a6080','--text3':'#8098b8','--green':'#166534','--green2':'#166534','--green3':'#dcfce7'} },
 ];
-
-function applyTheme(id){
-  const t = themes.find(t=>t.id===id);
-  if(!t) return;
-  activeTheme = id;
-  Object.entries(t.vars).forEach(([k,v])=>document.documentElement.style.setProperty(k,v));
-}
 
 // ══════════════════════════════════════════════════════════════
 // CALLSIGN LOGIC
@@ -1065,6 +1059,7 @@ async function loadDepartment(userId){
   traineeFormat = rd.trainee_format||''; traineeFormatTo = rd.trainee_format_to||'';
   customTags = rd.custom_tags||[];
   promotions = rd.promotions||[];
+  customThemes = rd.custom_themes||[{name:'Custom 1',accent:'#c9a84c',bg:'#0a0c10'},{name:'Custom 2',accent:'#60a5fa',bg:'#080c14'}];
   activeTheme = rd.theme||'dark-steel';
   members = rd.members||[];
   trainees = rd.trainees||[];
@@ -1081,7 +1076,7 @@ async function saveRoster(){
   if(!rosterDataId){ showToast('⚠ No roster ID — try logging out and back in.',true); return; }
   const {error:e1} = await sb.from('roster_data').update({
     rank_groups: rankGroups, subdivisions: subdivisions,
-    positions: positions, trainee_format: traineeFormat, trainee_format_to: traineeFormatTo, custom_tags: customTags, promotions: promotions,
+    positions: positions, trainee_format: traineeFormat, trainee_format_to: traineeFormatTo, custom_tags: customTags, promotions: promotions, custom_themes: customThemes,
     theme: activeTheme, members: members, trainees: trainees,
     updated_at: new Date().toISOString()
   }).eq('id', rosterDataId);
@@ -1187,7 +1182,7 @@ async function loadByShareToken(token){
   const {data:dept} = await sb.from('departments').select('*').eq('id',rd.dept_id).single();
   if(dept){ deptId=dept.id; deptName=dept.name||'Department'; }
   rankGroups=rd.rank_groups||[]; subdivisions=rd.subdivisions||[];
-  positions=rd.positions||[]; traineeFormat=rd.trainee_format||''; traineeFormatTo=rd.trainee_format_to||''; customTags=rd.custom_tags||[]; promotions=rd.promotions||[];
+  positions=rd.positions||[]; traineeFormat=rd.trainee_format||''; traineeFormatTo=rd.trainee_format_to||''; customTags=rd.custom_tags||[]; promotions=rd.promotions||[]; customThemes=rd.custom_themes||[{name:'Custom 1',accent:'#c9a84c',bg:'#0a0c10'},{name:'Custom 2',accent:'#60a5fa',bg:'#080c14'}];
   activeTheme=rd.theme||'dark-steel'; members=rd.members||[]; trainees=rd.trainees||[];
   applyTheme(activeTheme);
   document.getElementById('headerName').textContent=deptName;
@@ -2151,7 +2146,7 @@ function renderEditor(){
 }
 
 function renderThemesGrid(){
-  document.getElementById('themesGrid').innerHTML=themes.map(t=>{
+  const presets = themes.map(t=>{
     const swatches=[t.vars['--accent'],t.vars['--bg2'],t.vars['--text'],t.vars['--bg']];
     return`<button class="theme-btn${t.id===activeTheme?' active-t':''}"
       style="background:${t.vars['--bg2']};color:${t.vars['--text']};border-color:${t.id===activeTheme?t.vars['--accent']:'transparent'};"
@@ -2160,8 +2155,97 @@ function renderThemesGrid(){
       <div class="theme-swatches">${swatches.map(c=>`<div class="t-dot" style="background:${c};"></div>`).join('')}</div>
     </button>`;
   }).join('');
+
+  const customs = customThemes.map((ct,i)=>{
+    const isActive = activeTheme === 'custom-'+i;
+    const bg2 = adjustColor(ct.bg, 8);
+    return`<div class="theme-btn${isActive?' active-t':''}"
+      style="background:${bg2};color:#e8e4da;border-color:${isActive?ct.accent:'transparent'};">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+        <span class="t-name" style="color:${ct.accent};">${ct.name}</span>
+        <button onclick="selectCustomTheme(${i})" style="font-family:'JetBrains Mono',monospace;font-size:8px;background:${ct.accent};color:#000;border:none;padding:2px 6px;border-radius:2px;cursor:pointer;letter-spacing:1px;">USE</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#a8a098;">Accent</span>
+        <input type="color" value="${ct.accent}" oninput="updateCustomTheme(${i},'accent',this.value)" onclick="event.stopPropagation()" style="width:28px;height:20px;border:none;border-radius:2px;cursor:pointer;padding:0;background:transparent;">
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#a8a098;">Background</span>
+        <input type="color" value="${ct.bg}" oninput="updateCustomTheme(${i},'bg',this.value)" onclick="event.stopPropagation()" style="width:28px;height:20px;border:none;border-radius:2px;cursor:pointer;padding:0;background:transparent;">
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('themesGrid').innerHTML = presets + customs;
 }
+
+function adjustColor(hex, amount){
+  // Lighten a hex color by amount (0-255)
+  try {
+    const r=parseInt(hex.slice(1,3),16), g=parseInt(hex.slice(3,5),16), b=parseInt(hex.slice(5,7),16);
+    const nr=Math.min(255,r+amount), ng=Math.min(255,g+amount), nb=Math.min(255,b+amount);
+    return `#${nr.toString(16).padStart(2,'0')}${ng.toString(16).padStart(2,'0')}${nb.toString(16).padStart(2,'0')}`;
+  } catch(e){ return hex; }
+}
+
+function updateCustomTheme(i, prop, val){
+  customThemes[i][prop] = val;
+  if(activeTheme === 'custom-'+i) applyCustomTheme(i);
+  renderThemesGrid();
+  scheduleSave();
+}
+
+function applyCustomTheme(i){
+  const ct = customThemes[i];
+  const bg = ct.bg;
+  const bg2 = adjustColor(bg, 8);
+  const bg3 = adjustColor(bg, 16);
+  const bg4 = adjustColor(bg, 24);
+  const border = adjustColor(bg, 30);
+  const border2 = adjustColor(bg, 40);
+  const accent3 = dimColor(ct.accent, 0.4);
+  document.documentElement.style.setProperty('--bg', bg);
+  document.documentElement.style.setProperty('--bg2', bg2);
+  document.documentElement.style.setProperty('--bg3', bg3);
+  document.documentElement.style.setProperty('--bg4', bg4);
+  document.documentElement.style.setProperty('--border', border);
+  document.documentElement.style.setProperty('--border2', border2);
+  document.documentElement.style.setProperty('--accent', ct.accent);
+  document.documentElement.style.setProperty('--accent2', adjustColor(ct.accent, 30));
+  document.documentElement.style.setProperty('--accent3', accent3);
+  document.documentElement.style.setProperty('--text', '#e8e4da');
+  document.documentElement.style.setProperty('--text2', '#a8a098');
+  document.documentElement.style.setProperty('--text3', '#686460');
+  activeTheme = 'custom-'+i;
+}
+
+function dimColor(hex, factor){
+  try {
+    const r=parseInt(hex.slice(1,3),16), g=parseInt(hex.slice(3,5),16), b=parseInt(hex.slice(5,7),16);
+    return `#${Math.round(r*factor).toString(16).padStart(2,'0')}${Math.round(g*factor).toString(16).padStart(2,'0')}${Math.round(b*factor).toString(16).padStart(2,'0')}`;
+  } catch(e){ return hex; }
+}
+
+function selectCustomTheme(i){
+  applyCustomTheme(i);
+  renderThemesGrid();
+  scheduleSave();
+  showToast(`✓ ${customThemes[i].name} applied.`);
+}
+
 function selectTheme(id){ applyTheme(id); renderThemesGrid(); scheduleSave(); showToast('Theme updated.'); }
+
+function applyTheme(id){
+  if(id && id.startsWith('custom-')){
+    const i = parseInt(id.split('-')[1]);
+    if(!isNaN(i) && customThemes[i]) applyCustomTheme(i);
+    return;
+  }
+  const t = themes.find(t=>t.id===id);
+  if(!t) return;
+  activeTheme = id;
+  Object.entries(t.vars).forEach(([k,v])=>document.documentElement.style.setProperty(k,v));
+}
 
 function updateDeptName(val){
   deptName=val;
@@ -2451,7 +2535,7 @@ document.addEventListener('keydown',e=>{
       const {data:dept}=await sb.from('departments').select('*').eq('id',deptParam).single();
       if(dept){deptId=dept.id;deptName=dept.name||'Department';}
       rankGroups=rd.rank_groups||[]; subdivisions=rd.subdivisions||[];
-      positions=rd.positions||[]; traineeFormat=rd.trainee_format||''; traineeFormatTo=rd.trainee_format_to||''; customTags=rd.custom_tags||[]; promotions=rd.promotions||[];
+      positions=rd.positions||[]; traineeFormat=rd.trainee_format||''; traineeFormatTo=rd.trainee_format_to||''; customTags=rd.custom_tags||[]; promotions=rd.promotions||[]; customThemes=rd.custom_themes||[{name:'Custom 1',accent:'#c9a84c',bg:'#0a0c10'},{name:'Custom 2',accent:'#60a5fa',bg:'#080c14'}];
       activeTheme=rd.theme||'dark-steel'; members=rd.members||[]; trainees=rd.trainees||[];
       applyTheme(activeTheme);
       document.getElementById('headerName').textContent=deptName;
@@ -2472,7 +2556,7 @@ document.addEventListener('keydown',e=>{
       const {data:dept}=await sb.from('departments').select('*').eq('id',rd.dept_id).single();
       if(dept){deptId=dept.id;deptName=dept.name||'Department';}
       rankGroups=rd.rank_groups||[]; subdivisions=rd.subdivisions||[];
-      positions=rd.positions||[]; traineeFormat=rd.trainee_format||''; traineeFormatTo=rd.trainee_format_to||''; customTags=rd.custom_tags||[]; promotions=rd.promotions||[];
+      positions=rd.positions||[]; traineeFormat=rd.trainee_format||''; traineeFormatTo=rd.trainee_format_to||''; customTags=rd.custom_tags||[]; promotions=rd.promotions||[]; customThemes=rd.custom_themes||[{name:'Custom 1',accent:'#c9a84c',bg:'#0a0c10'},{name:'Custom 2',accent:'#60a5fa',bg:'#080c14'}];
       activeTheme=rd.theme||'dark-steel'; members=rd.members||[]; trainees=rd.trainees||[];
       applyTheme(activeTheme);
       document.getElementById('headerName').textContent=deptName;
