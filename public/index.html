@@ -356,6 +356,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
     <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;">
       <button class="btn btn-primary" style="font-size:13px;padding:14px 40px;" onclick="showAuthModal()">Department Login</button>
       <button class="btn btn-outline" style="font-size:13px;padding:14px 40px;" onclick="showStaffLoginModal()">Staff Login</button>
+      <button class="btn btn-ghost" style="font-size:13px;padding:14px 40px;border-color:var(--purple);color:var(--purple);" onclick="loadDemo()">▶ Try Demo</button>
     </div>
   </div>
 
@@ -499,7 +500,10 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
         <button class="logout-btn" onclick="doLogout()">Logout</button>
       </div>
     </div>
-    <nav class="app-nav">
+    <div id="demoBanner" style="display:none;background:rgba(167,139,250,.12);border-bottom:1px solid rgba(167,139,250,.3);padding:8px 32px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--purple);letter-spacing:1px;display:flex;align-items:center;justify-content:space-between;">
+      <span>▶ DEMO MODE — Changes are temporary and will reset on refresh.</span>
+      <button onclick="doLogout()" style="background:transparent;border:1px solid rgba(167,139,250,.4);color:var(--purple);font-family:'JetBrains Mono',monospace;font-size:10px;padding:4px 10px;cursor:pointer;border-radius:var(--radius);">Exit Demo</button>
+    </div>
       <button class="nav-tab active" onclick="switchTab('roster',this)">Main Roster</button>
       <button class="nav-tab" onclick="switchTab('trainees',this)">Trainee Roster</button>
       <button class="nav-tab" onclick="switchTab('members',this)">All Members</button>
@@ -889,7 +893,78 @@ const SB_URL = 'https://lzxsltdwbuyzxbmkpuny.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx6eHNsdGR3YnV5enhibWtwdW55Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2MDM3NDksImV4cCI6MjA5NDE3OTc0OX0._Pr9Na_5u3AHweM2F-_W9R4EmXbsvpGsoBFYPC1I914';
 const sb = supabase.createClient(SB_URL, SB_KEY);
 
-function isSuperAdminEmail(email){
+function loadDemo(){
+  currentUser = {email:'demo', name:'Demo User'};
+  isSuperAdmin = false;
+  deptId = 'demo';
+  rosterDataId = 'demo';
+  deptName = 'San Andreas Game Warden';
+  activeTheme = 'forest';
+  applyTheme('forest');
+
+  rankGroups = [
+    {name:'Administration', from:'1W-01', to:'1W-06', position:'SAGW Director'},
+    {name:'High Command', from:'1W-07', to:'1W-12', position:'Deputy Commissioner'},
+    {name:'Mid Command', from:'1W-13', to:'1W-25', position:'Lieutenant'},
+    {name:'Sergeant', from:'1W-26', to:'1W-50', position:'Sergeant'},
+    {name:'Game Warden', from:'1W-51', to:'1W-120', position:'Game Warden'},
+  ];
+
+  subdivisions = [
+    {name:'K9', color:'#fbbf24'},
+    {name:'CRT', color:'#f87171'},
+    {name:'Internal Affairs', color:'#a78bfa'},
+    {name:'Marine', color:'#60a5fa'},
+  ];
+
+  positions = ['SAGW Director','Deputy Commissioner','Lieutenant','Sergeant','Game Warden'];
+  customTags = [{name:'FTO', color:'#60a5fa'},{name:'Volunteer', color:'#a78bfa'}];
+  traineeFormat = 'G-01';
+  traineeFormatTo = 'G-50';
+  promotions = [];
+  customThemes = [{name:'Custom 1',accent:'#c9a84c',bg:'#0a0c10'},{name:'Custom 2',accent:'#60a5fa',bg:'#080c14'}];
+
+  members = [
+    {id:1,name:'Musse',callsign:'1W-01',rankGroup:'Administration',position:'SAGW Director',discord:'123456789',doh:'2025-01-15',subdivs:['Internal Affairs'],status:'Active',strikes:0,notes:'',tags:['FTO']},
+    {id:2,name:'J.Smith',callsign:'1W-02',rankGroup:'Administration',position:'',discord:'987654321',doh:'2025-02-01',subdivs:[],status:'Active',strikes:0,notes:'',tags:[]},
+    {id:3,name:'R.Williams',callsign:'1W-07',rankGroup:'High Command',position:'',discord:'111222333',doh:'2025-03-10',subdivs:['K9'],status:'Active',strikes:0,notes:'',tags:['FTO']},
+    {id:4,name:'T.Johnson',callsign:'1W-08',rankGroup:'High Command',position:'',discord:'444555666',doh:'2025-03-15',subdivs:[],status:'LOA',strikes:1,notes:'On medical leave',tags:[]},
+    {id:5,name:'A.Davis',callsign:'1W-13',rankGroup:'Mid Command',position:'',discord:'777888999',doh:'2025-04-01',subdivs:['CRT'],status:'Active',strikes:0,notes:'',tags:['FTO']},
+    {id:6,name:'M.Brown',callsign:'1W-14',rankGroup:'Mid Command',position:'',discord:'000111222',doh:'2025-04-20',subdivs:[],status:'Active',strikes:0,notes:'',tags:[]},
+    {id:7,name:'K.Wilson',callsign:'1W-26',rankGroup:'Sergeant',position:'',discord:'333444555',doh:'2025-05-01',subdivs:['K9'],status:'Active',strikes:0,notes:'',tags:['Volunteer']},
+    {id:8,name:'L.Moore',callsign:'1W-27',rankGroup:'Sergeant',position:'',discord:'666777888',doh:'2025-05-10',subdivs:['Marine'],status:'Part Time',strikes:0,notes:'',tags:[]},
+    {id:9,name:'C.Taylor',callsign:'1W-51',rankGroup:'Game Warden',position:'',discord:'999000111',doh:'2025-06-01',subdivs:[],status:'Active',strikes:0,notes:'',tags:[]},
+    {id:10,name:'D.Anderson',callsign:'1W-52',rankGroup:'Game Warden',position:'',discord:'222333444',doh:'2025-06-15',subdivs:['CRT'],status:'Active',strikes:2,notes:'Under review',tags:[]},
+    {id:11,name:'P.Martinez',callsign:'1W-53',rankGroup:'Game Warden',position:'',discord:'555666777',doh:'2025-07-01',subdivs:[],status:'Inactive',strikes:0,notes:'',tags:[]},
+  ];
+
+  trainees = [
+    {id:1,name:'J.Roberts',callsign:'G-01',discord:'888999000',doh:'2026-05-01',status:'Active',strikes:0,notes:''},
+    {id:2,name:'M.Clark',callsign:'G-02',discord:'111000999',doh:'2026-05-05',status:'Active',strikes:0,notes:''},
+    {id:3,name:'S.Lewis',callsign:'G-03',discord:'222111000',doh:'2026-05-10',status:'Part Time',strikes:1,notes:''},
+  ];
+
+  nextMemberId = 12;
+  nextTraineeId = 4;
+
+  document.getElementById('landingPage').style.display='none';
+  document.getElementById('appPage').style.display='flex';
+  document.getElementById('headerName').textContent = deptName;
+  document.getElementById('adminPill').classList.remove('hidden');
+  document.getElementById('adminPill').textContent = '▶ Demo Mode';
+  document.getElementById('adminPill').style.background = 'rgba(167,139,250,.1)';
+  document.getElementById('adminPill').style.borderColor = 'rgba(167,139,250,.4)';
+  document.getElementById('adminPill').style.color = 'var(--purple)';
+  document.getElementById('addMemberBtn').classList.remove('hidden');
+  document.getElementById('addTraineeBtn').classList.remove('hidden');
+  document.getElementById('editorTab').classList.remove('hidden');
+  document.getElementById('promoTab').classList.remove('hidden');
+  document.getElementById('demoBanner').style.display='flex';
+
+  renderAll();
+  showToast('▶ Demo loaded! Changes reset on refresh.');
+  history.replaceState(null,'','#main-roster');
+}
   
   const h = btoa(email.toLowerCase().trim());
   return h === 'bXVzc2UzM3N5c0BnbWFpbC5jb20=';
@@ -1020,6 +1095,7 @@ function scheduleSave(){
 }
 
 async function saveRoster(){
+  if(currentUser?.email === 'demo'){ showToast('▶ Demo mode — changes are not saved.'); return; }
   if(!rosterDataId){ showToast('⚠ No roster ID — try logging out and back in.',true); return; }
   const {error:e1} = await sb.from('roster_data').update({
     rank_groups: rankGroups, subdivisions: subdivisions,
@@ -1113,6 +1189,8 @@ async function doLogout(){
     const el=document.getElementById(id);
     if(el) el.classList.add('hidden');
   });
+  const demoBanner=document.getElementById('demoBanner');
+  if(demoBanner) demoBanner.style.display='none';
   applyTheme('dark-steel');
   history.replaceState(null,'',window.location.pathname);
   showToast('Logged out.');
