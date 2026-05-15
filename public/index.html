@@ -1803,9 +1803,70 @@ function renderTrainees(){
 // ══════════════════════════════════════════════════════════════
 // ALL MEMBERS TAB
 // ══════════════════════════════════════════════════════════════
+// ── ACTION MENU ─────────────────────────────────────────────
 let openMenuId = null;
+let bodyMenu = null;
 
-function renderAllMembers(){
+function createBodyMenu(id, content){
+  // Remove any existing menu
+  if(bodyMenu) bodyMenu.remove();
+  bodyMenu = document.createElement('div');
+  bodyMenu.className = 'action-menu';
+  bodyMenu.id = 'bodyMenu';
+  bodyMenu.style.display = 'none';
+  bodyMenu.innerHTML = content;
+  document.body.appendChild(bodyMenu);
+  return bodyMenu;
+}
+
+function toggleMenu(id, e){
+  e.stopPropagation();
+  // If same menu — close it
+  if(openMenuId === id){
+    if(bodyMenu) bodyMenu.style.display='none';
+    openMenuId = null;
+    return;
+  }
+  // Close previous
+  if(bodyMenu) bodyMenu.style.display='none';
+  openMenuId = id;
+
+  // Find the hidden menu template
+  const template = document.getElementById(id);
+  if(!template) return;
+
+  // Show body menu with same content
+  createBodyMenu(id, template.innerHTML);
+  bodyMenu.style.visibility = 'hidden';
+  bodyMenu.style.display = 'block';
+
+  const btn = e.currentTarget;
+  const btnRect = btn.getBoundingClientRect();
+  const menuH = bodyMenu.offsetHeight || 100;
+  const menuW = bodyMenu.offsetWidth || 160;
+  const viewportH = window.innerHeight;
+  const viewportW = window.innerWidth;
+
+  let left = btnRect.right - menuW;
+  if(left < 8) left = 8;
+  if(left + menuW > viewportW - 8) left = viewportW - menuW - 8;
+  bodyMenu.style.left = left + 'px';
+
+  if(btnRect.bottom + menuH + 8 > viewportH){
+    bodyMenu.style.top = (btnRect.top - menuH - 4) + 'px';
+  } else {
+    bodyMenu.style.top = (btnRect.bottom + 4) + 'px';
+  }
+
+  bodyMenu.style.visibility = 'visible';
+}
+
+function closeMenu(){
+  if(bodyMenu) bodyMenu.style.display = 'none';
+  openMenuId = null;
+}
+
+document.addEventListener('click', ()=>closeMenu());
   const search=(document.getElementById('membersSearch')?.value||'').toLowerCase();
   const all = [
     ...members.map(m=>({...m,_type:'member'})),
@@ -1877,55 +1938,8 @@ function renderAllMembers(){
       </tr></thead>
       <tbody>${rows}</tbody>
     </table>`;
-}
 
-function toggleMenu(id, e){
-  e.stopPropagation();
-  if(openMenuId&&openMenuId!==id){
-    const prev=document.getElementById(openMenuId);
-    if(prev) prev.style.display='none';
-  }
-  const menu=document.getElementById(id);
-  if(!menu) return;
-  const isOpen=menu.style.display==='block';
-  if(isOpen){ menu.style.display='none'; openMenuId=null; return; }
 
-  const btn=e.currentTarget;
-  const btnRect=btn.getBoundingClientRect();
-  const viewportH=window.innerHeight;
-  const viewportW=window.innerWidth;
-
-  // Show offscreen first to measure height
-  menu.style.visibility='hidden';
-  menu.style.display='block';
-  menu.style.position='fixed';
-  const menuH=menu.offsetHeight||100;
-  const menuW=menu.offsetWidth||160;
-  menu.style.visibility='visible';
-
-  // Horizontal positioning
-  let left=btnRect.right-menuW;
-  if(left<8) left=8;
-  if(left+menuW>viewportW-8) left=viewportW-menuW-8;
-  menu.style.left=left+'px';
-
-  // Vertical: open upward if not enough space below
-  if(btnRect.bottom+menuH+8>viewportH){
-    menu.style.top=(btnRect.top-menuH-4)+'px';
-  } else {
-    menu.style.top=(btnRect.bottom+4)+'px';
-  }
-
-  openMenuId=id;
-}
-function closeMenu(){
-  if(openMenuId){
-    const m=document.getElementById(openMenuId);
-    if(m) m.style.display='none';
-    openMenuId=null;
-  }
-}
-document.addEventListener('click',()=>closeMenu());
 function promote(id){
   const m=members.find(mb=>mb.id===id); if(!m)return;
   const gi=rgIndex(m.rankGroup);
