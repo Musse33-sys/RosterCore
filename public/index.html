@@ -967,7 +967,8 @@ function loadDemo(){
   showToast('▶ Demo loaded! Changes reset on refresh.');
   history.replaceState(null,'','#main-roster');
 }
-  
+
+function isSuperAdminEmail(email){
   const h = btoa(email.toLowerCase().trim());
   return h === 'bXVzc2UzM3N5c0BnbWFpbC5jb20=';
 }
