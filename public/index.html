@@ -1152,7 +1152,7 @@ async function loadDepartment(userId){
   traineeFormat = rd.trainee_format||''; traineeFormatTo = rd.trainee_format_to||'';
   customTags = rd.custom_tags||[];
   promotions = rd.promotions||[];
-  customThemes = rd.custom_themes||[{name:'Custom 1',accent:'#c9a84c',bg:'#0a0c10'},{name:'Custom 2',accent:'#60a5fa',bg:'#080c14'}];
+  customThemes = (rd.custom_themes&&rd.custom_themes.length?rd.custom_themes:[{name:'Custom 1',accent:'#c9a84c',bg:'#0a0c10'},{name:'Custom 2',accent:'#60a5fa',bg:'#080c14'}]);
   activeTheme = rd.theme||'dark-steel';
   members = rd.members||[];
   trainees = rd.trainees||[];
@@ -1277,7 +1277,7 @@ async function loadByShareToken(token){
   const {data:dept} = await sb.from('departments').select('*').eq('id',rd.dept_id).single();
   if(dept){ deptId=dept.id; deptName=dept.name||'Department'; }
   rankGroups=rd.rank_groups||[]; subdivisions=rd.subdivisions||[];
-  positions=rd.positions||[]; traineeFormat=rd.trainee_format||''; traineeFormatTo=rd.trainee_format_to||''; customTags=rd.custom_tags||[]; promotions=rd.promotions||[]; customThemes=rd.custom_themes||[{name:'Custom 1',accent:'#c9a84c',bg:'#0a0c10'},{name:'Custom 2',accent:'#60a5fa',bg:'#080c14'}];
+  positions=rd.positions||[]; traineeFormat=rd.trainee_format||''; traineeFormatTo=rd.trainee_format_to||''; customTags=rd.custom_tags||[]; promotions=rd.promotions||[]; customThemes=(rd.custom_themes&&rd.custom_themes.length?rd.custom_themes:[{name:'Custom 1',accent:'#c9a84c',bg:'#0a0c10'},{name:'Custom 2',accent:'#60a5fa',bg:'#080c14'}]);
   activeTheme=rd.theme||'dark-steel'; members=rd.members||[]; trainees=rd.trainees||[];
   applyTheme(activeTheme);
   document.getElementById('headerName').textContent=deptName;
@@ -2661,7 +2661,7 @@ document.addEventListener('keydown',e=>{
         rosterDataId=rd.id;
         deptId=deptRecord.id; deptName=deptRecord.name||'Department';
         rankGroups=rd.rank_groups||[]; subdivisions=rd.subdivisions||[];
-        positions=rd.positions||[]; traineeFormat=rd.trainee_format||''; traineeFormatTo=rd.trainee_format_to||''; customTags=rd.custom_tags||[]; promotions=rd.promotions||[]; customThemes=rd.custom_themes||[{name:'Custom 1',accent:'#c9a84c',bg:'#0a0c10'},{name:'Custom 2',accent:'#60a5fa',bg:'#080c14'}];
+        positions=rd.positions||[]; traineeFormat=rd.trainee_format||''; traineeFormatTo=rd.trainee_format_to||''; customTags=rd.custom_tags||[]; promotions=rd.promotions||[]; customThemes=(rd.custom_themes&&rd.custom_themes.length?rd.custom_themes:[{name:'Custom 1',accent:'#c9a84c',bg:'#0a0c10'},{name:'Custom 2',accent:'#60a5fa',bg:'#080c14'}]);
         activeTheme=rd.theme||'dark-steel'; members=rd.members||[]; trainees=rd.trainees||[];
         applyTheme(activeTheme);
         document.getElementById('headerName').textContent=deptName;
@@ -2682,7 +2682,7 @@ document.addEventListener('keydown',e=>{
       const {data:dept}=await sb.from('departments').select('*').eq('id',rd.dept_id).single();
       if(dept){deptId=dept.id;deptName=dept.name||'Department';}
       rankGroups=rd.rank_groups||[]; subdivisions=rd.subdivisions||[];
-      positions=rd.positions||[]; traineeFormat=rd.trainee_format||''; traineeFormatTo=rd.trainee_format_to||''; customTags=rd.custom_tags||[]; promotions=rd.promotions||[]; customThemes=rd.custom_themes||[{name:'Custom 1',accent:'#c9a84c',bg:'#0a0c10'},{name:'Custom 2',accent:'#60a5fa',bg:'#080c14'}];
+      positions=rd.positions||[]; traineeFormat=rd.trainee_format||''; traineeFormatTo=rd.trainee_format_to||''; customTags=rd.custom_tags||[]; promotions=rd.promotions||[]; customThemes=(rd.custom_themes&&rd.custom_themes.length?rd.custom_themes:[{name:'Custom 1',accent:'#c9a84c',bg:'#0a0c10'},{name:'Custom 2',accent:'#60a5fa',bg:'#080c14'}]);
       activeTheme=rd.theme||'dark-steel'; members=rd.members||[]; trainees=rd.trainees||[];
       applyTheme(activeTheme);
       document.getElementById('headerName').textContent=deptName;
@@ -2716,7 +2716,7 @@ document.addEventListener('keydown',e=>{
           rankGroups=rd.rank_groups||[]; subdivisions=rd.subdivisions||[];
           positions=rd.positions||[]; traineeFormat=rd.trainee_format||''; traineeFormatTo=rd.trainee_format_to||'';
           customTags=rd.custom_tags||[]; promotions=rd.promotions||[];
-          customThemes=rd.custom_themes||[{name:'Custom 1',accent:'#c9a84c',bg:'#0a0c10'},{name:'Custom 2',accent:'#60a5fa',bg:'#080c14'}];
+          customThemes=(rd.custom_themes&&rd.custom_themes.length?rd.custom_themes:[{name:'Custom 1',accent:'#c9a84c',bg:'#0a0c10'},{name:'Custom 2',accent:'#60a5fa',bg:'#080c14'}]);
           activeTheme=rd.theme||'dark-steel'; members=rd.members||[]; trainees=rd.trainees||[];
           nextMemberId=members.length>0?Math.max(...members.map(m=>m.id||0))+1:1;
           nextTraineeId=trainees.length>0?Math.max(...trainees.map(t=>t.id||0))+1:1;
