@@ -978,7 +978,7 @@ function loadDemo(){
 
   renderAll();
   showToast('▶ Demo loaded! Changes reset on refresh.');
-  history.replaceState(null,'','#main-roster');
+  history.replaceState(null,'','#main-roster'); document.title='RosterCore — Main Roster';
 }
 
 function setAvatar(name){
@@ -1243,7 +1243,7 @@ async function onLoginSuccess(user){
 
   renderAll();
   showToast('Welcome back, '+deptName+'!');
-  history.replaceState(null,'','#main-roster');
+  history.replaceState(null,'','#main-roster'); document.title='RosterCore — Main Roster';
   startPresence(deptName+' (Owner)', deptId);
 }
 
@@ -1266,7 +1266,7 @@ async function doLogout(){
   const demoBanner=document.getElementById('demoBanner');
   if(demoBanner) demoBanner.style.display='none';
   applyTheme('dark-steel');
-  history.replaceState(null,'',window.location.pathname);
+  history.replaceState(null,'',window.location.pathname); document.title='RosterCore';
   showToast('Logged out.');
 }
 
@@ -1429,7 +1429,7 @@ async function doStaffLogin(){
 
   renderAll();
   showToast('Welcome, '+profile.name+'!');
-  history.replaceState(null,'','#main-roster');
+  history.replaceState(null,'','#main-roster'); document.title='RosterCore — Main Roster';
   startPresence(profile.name, rd.dept_id);
   // Save staff session to localStorage
   localStorage.setItem('rc_staff_session', JSON.stringify({
@@ -1706,7 +1706,9 @@ function switchTab(name, btn){
   if(name==='promotions') renderPromotions();
   
   const hashMap={roster:'main-roster',trainees:'trainee-roster',members:'all-members',editor:'editor',promotions:'promotions',superadmin:'super-admin'};
+  const titleMap={roster:'Main Roster',trainees:'Trainee Roster',members:'All Members',editor:'Editor',promotions:'Promotions',superadmin:'Super Admin'};
   history.replaceState(null,'',window.location.pathname+(window.location.search||'')+'#'+(hashMap[name]||name));
+  document.title='RosterCore — '+(titleMap[name]||name);
 }
 
 function sdColor(name){ const s=subdivisions.find(s=>s.name===name); return s?s.color:'#4ade80'; }
