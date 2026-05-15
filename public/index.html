@@ -104,7 +104,9 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .header-name{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:4px;color:var(--text);line-height:1;}
 .header-sub{font-size:11px;color:var(--text2);font-style:italic;margin-top:2px;}
 .header-right{display:flex;align-items:center;gap:8px;}
-.admin-pill{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;background:rgba(201,168,76,.1);border:1px solid var(--accent3);color:var(--accent);padding:4px 10px;border-radius:var(--radius);}
+.user-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--accent3),var(--accent));display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:16px;color:#0a0c10;font-weight:700;border:2px solid var(--accent);cursor:default;flex-shrink:0;letter-spacing:1px;}
+.user-avatar-wrap{display:flex;align-items:center;gap:8px;}
+.user-avatar-name{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;color:var(--accent);text-transform:uppercase;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .logout-btn{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;background:transparent;border:1px solid var(--red2);color:var(--red);padding:6px 12px;border-radius:var(--radius);cursor:pointer;transition:all .15s;}
 .logout-btn:hover{background:rgba(248,113,113,.1);}
 
@@ -499,7 +501,10 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
         <div class="header-sub">Personnel Management System · <span id="onlineCount" style="color:var(--green);font-family:'JetBrains Mono',monospace;font-size:10px;"></span></div>
       </div>
       <div class="header-right">
-        <span class="admin-pill hidden" id="adminPill">⬡ Admin</span>
+        <div class="user-avatar-wrap hidden" id="adminPill">
+          <div class="user-avatar" id="userAvatar">?</div>
+          <div class="user-avatar-name" id="userAvatarName"></div>
+        </div>
         <button class="btn btn-ghost btn-sm hidden" id="loginFromPublicBtn" onclick="showAuthModal()" style="font-size:10px;">Admin Login</button>
         <button class="btn btn-outline btn-sm hidden" id="shareBtn" onclick="openShareModal()">Share</button>
         <button class="logout-btn" onclick="doLogout()">Logout</button>
@@ -957,8 +962,7 @@ function loadDemo(){
   document.getElementById('landingPage').style.display='none';
   document.getElementById('appPage').style.display='flex';
   document.getElementById('headerName').textContent = deptName;
-  document.getElementById('adminPill').classList.remove('hidden');
-  document.getElementById('adminPill').textContent = '▶ Demo Mode';
+  setAvatar('Demo');
   document.getElementById('adminPill').style.background = 'rgba(167,139,250,.1)';
   document.getElementById('adminPill').style.borderColor = 'rgba(167,139,250,.4)';
   document.getElementById('adminPill').style.color = 'var(--purple)';
@@ -971,6 +975,14 @@ function loadDemo(){
   renderAll();
   showToast('▶ Demo loaded! Changes reset on refresh.');
   history.replaceState(null,'','#main-roster');
+}
+
+function setAvatar(name){
+  const avatar = document.getElementById('userAvatar');
+  const avatarName = document.getElementById('userAvatarName');
+  if(avatar) avatar.textContent = name ? name.charAt(0).toUpperCase() : '?';
+  if(avatarName) avatarName.textContent = name || '';
+  document.getElementById('adminPill').classList.remove('hidden');
 }
 
 function isSuperAdminEmail(email){
@@ -1216,7 +1228,7 @@ async function onLoginSuccess(user){
   await loadDepartment(user.id);
   applyTheme(activeTheme);
   document.getElementById('headerName').textContent = deptName;
-  document.getElementById('adminPill').classList.remove('hidden');
+  setAvatar(deptName);
   document.getElementById('editorTab').classList.remove('hidden');
   document.getElementById('promoTab').classList.remove('hidden');
   document.getElementById('addMemberBtn').classList.remove('hidden');
@@ -1409,8 +1421,7 @@ async function doStaffLogin(){
   document.getElementById('landingPage').style.display='none';
   document.getElementById('appPage').style.display='flex';
   document.getElementById('headerName').textContent=deptName;
-  document.getElementById('adminPill').classList.remove('hidden');
-  document.getElementById('adminPill').textContent='⬡ '+profile.name;
+  setAvatar(profile.name);
   document.getElementById('addMemberBtn').classList.remove('hidden');
   document.getElementById('addTraineeBtn').classList.remove('hidden');
 
@@ -1502,8 +1513,8 @@ async function submitNameGate(){
 
 function grantEditAccess(name){
   currentUser={email:'shared', name};
-  ['adminPill','addMemberBtn','addTraineeBtn'].forEach(id=>document.getElementById(id).classList.remove('hidden'));
-  document.getElementById('adminPill').textContent='⬡ '+name;
+  ['addMemberBtn','addTraineeBtn'].forEach(id=>document.getElementById(id).classList.remove('hidden'));
+  setAvatar(name);
   renderAll();
 }
 
