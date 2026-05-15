@@ -1261,6 +1261,7 @@ async function doLogout(){
     if(el) el.classList.add('hidden');
   });
   stopPresence();
+  localStorage.removeItem('rc_staff_session');
   const demoBanner=document.getElementById('demoBanner');
   if(demoBanner) demoBanner.style.display='none';
   applyTheme('dark-steel');
@@ -1429,6 +1430,12 @@ async function doStaffLogin(){
   showToast('Welcome, '+profile.name+'!');
   history.replaceState(null,'','#main-roster');
   startPresence(profile.name, rd.dept_id);
+  // Save staff session to localStorage
+  localStorage.setItem('rc_staff_session', JSON.stringify({
+    username: profile.username,
+    hash: hash,
+    profile_id: profile.id
+  }));
 }
 
 async function loadAccessList(){
@@ -2632,8 +2639,42 @@ document.addEventListener('keydown',e=>{
     return;
   }
 
-  
-})();
+  // Check for saved staff session
+  const savedStaff = localStorage.getItem('rc_staff_session');
+  if(savedStaff){
+    try{
+      const {username, hash} = JSON.parse(savedStaff);
+      const {data:profile,error} = await sb.from('roster_profiles').select('*').eq('username',username).eq('password_hash',hash).single();
+      if(!error && profile){
+        const {data:rd} = await sb.from('roster_data').select('*').eq('id',profile.roster_id).single();
+        const {data:dept} = await sb.from('departments').select('*').eq('id',rd?.dept_id).single();
+        if(rd && dept){
+          rosterDataId=rd.id; deptId=rd.dept_id; deptName=dept.name||'Department';
+          rankGroups=rd.rank_groups||[]; subdivisions=rd.subdivisions||[];
+          positions=rd.positions||[]; traineeFormat=rd.trainee_format||''; traineeFormatTo=rd.trainee_format_to||'';
+          customTags=rd.custom_tags||[]; promotions=rd.promotions||[];
+          customThemes=rd.custom_themes||[{name:'Custom 1',accent:'#c9a84c',bg:'#0a0c10'},{name:'Custom 2',accent:'#60a5fa',bg:'#080c14'}];
+          activeTheme=rd.theme||'dark-steel'; members=rd.members||[]; trainees=rd.trainees||[];
+          nextMemberId=members.length>0?Math.max(...members.map(m=>m.id||0))+1:1;
+          nextTraineeId=trainees.length>0?Math.max(...trainees.map(t=>t.id||0))+1:1;
+          applyTheme(activeTheme);
+          currentUser={email:'staff',name:profile.name,username:profile.username};
+          document.getElementById('landingPage').style.display='none';
+          document.getElementById('appPage').style.display='flex';
+          document.getElementById('headerName').textContent=deptName;
+          setAvatar(profile.name);
+          document.getElementById('addMemberBtn').classList.remove('hidden');
+          document.getElementById('addTraineeBtn').classList.remove('hidden');
+          renderAll();
+          startPresence(profile.name, rd.dept_id);
+          return;
+        }
+      }
+    } catch(e){}
+    localStorage.removeItem('rc_staff_session');
+  }
+
+  })();
 </script>
 </body>
 </html>
