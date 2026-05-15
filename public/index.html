@@ -1619,6 +1619,7 @@ function generatePromoAnnouncement(){
   Object.entries(grouped).forEach(([group,promos])=>{
     const color=colors[colorIdx%colors.length];
     colorIdx++;
+    const groupPos = rankGroups.find(g=>g.name===group)?.position||'';
     const rows=promos.map((p,i)=>`
       <div style="display:flex;align-items:center;gap:12px;padding:10px 16px;${i<promos.length-1?'border-bottom:1px solid #1a1e28':''}">
         <span style="color:#4ade80;font-size:13px;font-weight:700;min-width:65px;font-family:'JetBrains Mono',monospace;">${p.toCS||'—'}</span>
@@ -1627,8 +1628,9 @@ function generatePromoAnnouncement(){
       </div>`).join('');
     sectionsHtml+=`
       <div style="border-radius:4px;overflow:hidden;margin-bottom:10px;">
-        <div style="background:${color}18;border-left:3px solid ${color};padding:8px 16px;">
+        <div style="background:${color}18;border-left:3px solid ${color};padding:8px 16px;display:flex;align-items:center;justify-content:space-between;">
           <span style="font-size:10px;letter-spacing:2px;color:${color};font-weight:700;font-family:'JetBrains Mono',monospace;">${group.toUpperCase()}</span>
+          ${groupPos?`<span style="font-size:10px;color:${color}99;font-family:'JetBrains Mono',monospace;letter-spacing:1px;">${groupPos}</span>`:''}
         </div>
         <div style="background:#12151c;">${rows}</div>
       </div>`;
@@ -1686,7 +1688,8 @@ function copyPromoAnnouncement(){
   const today=new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
   let text=`${deptName.toUpperCase()} — PROMOTION ANNOUNCEMENT\n${'─'.repeat(40)}\n📅 ${today}\n\n`;
   Object.entries(grouped).forEach(([group,promos])=>{
-    text+=`【 ${group.toUpperCase()} 】\n`;
+    const groupPos = rankGroups.find(g=>g.name===group)?.position||'';
+    text+=`【 ${group.toUpperCase()}${groupPos?' — '+groupPos:''} 】\n`;
     promos.forEach(p=>{text+=`  • ${p.name} — ${p.fromCS} → ${p.toCS}\n`;});
     text+='\n';
   });
