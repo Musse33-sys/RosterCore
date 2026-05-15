@@ -21,19 +21,16 @@
 }
 body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
 
-/* ── SCROLLBAR ── */
 ::-webkit-scrollbar{width:6px;height:6px;}
 ::-webkit-scrollbar-track{background:var(--bg2);}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
 
-/* ── UTILS ── */
 .hidden{display:none!important;}
 .flex{display:flex;}.flex-col{flex-direction:column;}.items-center{align-items:center;}.justify-between{justify-content:space-between;}.gap-2{gap:8px;}.gap-3{gap:12px;}.gap-4{gap:16px;}
 .w-full{width:100%;}
 .mono{font-family:'JetBrains Mono',monospace;}
 .caps{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;}
 
-/* ── BUTTONS ── */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;letter-spacing:1.5px;text-transform:uppercase;padding:9px 18px;border-radius:var(--radius);cursor:pointer;transition:all .15s;border:none;white-space:nowrap;}
 .btn-primary{background:var(--accent);color:#0a0c10;font-weight:700;}
 .btn-primary:hover{background:var(--accent2);}
@@ -51,7 +48,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .btn-sm{font-size:10px;padding:6px 12px;letter-spacing:1px;}
 .btn-xs{font-size:9px;padding:4px 8px;letter-spacing:.5px;}
 
-/* ── FORM ── */
 .form-group{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;}
 .form-label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);}
 .form-input{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:10px 12px;font-family:'Inter',sans-serif;font-size:14px;border-radius:var(--radius);outline:none;transition:border-color .15s;width:100%;}
@@ -64,21 +60,16 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .form-check input[type=checkbox]{width:15px;height:15px;accent-color:var(--accent);cursor:pointer;}
 .form-error{background:rgba(248,113,113,.1);border:1px solid var(--red2);color:var(--red);padding:10px 12px;border-radius:var(--radius);font-size:12px;font-family:'JetBrains Mono',monospace;}
 
-/* ── MODAL ── */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:200;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
 .modal{background:var(--bg2);border:1px solid var(--border2);border-top:2px solid var(--accent);width:520px;max-width:96vw;padding:32px;box-shadow:var(--shadow);max-height:92vh;overflow-y:auto;}
 .modal-title{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:2px;color:var(--text);margin-bottom:4px;}
 .modal-sub{font-size:12px;color:var(--text2);margin-bottom:24px;font-style:italic;}
 .modal-footer{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;padding-top:16px;border-top:1px solid var(--border);}
 
-/* ── TOAST ── */
 #toast{position:fixed;bottom:24px;right:24px;background:var(--bg2);border:1px solid var(--border2);border-left:3px solid var(--accent);color:var(--text);padding:12px 18px;font-family:'JetBrains Mono',monospace;font-size:11px;z-index:500;box-shadow:var(--shadow);max-width:320px;opacity:0;transition:opacity .3s;pointer-events:none;}
 #toast.show{opacity:1;}
 #toast.warn{border-left-color:var(--red);}
 
-/* ══════════════════════════════════════
-   LANDING PAGE
-══════════════════════════════════════ */
 #landingPage{min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:0;background:var(--bg);overflow-y:auto;}
 #landingPage::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 70% 50% at 50% 0%,rgba(201,168,76,.06) 0%,transparent 60%);pointer-events:none;}
 .landing-seal{margin:0 auto 20px;display:flex;align-items:center;justify-content:center;}
@@ -96,20 +87,13 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .feat-title{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:6px;}
 .feat-desc{font-size:13px;color:var(--text2);line-height:1.6;}
 
-/* ══════════════════════════════════════
-   AUTH MODAL
-══════════════════════════════════════ */
 .auth-modal{background:var(--bg2);border:1px solid var(--border2);border-top:2px solid var(--accent);width:400px;max-width:96vw;padding:40px;box-shadow:var(--shadow);}
 .auth-seal{margin:0 auto 18px;display:flex;align-items:center;justify-content:center;}
 .auth-title{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:3px;text-align:center;color:var(--text);margin-bottom:4px;}
 .auth-sub{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--accent);text-align:center;margin-bottom:28px;}
 
-/* ══════════════════════════════════════
-   MAIN APP LAYOUT
-══════════════════════════════════════ */
 #appPage{display:none;flex-direction:column;min-height:100vh;}
 
-/* HEADER */
 .app-header{background:linear-gradient(180deg,#07090d 0%,var(--bg2) 100%);border-bottom:1px solid var(--border2);}
 .header-inner{display:flex;align-items:center;justify-content:space-between;padding:16px 32px;border-bottom:1px solid var(--border);}
 .header-seal{display:flex;align-items:center;justify-content:center;flex-shrink:0;}
@@ -122,28 +106,20 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .logout-btn{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;background:transparent;border:1px solid var(--red2);color:var(--red);padding:6px 12px;border-radius:var(--radius);cursor:pointer;transition:all .15s;}
 .logout-btn:hover{background:rgba(248,113,113,.1);}
 
-/* NAV */
 .app-nav{display:flex;align-items:center;padding:0 32px;overflow-x:auto;}
 .nav-tab{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text2);padding:13px 18px;cursor:pointer;background:none;border:none;border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap;}
 .nav-tab:hover{color:var(--text);}
 .nav-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
 
-/* MAIN CONTENT */
 .app-main{flex:1;padding:28px 32px;max-width:1600px;margin:0 auto;width:100%;}
 
 .tab-panel{display:none;}.tab-panel.active{display:block;}
 
-/* ══════════════════════════════════════
-   STATS BAR
-══════════════════════════════════════ */
 .stats-bar{display:flex;gap:10px;margin-bottom:24px;flex-wrap:wrap;}
 .stat{background:var(--bg2);border:1px solid var(--border);border-top:2px solid var(--accent3);padding:14px 18px;flex:1;min-width:100px;}
 .stat-label{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--text3);margin-bottom:6px;}
 .stat-val{font-family:'Bebas Neue',sans-serif;font-size:38px;color:var(--accent);line-height:1;}
 
-/* ══════════════════════════════════════
-   FILTER BAR
-══════════════════════════════════════ */
 .filter-bar{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;align-items:center;}
 .filter-input{background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:8px 12px;font-family:'JetBrains Mono',monospace;font-size:11px;border-radius:var(--radius);outline:none;width:180px;transition:border-color .15s;}
 .filter-input::placeholder{color:var(--text3);}
@@ -151,9 +127,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .filter-select{background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:8px 12px;font-family:'JetBrains Mono',monospace;font-size:11px;border-radius:var(--radius);outline:none;cursor:pointer;}
 .filter-select:focus{border-color:var(--accent);}
 
-/* ══════════════════════════════════════
-   ROSTER TABLE
-══════════════════════════════════════ */
 .rank-group{margin-bottom:0;}
 .rank-group+.rank-group{margin-top:20px;}
 .rg-wrap{display:flex;border:1px solid var(--border);align-items:stretch;}
@@ -169,7 +142,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .roster-table tr.row-empty td{color:var(--border2);font-family:'JetBrains Mono',monospace;font-size:10px;}
 .subdiv-wrap{display:flex;flex-direction:row;flex-wrap:wrap;gap:3px;}
 
-/* CELLS */
 .cs-filled{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green);font-weight:700;letter-spacing:.5px;}
 .cs-empty{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--border2);}
 .member-name{font-weight:600;color:var(--text);font-size:13px;display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
@@ -178,7 +150,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .subdiv-wrap{display:flex;flex-direction:column;gap:3px;}
 .sdiv-badge{display:inline-flex;font-family:'JetBrains Mono',monospace;font-size:10px;padding:2px 7px;border-radius:2px;border:1px solid;white-space:nowrap;width:fit-content;}
 
-/* STATUS */
 .status-pill{display:inline-flex;align-items:center;gap:5px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:3px 9px;border-radius:20px;white-space:nowrap;}
 .s-active{background:rgba(74,222,128,.08);color:var(--green);border:1px solid var(--green2);}
 .s-inactive{background:rgba(248,113,113,.08);color:var(--red);border:1px solid var(--red2);}
@@ -190,34 +161,25 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .s-loa .s-dot{background:var(--yellow);}
 .s-parttime .s-dot{background:var(--orange);}
 
-/* STRIKES */
 .strike{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;padding:3px 10px;border-radius:var(--radius);min-width:28px;text-align:center;display:inline-block;}
 .s0{background:rgba(74,222,128,.08);color:var(--green);border:1px solid var(--green2);}
 .s1{background:rgba(251,191,36,.1);color:var(--yellow);border:1px solid rgba(161,122,20,.6);}
 .s2{background:rgba(251,146,60,.1);color:var(--orange);border:1px solid rgba(154,52,18,.6);}
 .s3{background:rgba(248,113,113,.1);color:var(--red);border:1px solid var(--red2);}
 
-/* ROW ACTIONS */
 .row-acts{display:flex;gap:4px;opacity:0;transition:opacity .1s;}
 .roster-table tr:hover .row-acts{opacity:1;}
 
-/* EMPTY STATE */
 .empty-state{text-align:center;padding:60px 24px;color:var(--text3);}
 .empty-icon{font-size:42px;margin-bottom:14px;}
 .empty-text{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:1px;line-height:1.8;}
 .empty-text span{color:var(--accent);}
 
-/* ══════════════════════════════════════
-   SECTION HEADER
-══════════════════════════════════════ */
 .section-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
 .section-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;color:var(--text);}
 .section-title span{color:var(--accent);}
 .divider{height:1px;background:linear-gradient(90deg,var(--accent3),transparent);margin-bottom:20px;}
 
-/* ══════════════════════════════════════
-   EDITOR
-══════════════════════════════════════ */
 .editor-wrap{max-width:680px;}
 .editor-notice{background:rgba(201,168,76,.06);border:1px solid var(--accent3);border-left:3px solid var(--accent);padding:10px 16px;margin-bottom:24px;display:flex;align-items:center;gap:10px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);letter-spacing:1px;}
 .editor-section{margin-bottom:22px;}
@@ -238,7 +200,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .add-input:focus{border-color:var(--accent);}
 .col-labels{display:grid;gap:6px;padding:0 10px 8px;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--text3);}
 
-/* THEMES GRID */
 .themes-grid{display:flex;flex-wrap:wrap;gap:8px;}
 .theme-btn{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:10px 14px;border-radius:var(--radius);cursor:pointer;transition:all .15s;border:2px solid transparent;display:flex;flex-direction:column;gap:5px;min-width:110px;}
 .theme-btn:hover{transform:translateY(-2px);}
@@ -247,9 +208,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .theme-swatches{display:flex;gap:3px;}
 .t-dot{width:10px;height:10px;border-radius:50%;}
 
-/* ══════════════════════════════════════
-   SUPER ADMIN PANEL
-══════════════════════════════════════ */
 .sa-panel{max-width:900px;}
 .sa-notice{background:rgba(167,139,250,.06);border:1px solid rgba(167,139,250,.3);border-left:3px solid var(--purple);padding:10px 16px;margin-bottom:24px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--purple);letter-spacing:1px;}
 .dept-table{width:100%;border-collapse:collapse;}
@@ -259,10 +217,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .dept-name-cell{font-weight:600;color:var(--text);font-size:13px;}
 .dept-email-cell{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);}
 
-/* SHARE MODAL */
 .share-url{background:var(--bg3);border:1px solid var(--border2);padding:10px 13px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);word-break:break-all;cursor:pointer;border-radius:var(--radius);min-height:42px;margin-bottom:14px;}
 
-/* MEMBERS TAB */
 .members-table{width:100%;border-collapse:collapse;font-size:13px;}
 .members-table thead th{background:var(--bg3);border-bottom:1px solid var(--border2);font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);padding:10px 14px;text-align:left;white-space:nowrap;}
 .members-table tbody tr{background:var(--bg2);border-bottom:1px solid var(--border);}
@@ -282,12 +238,11 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 .fade-up{animation:fadeUp .25s ease both;}
 
-/* CONFIRM MODAL */
 .confirm-modal{max-width:360px;padding:28px;}
 .confirm-modal .modal-title{color:var(--red);}
 
 @media(max-width:768px){
-  /* LAYOUT */
+  
   .header-inner{padding:10px 14px;gap:8px;}
   .header-center{padding:0 8px;}
   .header-name{font-size:18px;letter-spacing:2px;}
@@ -301,13 +256,13 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   .nav-tab{font-size:9px;letter-spacing:1px;padding:10px 10px;}
   .app-main{padding:14px 12px;}
 
-  /* STATS */
+  
   .stats-bar{gap:6px;}
   .stat{min-width:calc(33.33% - 4px);padding:10px 10px;}
   .stat-val{font-size:28px;}
   .stat-label{font-size:8px;letter-spacing:1px;}
 
-  /* FILTER BAR */
+  
   .filter-bar{gap:6px;}
   .filter-input{width:100%;font-size:11px;}
   .filter-select{font-size:10px;padding:7px 8px;}
@@ -315,7 +270,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   .btn-sm{font-size:9px;padding:5px 9px;}
   .btn-xs{font-size:9px;padding:3px 7px;}
 
-  /* ROSTER TABLE - hide non-essential columns on mobile */
+  
   .rg-wrap{flex-direction:column;}
   .rg-label{writing-mode:horizontal-tb;transform:none;min-width:unset;padding:6px 12px;font-size:9px;letter-spacing:2px;border-right:none;border-bottom:1px solid var(--border);}
   .rg-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
@@ -323,7 +278,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   .roster-table thead th{padding:8px 10px;font-size:9px;}
   .roster-table td{padding:8px 10px;}
 
-  /* Hide less important columns on mobile */
+  
   .roster-table .col-doh,
   .roster-table .col-discord,
   .roster-table .col-notes,
@@ -335,7 +290,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 
   .rank-group+.rank-group{margin-top:12px;}
 
-  /* MODALS */
+  
   .modal{padding:20px;width:96vw;}
   .modal-title{font-size:20px;}
   .auth-modal{padding:24px;width:96vw;}
@@ -344,7 +299,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   .form-input{font-size:16px;}
   .form-select{font-size:16px;}
 
-  /* EDITOR */
+  
   .editor-wrap{max-width:100%;}
   .edit-row{gap:4px;}
   .add-form{flex-wrap:wrap;}
@@ -352,20 +307,20 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   .themes-grid{gap:6px;}
   .theme-btn{min-width:calc(50% - 3px);font-size:9px;padding:8px 10px;}
 
-  /* SECTION HEADER */
+  
   .section-hdr{flex-direction:column;align-items:flex-start;gap:10px;}
 
-  /* LANDING */
+  
   .landing-title{font-size:clamp(42px,12vw,72px);letter-spacing:3px;}
   .landing-sub{font-size:14px;}
   .landing-features{grid-template-columns:1fr 1fr;gap:10px;}
   .feat{padding:16px;}
 
-  /* SA TABLE */
+  
   .dept-table{font-size:12px;}
   .dept-table th,.dept-table td{padding:8px 10px;}
 
-  /* ACTION MENU */
+  
   .action-menu{right:auto;left:0;}
 }
 
@@ -929,19 +884,17 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 <div id="toast"></div>
 
 <script>
-// ══════════════════════════════════════════════════════════════
-// SUPABASE
-// ══════════════════════════════════════════════════════════════
+
 const SB_URL = 'https://lzxsltdwbuyzxbmkpuny.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx6eHNsdGR3YnV5enhibWtwdW55Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2MDM3NDksImV4cCI6MjA5NDE3OTc0OX0._Pr9Na_5u3AHweM2F-_W9R4EmXbsvpGsoBFYPC1I914';
 const sb = supabase.createClient(SB_URL, SB_KEY);
 
-// Super admin email — only this account sees the super admin panel
-const SUPER_ADMIN_EMAIL = 'musse33sys@gmail.com'; // CHANGE THIS TO YOUR EMAIL
+function isSuperAdminEmail(email){
+  
+  const h = btoa(email.toLowerCase().trim());
+  return h === 'bXVzc2UzM3N5c0BnbWFpbC5jb20=';
+}
 
-// ══════════════════════════════════════════════════════════════
-// STATE
-// ══════════════════════════════════════════════════════════════
 let currentUser = null;
 let isSuperAdmin = false;
 let deptId = null;
@@ -968,9 +921,6 @@ let editingTraineeId = null;
 let deletingId = null;
 let deletingType = null;
 
-// ══════════════════════════════════════════════════════════════
-// THEMES
-// ══════════════════════════════════════════════════════════════
 const themes = [
   { id:'dark-steel', name:'Dark Steel',
     vars:{'--bg':'#0a0c10','--bg2':'#12151c','--bg3':'#1a1e28','--bg4':'#222736','--border':'#2a2f3d','--border2':'#363c50','--accent':'#c9a84c','--accent2':'#e8c97a','--accent3':'#6b561f','--text':'#e8e4da','--text2':'#a8a098','--text3':'#686460','--green':'#4ade80','--green2':'#166534','--green3':'#052e16'} },
@@ -990,9 +940,6 @@ const themes = [
     vars:{'--bg':'#f0f4f8','--bg2':'#ffffff','--bg3':'#e8edf5','--bg4':'#dde4f0','--border':'#c8d4e8','--border2':'#a8bcd8','--accent':'#1e40af','--accent2':'#3b82f6','--accent3':'#93c5fd','--text':'#1e2a3a','--text2':'#4a6080','--text3':'#8098b8','--green':'#166534','--green2':'#166534','--green3':'#dcfce7'} },
 ];
 
-// ══════════════════════════════════════════════════════════════
-// CALLSIGN LOGIC
-// ══════════════════════════════════════════════════════════════
 function parseFormat(fmt){
   if(!fmt) return null;
   const m = fmt.match(/^(.*?)(\d+)$/);
@@ -1004,7 +951,6 @@ function buildCallsign(prefix, num, pad){
   return prefix + String(num).padStart(pad,'0');
 }
 
-// Generate all slots in a range e.g. 1W-01 to 1W-06 = [1W-01, 1W-02, ..., 1W-06]
 function getRangeSlots(from, to){
   if(!from) return [];
   const pFrom = parseFormat(from);
@@ -1037,11 +983,8 @@ function nextTraineeCallsign(excludeId=null){
   return buildCallsign(p.prefix,n,p.pad);
 }
 
-// ══════════════════════════════════════════════════════════════
-// SUPABASE LOAD / SAVE
-// ══════════════════════════════════════════════════════════════
 async function loadDepartment(userId){
-  // Get or create department record
+  
   let {data:dept} = await sb.from('departments').select('*').eq('user_id',userId).single();
   if(!dept){
     const {data:nd} = await sb.from('departments').insert({user_id:userId, name: deptName||'My Department'}).select().single();
@@ -1050,7 +993,7 @@ async function loadDepartment(userId){
   deptId = dept.id;
   deptName = dept.name||'My Department';
 
-  // Get or create roster data
+  
   let {data:rd} = await sb.from('roster_data').select('*').eq('dept_id',deptId).single();
   if(!rd){
     const {data:nrd} = await sb.from('roster_data').insert({dept_id:deptId}).select().single();
@@ -1084,7 +1027,7 @@ async function saveRoster(){
     theme: activeTheme, members: members, trainees: trainees,
     updated_at: new Date().toISOString()
   }).eq('id', rosterDataId);
-  // Only update dept name if logged in as owner (not shared/staff access)
+  
   if(currentUser && currentUser.email !== 'shared' && currentUser.email !== 'staff' && deptId){
     await sb.from('departments').update({name: deptName}).eq('id', deptId);
   }
@@ -1092,9 +1035,6 @@ async function saveRoster(){
   else { showToast('✓ Saved.'); }
 }
 
-// ══════════════════════════════════════════════════════════════
-// AUTH
-// ══════════════════════════════════════════════════════════════
 function showAuthModal(){
   document.getElementById('authModal').classList.remove('hidden');
   document.getElementById('authError').classList.add('hidden');
@@ -1120,7 +1060,7 @@ async function doLogin(){
 
 async function onLoginSuccess(user){
   currentUser = user;
-  isSuperAdmin = user.email === SUPER_ADMIN_EMAIL;
+  isSuperAdmin = isSuperAdminEmail(user.email);
   closeAuthModal();
   document.getElementById('landingPage').style.display='none';
   document.getElementById('appPage').style.display='flex';
@@ -1138,7 +1078,7 @@ async function onLoginSuccess(user){
     return;
   }
 
-  // Regular department login
+  
   await loadDepartment(user.id);
   applyTheme(activeTheme);
   document.getElementById('headerName').textContent = deptName;
@@ -1149,17 +1089,18 @@ async function onLoginSuccess(user){
   document.getElementById('addTraineeBtn').classList.remove('hidden');
   document.getElementById('shareBtn').classList.remove('hidden');
 
-  // Check share token
+  
   const params = new URLSearchParams(window.location.search);
   const token = params.get('share');
   if(token) await loadByShareToken(token);
 
   renderAll();
   showToast('Welcome back, '+deptName+'!');
+  history.replaceState(null,'','#main-roster');
 }
 
 async function doLogout(){
-  // Only sign out from Supabase if logged in as dept owner
+  
   if(currentUser && currentUser.email !== 'shared' && currentUser.email !== 'staff'){
     await sb.auth.signOut({scope:'global'});
   }
@@ -1173,12 +1114,10 @@ async function doLogout(){
     if(el) el.classList.add('hidden');
   });
   applyTheme('dark-steel');
+  history.replaceState(null,'',window.location.pathname);
   showToast('Logged out.');
 }
 
-// ══════════════════════════════════════════════════════════════
-// SHARE
-// ══════════════════════════════════════════════════════════════
 async function loadByShareToken(token){
   const {data:rd} = await sb.from('roster_data').select('*').eq('share_token',token).eq('share_enabled',true).single();
   if(!rd){ showToast('⚠ Invalid or expired share link.',true); return; }
@@ -1192,9 +1131,6 @@ async function loadByShareToken(token){
   document.getElementById('headerName').textContent=deptName;
 }
 
-// ══════════════════════════════════════════════════════════════
-// SHARE & STAFF ACCOUNTS
-// ══════════════════════════════════════════════════════════════
 let currentAccessToken = null;
 
 async function openShareModal(){
@@ -1207,7 +1143,6 @@ function copyPublicLink(){
   navigator.clipboard.writeText(document.getElementById('publicUrl').textContent).then(()=>showToast('✓ Public link copied!'));
 }
 
-// ── CREATE PROFILE ─────────────────────────────────────────────
 function showCreateProfile(){
   document.getElementById('createProfileForm').style.display='block';
   document.getElementById('cpName').value='';
@@ -1229,7 +1164,7 @@ async function createProfile(){
   if(!name||!username||!password){errEl.textContent='⚠ All fields required.';errEl.classList.remove('hidden');return;}
   if(password.length<4){errEl.textContent='⚠ Password must be at least 4 characters.';errEl.classList.remove('hidden');return;}
 
-  // Simple hash (not cryptographic — just for basic protection)
+  
   const hash = btoa(unescape(encodeURIComponent(password+'_rc_salt_'+username)));
 
   const {error}=await sb.from('roster_profiles').insert({
@@ -1272,7 +1207,6 @@ async function removeProfile(id, name){
   showToast(`✓ ${name}'s account removed.`);
 }
 
-// ── STAFF LOGIN ─────────────────────────────────────────────────
 function showStaffLoginModal(){
   document.getElementById('staffLoginModal').classList.remove('hidden');
   document.getElementById('staffLoginError').classList.add('hidden');
@@ -1298,7 +1232,7 @@ async function doStaffLogin(){
 
   if(error||!profile){errEl.textContent='⚠ Invalid username or password.';errEl.classList.remove('hidden');return;}
 
-  // Load the roster this profile belongs to
+  
   const {data:rd}=await sb.from('roster_data').select('*').eq('id',profile.roster_id).single();
   if(!rd){errEl.textContent='⚠ Roster not found.';errEl.classList.remove('hidden');return;}
 
@@ -1331,9 +1265,9 @@ async function doStaffLogin(){
 
   renderAll();
   showToast('Welcome, '+profile.name+'!');
+  history.replaceState(null,'','#main-roster');
 }
 
-// ── ACCESS LIST (name gate) ─────────────────────────────────────
 async function loadAccessList(){
   const {data:list}=await sb.from('roster_access').select('*').eq('roster_id',rosterDataId).order('created_at');
   const el=document.getElementById('accessList');
@@ -1369,25 +1303,24 @@ async function disableShare(){
   showToast('Share link disabled.');
 }
 
-// ── NAME GATE ──────────────────────────────────────────────────
 async function showNameGate(shareToken){
-  // Check if they already have a valid access token in localStorage
+  
   const storedToken = localStorage.getItem('rc_access_'+shareToken);
   if(storedToken){
     const {data:access}=await sb.from('roster_access').select('*').eq('token',storedToken).single();
     if(access){
-      // Valid — grant edit access
+      
       currentAccessToken=storedToken;
       grantEditAccess(access.name);
       return;
     }
-    // Token revoked — clear it
+    
     localStorage.removeItem('rc_access_'+shareToken);
   }
-  // Show name gate
+  
   document.getElementById('nameGateModal').classList.remove('hidden');
   setTimeout(()=>document.getElementById('nameGateInput').focus(),50);
-  // Store share token for use in submit
+  
   document.getElementById('nameGateModal').dataset.shareToken=shareToken;
 }
 
@@ -1398,16 +1331,16 @@ async function submitNameGate(){
   errEl.classList.add('hidden');
   if(!name){errEl.textContent='⚠ Please enter your name.';errEl.classList.remove('hidden');return;}
 
-  // Check share link is still valid
+  
   const {data:rd}=await sb.from('roster_data').select('id,share_enabled').eq('share_token',shareToken).single();
   if(!rd||!rd.share_enabled){errEl.textContent='⚠ This edit link has been disabled.';errEl.classList.remove('hidden');return;}
 
-  // Create access record
+  
   const token=Math.random().toString(36).slice(2)+Date.now().toString(36);
   const {error}=await sb.from('roster_access').insert({roster_id:rd.id,name,token});
   if(error){errEl.textContent='⚠ '+error.message;errEl.classList.remove('hidden');return;}
 
-  // Store in localStorage
+  
   localStorage.setItem('rc_access_'+shareToken,token);
   currentAccessToken=token;
   document.getElementById('nameGateModal').classList.add('hidden');
@@ -1422,9 +1355,6 @@ function grantEditAccess(name){
   renderAll();
 }
 
-// ══════════════════════════════════════════════════════════════
-// PROMOTIONS
-// ══════════════════════════════════════════════════════════════
 function renderPromotions(){
   const wrap=document.getElementById('promoWrap');
   if(!promotions.length){
@@ -1432,20 +1362,20 @@ function renderPromotions(){
     return;
   }
 
-  // Sort by rank group index (highest first), then by date
+  
   const sorted=[...promotions].sort((a,b)=>{
     if(a.toGroupIndex!==b.toGroupIndex) return a.toGroupIndex-b.toGroupIndex;
     return new Date(b.date)-new Date(a.date);
   });
 
-  // Group by toGroup
+  
   const grouped={};
   sorted.forEach(p=>{
     if(!grouped[p.toGroup]) grouped[p.toGroup]=[];
     grouped[p.toGroup].push(p);
   });
 
-  // Color palette for rank groups
+  
   const colors=['#fbbf24','#60a5fa','#4ade80','#f87171','#a78bfa','#fb923c','#7ec8e3','#e879f9'];
 
   let html='';
@@ -1536,9 +1466,6 @@ function copyPromoAnnouncement(){
   navigator.clipboard.writeText(text).then(()=>showToast('✓ Copied to clipboard!'));
 }
 
-// ══════════════════════════════════════════════════════════════
-// TABS
-// ══════════════════════════════════════════════════════════════
 function switchTab(name, btn){
   document.querySelectorAll('.tab-panel').forEach(p=>{p.style.display='none';p.classList.remove('active');});
   document.querySelectorAll('.nav-tab').forEach(b=>b.classList.remove('active'));
@@ -1549,11 +1476,11 @@ function switchTab(name, btn){
   if(name==='superadmin') loadSuperAdminDepts();
   if(name==='members') renderAllMembers();
   if(name==='promotions') renderPromotions();
+  
+  const hashMap={roster:'main-roster',trainees:'trainee-roster',members:'all-members',editor:'editor',promotions:'promotions',superadmin:'super-admin'};
+  history.replaceState(null,'',window.location.pathname+(window.location.search||'')+'#'+(hashMap[name]||name));
 }
 
-// ══════════════════════════════════════════════════════════════
-// HELPERS
-// ══════════════════════════════════════════════════════════════
 function sdColor(name){ const s=subdivisions.find(s=>s.name===name); return s?s.color:'#4ade80'; }
 function rgIndex(name){ return rankGroups.findIndex(g=>g.name===name); }
 
@@ -1583,9 +1510,6 @@ function populateSel(id, items, withNone=true){
   if(cur) el.value=cur;
 }
 
-// ══════════════════════════════════════════════════════════════
-// STATS
-// ══════════════════════════════════════════════════════════════
 function renderStats(){
   const main = members;
   const s = {
@@ -1602,16 +1526,13 @@ function renderStats(){
   ].map(([l,v,c])=>`<div class="stat"><div class="stat-label">${l}</div><div class="stat-val" style="${c?'color:'+c:''}">${v}</div></div>`).join('');
 }
 
-// ══════════════════════════════════════════════════════════════
-// MAIN ROSTER
-// ══════════════════════════════════════════════════════════════
 function renderRoster(){
   const search = document.getElementById('searchInput').value.toLowerCase();
   const fg = document.getElementById('filterGroup').value;
   const fs = document.getElementById('filterSubdiv').value;
   const fst = document.getElementById('filterStatus').value;
 
-  // populate filters
+  
   const fgEl = document.getElementById('filterGroup');
   const fgCur = fgEl.value;
   fgEl.innerHTML='<option value="">All Groups</option>'+rankGroups.map(g=>`<option value="${g.name}">${g.name}</option>`).join('');
@@ -1666,7 +1587,7 @@ function renderRoster(){
               </div></td>`:''}
             </tr>`;
           } else {
-            // Vacant slot
+            
             return `<tr class="row-empty">
               <td><span class="cs-empty">${slot}</span></td>
               <td colspan="${currentUser?8:7}" style="color:var(--border2);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;padding:10px 12px;">— VACANT —</td>
@@ -1722,13 +1643,10 @@ function renderRoster(){
   document.getElementById('rosterWrap').innerHTML = html||`<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-text">No results found.</div></div>`;
 }
 
-// ══════════════════════════════════════════════════════════════
-// TRAINEE ROSTER
-// ══════════════════════════════════════════════════════════════
 function renderTrainees(){
   const wrap=document.getElementById('traineeWrap');
 
-  // If range is set show all slots like main roster
+  
   if(traineeFormat && traineeFormatTo){
     const slots=getRangeSlots(traineeFormat, traineeFormatTo);
     const rows=slots.map(slot=>{
@@ -1799,15 +1717,11 @@ function renderTrainees(){
     </div>`;
 }
 
-// ══════════════════════════════════════════════════════════════
-// ALL MEMBERS TAB
-// ══════════════════════════════════════════════════════════════
-// ── ACTION MENU ─────────────────────────────────────────────
 let openMenuId = null;
 let bodyMenu = null;
 
 function createBodyMenu(id, content){
-  // Remove any existing menu
+  
   if(bodyMenu) bodyMenu.remove();
   bodyMenu = document.createElement('div');
   bodyMenu.className = 'action-menu';
@@ -1820,21 +1734,21 @@ function createBodyMenu(id, content){
 
 function toggleMenu(id, e){
   e.stopPropagation();
-  // If same menu — close it
+  
   if(openMenuId === id){
     if(bodyMenu) bodyMenu.style.display='none';
     openMenuId = null;
     return;
   }
-  // Close previous
+  
   if(bodyMenu) bodyMenu.style.display='none';
   openMenuId = id;
 
-  // Find the hidden menu template
+  
   const template = document.getElementById(id);
   if(!template) return;
 
-  // Show body menu with same content
+  
   createBodyMenu(id, template.innerHTML);
   bodyMenu.style.visibility = 'hidden';
   bodyMenu.style.display = 'block';
@@ -1950,7 +1864,7 @@ function promote(id){
   const oldCS=m.callsign;
   const oldGroup=m.rankGroup;
   m.rankGroup=newGroup; m.callsign=newCS;
-  // Log promotion
+  
   promotions.push({
     id: Date.now(),
     name: m.name,
@@ -1986,9 +1900,6 @@ function graduate(id){
   showToast(`★ ${t.name} graduated → ${cs} (${lowest.name})`);
 }
 
-// ══════════════════════════════════════════════════════════════
-// MEMBER MODAL
-// ══════════════════════════════════════════════════════════════
 function openAddMember(){
   editingMemberId=null;
   populateSel('mmGroup', rankGroups.map(g=>g.name), false);
@@ -2069,9 +1980,6 @@ function saveMember(){
   closeMemberModal(); renderRoster(); renderStats(); scheduleSave();
 }
 
-// ══════════════════════════════════════════════════════════════
-// TRAINEE MODAL
-// ══════════════════════════════════════════════════════════════
 function openAddTrainee(){
   editingTraineeId=null;
   document.getElementById('tmTitle').textContent='Add Trainee';
@@ -2115,9 +2023,6 @@ function saveTrainee(){
   closeTraineeModal(); renderTrainees(); renderStats(); scheduleSave();
 }
 
-// ══════════════════════════════════════════════════════════════
-// DELETE
-// ══════════════════════════════════════════════════════════════
 function openConfirmDelete(id,type){
   deletingId=id; deletingType=type;
   const rec=type==='member'?members.find(m=>m.id===id):trainees.find(t=>t.id===id);
@@ -2133,9 +2038,6 @@ function confirmDelete(){
   showToast('✓ Removed.');
 }
 
-// ══════════════════════════════════════════════════════════════
-// EDITOR
-// ══════════════════════════════════════════════════════════════
 function renderEditor(){
   document.getElementById('deptNameInput').value=deptName;
   document.getElementById('traineeFormatInput').value=traineeFormat;
@@ -2160,7 +2062,7 @@ function renderThemesGrid(){
     </button>`;
   }).join('');
 
-  // Render custom theme rows
+  
   const cl = document.getElementById('customThemesList');
   if(!cl) return;
   cl.innerHTML = customThemes.map((ct,i)=>`
@@ -2195,7 +2097,7 @@ function applyTheme(id){
 function applyCustomTheme(i){
   const ct = customThemes[i];
   activeTheme = 'custom-'+i;
-  // Derive bg shades from the base bg color
+  
   const bg = ct.bg;
   document.documentElement.style.setProperty('--bg', bg);
   document.documentElement.style.setProperty('--bg2', adjustColor(bg, 8));
@@ -2341,7 +2243,6 @@ function addSubdivision(){
   renderSDList(); scheduleSave(); showToast(`✓ "${name}" added.`);
 }
 
-// ── CUSTOM TAGS ────────────────────────────────────────────────
 function renderTagList(){
   const el=document.getElementById('tagList');
   if(!el) return;
@@ -2400,16 +2301,16 @@ async function createDepartment(){
   if(!name||!email||!password){errEl.textContent='⚠ All fields required.';errEl.classList.remove('hidden');return;}
   if(password.length<6){errEl.textContent='⚠ Password must be at least 6 characters.';errEl.classList.remove('hidden');return;}
 
-  // Sign up the new department user
+  
   const {data,error}=await sb.auth.signUp({email,password,options:{data:{department_name:name}}});
   if(error){errEl.textContent='⚠ '+error.message;errEl.classList.remove('hidden');return;}
   if(!data.user){errEl.textContent='⚠ Check that email confirmation is disabled in Supabase.';errEl.classList.remove('hidden');return;}
 
-  // Insert department record right away
+  
   const {error:dErr}=await sb.from('departments').insert({user_id:data.user.id, name, email});
   if(dErr){errEl.textContent='⚠ '+dErr.message;errEl.classList.remove('hidden');return;}
 
-  // Insert empty roster data
+  
   const {data:dept}=await sb.from('departments').select('id').eq('user_id',data.user.id).single();
   if(dept) await sb.from('roster_data').insert({dept_id:dept.id});
 
@@ -2458,7 +2359,7 @@ async function doChangePassword(){
   if(pwd.length<6){errEl.textContent='⚠ Password must be at least 6 characters.';errEl.classList.remove('hidden');return;}
   if(pwd!==confirm){errEl.textContent='⚠ Passwords do not match.';errEl.classList.remove('hidden');return;}
 
-  // Store new password in departments table as a plain note for the admin to share
+  
   await sb.from('departments').update({password_hint:pwd}).eq('user_id',changePwUserId);
   document.getElementById('changePwModal').classList.add('hidden');
   showToast('✓ New password saved. Share it with the department manually.');
@@ -2472,9 +2373,6 @@ async function deleteDept(deptId, name){
   showToast(`Department "${name}" deleted.`);
 }
 
-// ══════════════════════════════════════════════════════════════
-// RENDER ALL
-// ══════════════════════════════════════════════════════════════
 function renderAll(){
   renderStats();
   renderRoster();
@@ -2482,9 +2380,6 @@ function renderAll(){
   if(document.getElementById('tab-members')?.classList.contains('active')) renderAllMembers();
 }
 
-// ══════════════════════════════════════════════════════════════
-// TOAST
-// ══════════════════════════════════════════════════════════════
 let toastTimer;
 function showToast(msg, warn=false){
   const t=document.getElementById('toast');
@@ -2494,18 +2389,12 @@ function showToast(msg, warn=false){
   toastTimer=setTimeout(()=>t.className='',3500);
 }
 
-// ══════════════════════════════════════════════════════════════
-// KEYBOARD
-// ══════════════════════════════════════════════════════════════
 document.addEventListener('keydown',e=>{
   if(e.key==='Enter'&&!document.getElementById('authModal').classList.contains('hidden')) doLogin();
   if(e.key==='Enter'&&!document.getElementById('nameGateModal').classList.contains('hidden')) submitNameGate();
   if(e.key==='Enter'&&!document.getElementById('staffLoginModal').classList.contains('hidden')) doStaffLogin();
 });
 
-// ══════════════════════════════════════════════════════════════
-// INIT
-// ══════════════════════════════════════════════════════════════
 (async()=>{
   applyTheme('dark-steel');
 
@@ -2513,7 +2402,7 @@ document.addEventListener('keydown',e=>{
   const token=params.get('share');
   const deptParam=params.get('dept');
 
-  // Public read-only view via ?dept=ID
+  
   if(deptParam){
     const {data:rd}=await sb.from('roster_data').select('*').eq('dept_id',deptParam).single();
     if(rd){
@@ -2527,14 +2416,14 @@ document.addEventListener('keydown',e=>{
       document.getElementById('headerName').textContent=deptName;
       document.getElementById('landingPage').style.display='none';
       document.getElementById('appPage').style.display='flex';
-      // Show login button so admins can log in from public view
+      
       document.getElementById('loginFromPublicBtn').classList.remove('hidden');
       renderAll();
       return;
     }
   }
 
-  // Share token (edit access — requires name gate)
+  
   if(token){
     const {data:rd}=await sb.from('roster_data').select('*').eq('share_token',token).eq('share_enabled',true).single();
     if(rd){
@@ -2549,20 +2438,20 @@ document.addEventListener('keydown',e=>{
       document.getElementById('landingPage').style.display='none';
       document.getElementById('appPage').style.display='flex';
       renderAll();
-      // Show name gate to get edit access
+      
       await showNameGate(token);
       return;
     }
   }
 
-  // Auto-login if session exists
+  
   const {data:{session}}=await sb.auth.getSession();
   if(session){
     await onLoginSuccess(session.user);
     return;
   }
 
-  // No session — show landing
+  
 })();
 </script>
 </body>
