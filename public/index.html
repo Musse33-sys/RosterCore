@@ -1867,6 +1867,8 @@ function closeMenu(){
 }
 
 document.addEventListener('click', ()=>closeMenu());
+
+function renderAllMembers(){
   const search=(document.getElementById('membersSearch')?.value||'').toLowerCase();
   const all = [
     ...members.map(m=>({...m,_type:'member'})),
@@ -1938,7 +1940,7 @@ document.addEventListener('click', ()=>closeMenu());
       </tr></thead>
       <tbody>${rows}</tbody>
     </table>`;
-
+}
 
 function promote(id){
   const m=members.find(mb=>mb.id===id); if(!m)return;
