@@ -561,7 +561,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
     <div class="tab-panel" style="display:none;" id="tab-inactive">
       <div class="empty-state" style="padding:80px 24px;">
         <div style="font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:4px;color:var(--text);margin-bottom:8px;">Reports</div>
-        <div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--accent);letter-spacing:3px;text-transform:uppercase;">Coming Soon...</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--accent);letter-spacing:3px;text-transform:uppercase;">Coming Soon</div>
       </div>
     </div>
 
@@ -2036,7 +2036,7 @@ function renderRoster(){
             </colgroup>
             <thead><tr>
               <th>Callsign</th><th>Name</th><th>Subdivision</th><th>Status</th>
-              <th class="col-doh">DOH</th><th class="col-discord">Discord ID</th><th class="col-strikes">Strikes</th><th class="col-notes">Notes</th>
+              <th class="col-doh">DOH</th><th class="col-discord">ID</th><th class="col-strikes">Strikes</th><th class="col-notes">Notes</th>
               ${actionsCols}
             </tr></thead>
             <tbody>${rows}</tbody>
@@ -2078,7 +2078,7 @@ function renderTrainees(){
     wrap.innerHTML=`<div class="rank-group"><div class="rg-wrap">
       <div class="rg-label" style="background:rgba(167,139,250,.08);color:var(--purple);border-right-color:rgba(167,139,250,.3);">Trainees</div>
       <div class="rg-table-wrap"><table class="roster-table">
-        <thead><tr><th>Callsign</th><th>Name</th><th>Status</th><th class="col-doh">DOH</th><th class="col-discord">Discord ID</th><th class="col-strikes">Strikes</th><th class="col-notes">Notes</th>${currentUser?'<th>Actions</th>':''}</tr></thead>
+        <thead><tr><th>Callsign</th><th>Name</th><th>Status</th><th class="col-doh">DOH</th><th class="col-discord">ID</th><th class="col-strikes">Strikes</th><th class="col-notes">Notes</th>${currentUser?'<th>Actions</th>':''}</tr></thead>
         <tbody>${rows}</tbody>
       </table></div></div></div>`;
     return;
@@ -2112,7 +2112,7 @@ function renderTrainees(){
           <table class="roster-table">
             <thead><tr>
               <th>Callsign</th><th>Name</th><th>Status</th><th class="col-doh">DOH</th>
-              <th class="col-discord">Discord ID</th><th class="col-strikes">Strikes</th><th class="col-notes">Notes</th>
+              <th class="col-discord">ID</th><th class="col-strikes">Strikes</th><th class="col-notes">Notes</th>
               ${currentUser?'<th>Actions</th>':''}
             </tr></thead>
             <tbody>${rows}</tbody>
@@ -2254,7 +2254,7 @@ function renderAllMembers(){
     <table class="members-table">
       <thead><tr>
         <th>Callsign</th><th>Name</th><th>Rank Group</th><th>Status</th>
-        <th class="col-doh">DOH</th><th class="col-discord">Discord ID</th><th class="col-strikes">Strikes</th><th>Actions</th>
+        <th class="col-doh">DOH</th><th class="col-discord">ID</th><th class="col-strikes">Strikes</th><th>Actions</th>
       </tr></thead>
       <tbody>${rows}</tbody>
     </table>`;
