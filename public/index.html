@@ -3115,7 +3115,7 @@ async function loadSuperAdminDepts(){
       <td><div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);">${d.email||'—'}</div></td>
       <td>
         <div style="display:flex;align-items:center;gap:6px;">
-          <span id="pw_${d.id}" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text2);filter:blur(4px);cursor:pointer;" onclick="togglePw('${d.id}')" title="Click to reveal">${d.password_hint||'—'}</span>
+          <span id="pw_${d.id}" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text2);cursor:pointer;" onclick="togglePw('${d.id}')" title="Click to hide">${d.password_hint||'—'}</span>
         </div>
       </td>
       <td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);">${new Date(d.created_at).toLocaleDateString()}</td>
