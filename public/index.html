@@ -717,7 +717,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
     <div class="modal-sub" id="mmSub">New member will be auto-assigned a callsign.</div>
     <div class="form-row">
       <div class="form-group"><label class="form-label">Full Name</label><input class="form-input" id="mmName" placeholder="John Smith"></div>
-      <div class="form-group"><label class="form-label">Callsign</label><input class="form-input" id="mmCallsign" placeholder="Auto-assigned"></div>
+      <div class="form-group"><label class="form-label">Callsign</label><input class="form-input" id="mmCallsign" placeholder="Auto-assigned" oninput="onCallsignChange()"></div>
     </div>
     <div class="form-row">
       <div class="form-group"><label class="form-label">Rank Group</label><select class="form-select" id="mmGroup" onchange="onGroupChange()"></select></div>
@@ -2157,9 +2157,22 @@ function openAddMember(){
   document.getElementById('memberModal').classList.remove('hidden');
 }
 function onGroupChange(){
-  if(editingMemberId!==null) return;
   const g=document.getElementById('mmGroup').value;
-  document.getElementById('mmCallsign').value=nextMemberCallsign(g);
+  // Always auto-assign callsign when group changes
+  document.getElementById('mmCallsign').value=nextMemberCallsign(g, editingMemberId);
+}
+
+function onCallsignChange(){
+  // Auto-detect rank group from typed callsign
+  const cs=document.getElementById('mmCallsign').value.trim();
+  if(!cs) return;
+  const detected=rankGroups.find(g=>{
+    const slots=getRangeSlots(g.from,g.to);
+    return slots.includes(cs);
+  });
+  if(detected){
+    document.getElementById('mmGroup').value=detected.name;
+  }
 }
 function openEditMember(id){
   const m=members.find(mb=>mb.id===id); if(!m)return;
@@ -2204,6 +2217,31 @@ function saveMember(){
   };
   if(editingMemberId!==null){
     const i=members.findIndex(m=>m.id===editingMemberId);
+    const old=members[i];
+    const oldGroupIdx=rgIndex(old.rankGroup);
+    const newGroupIdx=rgIndex(data.rankGroup);
+
+    // Log promotion if rank group moved up or callsign changed within same group
+    if(data.rankGroup!==old.rankGroup || data.callsign!==old.callsign){
+      if(newGroupIdx<oldGroupIdx){
+        // Promoted (moved up = lower index)
+        promotions.push({
+          id:Date.now(),
+          name:data.name,
+          fromGroup:old.rankGroup,
+          toGroup:data.rankGroup,
+          fromCS:old.callsign,
+          toCS:data.callsign,
+          date:new Date().toISOString(),
+          toGroupIndex:newGroupIdx
+        });
+      } else if(data.rankGroup===old.rankGroup && data.callsign!==old.callsign){
+        // Same group, callsign updated — update existing promo log entry if exists
+        const existingPromo=promotions.find(p=>p.name===old.name&&p.toCS===old.callsign);
+        if(existingPromo) existingPromo.toCS=data.callsign;
+      }
+    }
+
     members[i]={...members[i],...data};
     showToast('✓ Member updated.');
   } else {
