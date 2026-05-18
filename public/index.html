@@ -503,7 +503,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
         <button class="btn btn-ghost btn-sm hidden" id="loginFromPublicBtn" onclick="showAuthModal()" style="font-size:10px;">Admin Login</button>
         <button class="btn btn-outline btn-sm hidden" id="shareBtn" onclick="openShareModal()">Share</button>
         <button class="btn btn-ghost btn-sm hidden" id="saveRosterPdfBtn" onclick="downloadRosterPDF()" style="border-color:var(--green2);color:var(--green);font-size:10px;">⬇ Save Roster</button>
-        <button id="historyBtn" class="hidden" onclick="openHistoryModal()" title="Version History" style="width:34px;height:34px;border-radius:50%;background:rgba(96,165,250,.1);border:1px solid rgba(96,165,250,.3);color:var(--blue);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:all .15s;flex-shrink:0;" onmouseover="this.style.background='rgba(96,165,250,.2)'" onmouseout="this.style.background='rgba(96,165,250,.1)'">⟳</button>
         <button class="logout-btn" onclick="doLogout()">Logout</button>
       </div>
     </div>
@@ -517,6 +516,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
       <button class="nav-tab hidden" id="editorTab" onclick="switchTab('editor',this)">Editor</button>
       <button class="nav-tab hidden" id="promoTab" onclick="switchTab('promotions',this)">Promotions</button>
       <button class="nav-tab hidden" id="inactiveTab" onclick="switchTab('inactive',this)">Reports</button>
+      <button class="nav-tab hidden" id="historyBtn" onclick="openHistoryModal()" style="color:var(--blue);">⟳ History</button>
       <button class="nav-tab hidden" id="saTab" onclick="switchTab('superadmin',this)">⬡ Super Admin</button>
     </nav>
   </header>
