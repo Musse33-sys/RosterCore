@@ -514,7 +514,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
       <button class="nav-tab" onclick="switchTab('members',this)">All Members</button>
       <button class="nav-tab hidden" id="editorTab" onclick="switchTab('editor',this)">Editor</button>
       <button class="nav-tab hidden" id="promoTab" onclick="switchTab('promotions',this)">Promotions</button>
-      <button class="nav-tab hidden" id="inactiveTab" onclick="switchTab('inactive',this)">Inactive List</button>
+      <button class="nav-tab hidden" id="inactiveTab" onclick="switchTab('inactive',this)">Reports</button>
       <button class="nav-tab hidden" id="saTab" onclick="switchTab('superadmin',this)">⬡ Super Admin</button>
     </nav>
   </header>
@@ -557,14 +557,14 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
       <div id="allMembersWrap"></div>
     </div>
 
-    <!-- INACTIVE TAB -->
+    <!-- REPORTS TAB -->
     <div class="tab-panel" style="display:none;" id="tab-inactive">
-      <div class="section-hdr">
-        <div class="section-title">Inactive <span style="color:var(--red);">List</span></div>
-        <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);letter-spacing:1px;">Members will be removed when set back to Active</div>
+      <div class="empty-state" style="padding:80px 24px;">
+        <div class="empty-icon">📊</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:4px;color:var(--text);margin-bottom:8px;">Reports</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--accent);letter-spacing:3px;text-transform:uppercase;margin-bottom:16px;">Coming Soon</div>
+        <div style="font-size:13px;color:var(--text3);max-width:360px;line-height:1.8;">Activity reports, attendance tracking, strike summaries and more will be available here.</div>
       </div>
-      <div class="divider" style="background:linear-gradient(90deg,var(--red2),transparent);"></div>
-      <div id="inactiveWrap"></div>
     </div>
 
     <!-- PROMOTIONS TAB -->
@@ -573,7 +573,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
         <div class="section-title">Promotion <span>Log</span></div>
         <div style="display:flex;gap:8px;">
           <button class="btn btn-primary btn-sm" onclick="generatePromoAnnouncement()">📋 Generate Announcement</button>
-          <button class="btn btn-sm" style="background:rgba(248,113,113,.1);color:var(--red);border:1px solid var(--red2);" onclick="generateInactiveCard()">📋 Generate Inactive List</button>
+          <button class="btn btn-sm" style="background:rgba(248,113,113,.1);color:var(--red);border:1px solid var(--red2);" onclick="generateInactiveCard()">📋 Generate Reports</button>
           <button class="btn btn-danger" onclick="clearPromoLog()">Clear Log</button>
         </div>
       </div>
@@ -1882,8 +1882,8 @@ function switchTab(name, btn){
   if(name==='members') renderAllMembers();
   if(name==='promotions') renderPromotions();
   if(name==='inactive') renderInactive();
-  const hashMap={roster:'main-roster',trainees:'trainee-roster',members:'all-members',editor:'editor',promotions:'promotions',inactive:'inactive-list',superadmin:'super-admin'};
-  const titleMap={roster:'Main Roster',trainees:'Trainee Roster',members:'All Members',editor:'Editor',promotions:'Promotions',inactive:'Inactive List',superadmin:'Super Admin'};
+  const hashMap={roster:'main-roster',trainees:'trainee-roster',members:'all-members',editor:'editor',promotions:'promotions',inactive:'reports',superadmin:'super-admin'};
+  const titleMap={roster:'Main Roster',trainees:'Trainee Roster',members:'All Members',editor:'Editor',promotions:'Promotions',inactive:'Reports',superadmin:'Super Admin'};
   history.replaceState(null,'',window.location.pathname+(window.location.search||'')+'#'+(hashMap[name]||name));
   document.title='RosterCore — '+(titleMap[name]||name);
 }
