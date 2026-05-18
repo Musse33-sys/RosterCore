@@ -3202,6 +3202,8 @@ async function confirmDeptRestore(snapshotId, deptName, rosterDataId){
   document.getElementById('deptHistoryModal').classList.add('hidden');
   showToast(`✓ ${deptName} roster restored successfully!`);
 }
+
+async function deleteDept(deptId, name){
   if(!confirm(`Delete department "${name}"? This cannot be undone.`)) return;
   await sb.from('roster_data').delete().eq('dept_id',deptId);
   await sb.from('departments').delete().eq('id',deptId);
