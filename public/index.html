@@ -1770,6 +1770,8 @@ async function downloadInactiveImage(){
     showToast('⚠ Download failed. Try screenshot instead.',true);
   }
 }
+
+function generatePromoAnnouncement(){
   if(!promotions.length){showToast('⚠ No promotions to announce.',true);return;}
 
   const sorted=[...promotions].sort((a,b)=>{
