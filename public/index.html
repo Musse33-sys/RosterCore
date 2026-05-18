@@ -802,6 +802,18 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   </div>
 </div>
 
+<!-- SUPER ADMIN DEPT HISTORY MODAL -->
+<div class="modal-overlay hidden" id="deptHistoryModal" onclick="if(event.target===this)this.classList.add('hidden')">
+  <div class="modal" style="max-width:580px;">
+    <div class="modal-title">⟳ Version History</div>
+    <div class="modal-sub" id="deptHistorySub">Snapshots for this department.</div>
+    <div id="deptHistoryList" style="display:flex;flex-direction:column;gap:6px;max-height:420px;overflow-y:auto;"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="document.getElementById('deptHistoryModal').classList.add('hidden')">Close</button>
+    </div>
+  </div>
+</div>
+
 <!-- VERSION HISTORY MODAL -->
 <div class="modal-overlay hidden" id="historyModal" onclick="if(event.target===this)this.classList.add('hidden')">
   <div class="modal" style="max-width:580px;">
@@ -1359,14 +1371,11 @@ async function onLoginSuccess(user){
   if(isSuperAdmin){
     document.getElementById('saTab').classList.remove('hidden');
     document.getElementById('adminPill').classList.remove('hidden');
-    document.getElementById('editorTab').classList.remove('hidden');
-    document.getElementById('addMemberBtn').classList.remove('hidden');
-    document.getElementById('addTraineeBtn').classList.remove('hidden');
-    document.getElementById('shareBtn').classList.remove('hidden');
-  document.getElementById('saveRosterPdfBtn').classList.remove('hidden');
-  document.getElementById('historyBtn').classList.remove('hidden');
+    document.getElementById('historyBtn').classList.remove('hidden');
+    setAvatar('SA');
     document.getElementById('headerName').textContent='Super Admin';
     showToast('Welcome back, Super Admin!');
+    switchTab('superadmin', document.getElementById('saTab'));
     await loadSuperAdminDepts();
     return;
   }
@@ -1815,17 +1824,19 @@ async function clearPromoLog(){
 }
 
 function generateInactiveCard(){
-  const inactive=members.filter(m=>m.status==='Inactive')
+  const inactiveMembers=members.filter(m=>m.status==='Inactive')
     .sort((a,b)=>rgIndex(a.rankGroup)-rgIndex(b.rankGroup));
+  const inactiveTrainees=trainees.filter(t=>t.status==='Inactive');
+  const total=[...inactiveMembers,...inactiveTrainees];
 
-  if(!inactive.length){showToast('⚠ No inactive members.',true);return;}
+  if(!total.length){showToast('⚠ No inactive members or trainees.',true);return;}
 
   const today=new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}).toUpperCase();
 
-  const rows=inactive.map((m,i)=>{
+  const memberRows=inactiveMembers.map((m,i)=>{
     const g=rankGroups.find(rg=>rg.name===m.rankGroup);
     const position=m.position||g?.position||m.rankGroup;
-    return`<div style="display:flex;align-items:center;gap:14px;padding:11px 18px;${i<inactive.length-1?'border-bottom:1px solid #2d1515;':''}">
+    return`<div style="display:flex;align-items:center;gap:14px;padding:11px 18px;border-bottom:1px solid #2d1515;">
       <div style="width:3px;height:36px;background:#f87171;border-radius:2px;opacity:.7;flex-shrink:0;"></div>
       <div style="flex:1;">
         <div style="color:#e8e4da;font-size:13px;font-weight:700;font-family:'JetBrains Mono',monospace;">${m.name}</div>
@@ -1835,15 +1846,31 @@ function generateInactiveCard(){
     </div>`;
   }).join('');
 
+  const traineeRows=inactiveTrainees.map((t,i)=>`
+    <div style="display:flex;align-items:center;gap:14px;padding:11px 18px;${i<inactiveTrainees.length-1?'border-bottom:1px solid #2d1515;':''}">
+      <div style="width:3px;height:36px;background:#a78bfa;border-radius:2px;opacity:.7;flex-shrink:0;"></div>
+      <div style="flex:1;">
+        <div style="color:#e8e4da;font-size:13px;font-weight:700;font-family:'JetBrains Mono',monospace;">${t.name}</div>
+        <div style="color:#a78bfa;font-size:10px;letter-spacing:1px;text-transform:uppercase;margin-top:2px;font-family:'JetBrains Mono',monospace;">Trainee</div>
+      </div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#686460;">${t.callsign||'—'}</div>
+    </div>`).join('');
+
+  const traineeSection = inactiveTrainees.length ? `
+    <div style="padding:6px 18px 4px;background:#12101a;border-top:1px solid #2d1535;">
+      <span style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;color:#a78bfa;text-transform:uppercase;">Trainees</span>
+    </div>
+    ${traineeRows}` : '';
+
   const cardHtml=`
     <div style="background:#180f0f;border-bottom:3px solid #f87171;padding:20px 22px 14px;">
       <div style="font-size:9px;letter-spacing:4px;color:#7f1d1d;margin-bottom:3px;font-family:'JetBrains Mono',monospace;">OFFICIAL NOTICE</div>
       <div style="font-size:22px;font-weight:700;color:#e8e4da;letter-spacing:2px;font-family:sans-serif;">${deptName}</div>
       <div style="font-size:10px;letter-spacing:3px;color:#f87171;margin-top:3px;font-family:'JetBrains Mono',monospace;">INACTIVE LIST — ${today}</div>
     </div>
-    <div style="padding:14px 22px 10px;background:#0e0808;">${rows}</div>
+    <div style="background:#0e0808;">${memberRows}${traineeSection}</div>
     <div style="padding:10px 22px;border-top:1px solid #2d1515;background:#0e0808;display:flex;align-items:center;justify-content:space-between;">
-      <span style="font-size:10px;color:#686460;font-family:'JetBrains Mono',monospace;">${inactive.length} member${inactive.length>1?'s':''} currently inactive</span>
+      <span style="font-size:10px;color:#686460;font-family:'JetBrains Mono',monospace;">${inactiveMembers.length} member${inactiveMembers.length!==1?'s':''} · ${inactiveTrainees.length} trainee${inactiveTrainees.length!==1?'s':''} inactive</span>
       <span style="font-size:9px;color:#3d2222;letter-spacing:2px;font-family:'JetBrains Mono',monospace;">ROSTERCORE.SPACE</span>
     </div>`;
 
@@ -3057,6 +3084,12 @@ async function createDepartment(){
   showToast(`✓ "${name}" created! Email: ${email}`);
 }
 
+function togglePw(id){
+  const el=document.getElementById('pw_'+id);
+  if(!el) return;
+  el.style.filter=el.style.filter?'':'blur(4px)';
+}
+
 async function loadSuperAdminDepts(){
   const {data:depts,error}=await sb.from('departments').select('*').order('created_at',{ascending:false});
   const tbody=document.getElementById('deptTableBody');
@@ -3069,10 +3102,15 @@ async function loadSuperAdminDepts(){
     <tr>
       <td><div class="dept-name-cell">${d.name}</div></td>
       <td><div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);">${d.email||'—'}</div></td>
-      <td><div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text2);">${d.password_hint||'—'}</div></td>
+      <td>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span id="pw_${d.id}" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text2);filter:blur(4px);cursor:pointer;" onclick="togglePw('${d.id}')" title="Click to reveal">${d.password_hint||'—'}</span>
+        </div>
+      </td>
       <td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);">${new Date(d.created_at).toLocaleDateString()}</td>
-      <td style="display:flex;gap:6px;">
-        <button class="btn btn-outline btn-sm" onclick="openChangePw('${d.user_id}','${d.name}')">Change Password</button>
+      <td style="display:flex;gap:6px;align-items:center;">
+        <button title="Version History" onclick="openDeptHistory('${d.id}','${d.name}')" style="width:28px;height:28px;border-radius:50%;background:rgba(96,165,250,.1);border:1px solid rgba(96,165,250,.3);color:var(--blue);cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;transition:all .15s;" onmouseover="this.style.background='rgba(96,165,250,.25)'" onmouseout="this.style.background='rgba(96,165,250,.1)'">⟳</button>
+        <button class="btn btn-outline btn-sm" onclick="openChangePw('${d.user_id}','${d.name}')">Change PW</button>
         <button class="btn btn-danger" onclick="deleteDept('${d.id}','${d.name}')">Delete</button>
       </td>
     </tr>`).join('');
@@ -3103,7 +3141,67 @@ async function doChangePassword(){
   showToast('✓ New password saved. Share it with the department manually.');
 }
 
-async function deleteDept(deptId, name){
+async function openDeptHistory(deptId, deptName){
+  document.getElementById('deptHistoryModal').classList.remove('hidden');
+  document.getElementById('deptHistorySub').textContent=`Snapshots for ${deptName}`;
+  const list=document.getElementById('deptHistoryList');
+  list.innerHTML=`<p style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);padding:8px;">Loading...</p>`;
+
+  // Get roster_id for this dept
+  const {data:rd}=await sb.from('roster_data').select('id').eq('dept_id',deptId).single();
+  if(!rd){ list.innerHTML=`<p style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--red);padding:8px;">No roster found for this department.</p>`; return; }
+
+  const {data:snapshots}=await sb.from('roster_snapshots')
+    .select('id,created_by,created_at,snapshot')
+    .eq('roster_id',rd.id)
+    .order('created_at',{ascending:false})
+    .limit(50);
+
+  if(!snapshots||!snapshots.length){
+    list.innerHTML=`<p style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);padding:8px;">No snapshots found for this department.</p>`;
+    return;
+  }
+
+  list.innerHTML=snapshots.map((s,i)=>{
+    const d=new Date(s.created_at);
+    const snap=s.snapshot;
+    return`<div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:12px 16px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;${i===0?'':'margin-bottom:8px;'}">
+        <div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text);font-weight:600;">${getTimeAgo(d)}</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);margin-top:3px;">${d.toLocaleString()} · ${snap.members?.length||0} members · ${snap.trainees?.length||0} trainees</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);margin-top:2px;">Saved by ${s.created_by}</div>
+        </div>
+        ${i===0?`<span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--green);border:1px solid var(--green2);padding:2px 8px;border-radius:2px;letter-spacing:1px;">CURRENT</span>`:''}
+      </div>
+      ${i===0?'':`<button class="btn btn-outline btn-sm" style="width:100%;margin-top:4px;" onclick="confirmDeptRestore('${s.id}','${deptName}','${rd.id}')">⟳ Restore this version for ${deptName}</button>`}
+    </div>`;
+  }).join('');
+}
+
+async function confirmDeptRestore(snapshotId, deptName, rosterDataId){
+  if(!confirm(`Restore this version for ${deptName}? Their current roster will be replaced.`)) return;
+  const {data:s}=await sb.from('roster_snapshots').select('snapshot').eq('id',snapshotId).single();
+  if(!s){showToast('⚠ Snapshot not found.',true);return;}
+  const snap=s.snapshot;
+  const {error}=await sb.from('roster_data').update({
+    rank_groups:snap.rankGroups||[],
+    subdivisions:snap.subdivisions||[],
+    positions:snap.positions||[],
+    trainee_format:snap.traineeFormat||'',
+    trainee_format_to:snap.traineeFormatTo||'',
+    custom_tags:snap.customTags||[],
+    promotions:snap.promotions||[],
+    custom_themes:snap.customThemes||[],
+    theme:snap.activeTheme||'dark-steel',
+    members:snap.members||[],
+    trainees:snap.trainees||[],
+    updated_at:new Date().toISOString()
+  }).eq('id',rosterDataId);
+  if(error){showToast('⚠ Restore failed: '+error.message,true);return;}
+  document.getElementById('deptHistoryModal').classList.add('hidden');
+  showToast(`✓ ${deptName} roster restored successfully!`);
+}
   if(!confirm(`Delete department "${name}"? This cannot be undone.`)) return;
   await sb.from('roster_data').delete().eq('dept_id',deptId);
   await sb.from('departments').delete().eq('id',deptId);
