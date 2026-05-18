@@ -502,6 +502,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
         <span class="admin-pill hidden" id="adminPill">⬡ Admin</span>
         <button class="btn btn-ghost btn-sm hidden" id="loginFromPublicBtn" onclick="showAuthModal()" style="font-size:10px;">Admin Login</button>
         <button class="btn btn-outline btn-sm hidden" id="shareBtn" onclick="openShareModal()">Share</button>
+        <button class="btn btn-ghost btn-sm hidden" id="saveRosterPdfBtn" onclick="downloadRosterPDF()" style="border-color:var(--green2);color:var(--green);font-size:10px;">⬇ Save Roster</button>
         <button class="logout-btn" onclick="doLogout()">Logout</button>
       </div>
     </div>
@@ -561,7 +562,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
     <div class="tab-panel" style="display:none;" id="tab-inactive">
       <div class="empty-state" style="padding:80px 24px;">
         <div style="font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:4px;color:var(--text);margin-bottom:8px;">Reports</div>
-        <div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--accent);letter-spacing:3px;text-transform:uppercase;">Coming Soon...</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--accent);letter-spacing:3px;text-transform:uppercase;">Coming Soon</div>
       </div>
     </div>
 
@@ -1264,6 +1265,7 @@ async function onLoginSuccess(user){
     document.getElementById('addMemberBtn').classList.remove('hidden');
     document.getElementById('addTraineeBtn').classList.remove('hidden');
     document.getElementById('shareBtn').classList.remove('hidden');
+  document.getElementById('saveRosterPdfBtn').classList.remove('hidden');
     document.getElementById('headerName').textContent='Super Admin';
     showToast('Welcome back, Super Admin!');
     await loadSuperAdminDepts();
@@ -1281,6 +1283,7 @@ async function onLoginSuccess(user){
   document.getElementById('addMemberBtn').classList.remove('hidden');
   document.getElementById('addTraineeBtn').classList.remove('hidden');
   document.getElementById('shareBtn').classList.remove('hidden');
+  document.getElementById('saveRosterPdfBtn').classList.remove('hidden');
 
   
   const params = new URLSearchParams(window.location.search);
@@ -1303,7 +1306,7 @@ async function doLogout(){
   traineeFormat=''; traineeFormatTo=''; deptName=''; activeTheme='dark-steel';
   document.getElementById('appPage').style.display='none';
   document.getElementById('landingPage').style.display='flex';
-  ['saTab','editorTab','promoTab','inactiveTab','adminPill','addMemberBtn','addTraineeBtn','shareBtn','loginFromPublicBtn'].forEach(id=>{
+  ['saTab','editorTab','promoTab','inactiveTab','adminPill','addMemberBtn','addTraineeBtn','shareBtn','saveRosterPdfBtn','loginFromPublicBtn'].forEach(id=>{
     const el=document.getElementById(id);
     if(el) el.classList.add('hidden');
   });
@@ -1766,6 +1769,160 @@ async function downloadInactiveImage(){
     showToast('✓ Image downloaded!');
   }catch(e){
     showToast('⚠ Download failed. Try screenshot instead.',true);
+  }
+}
+
+async function downloadRosterPDF(){
+  showToast('Generating PDF…');
+  try{
+    if(!window.jspdf){
+      const script=document.createElement('script');
+      script.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+      document.head.appendChild(script);
+      await new Promise(r=>script.onload=r);
+    }
+    const {jsPDF}=window.jspdf;
+    const doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
+    const W=297, H=210;
+    const accent=[201,168,76], text=[232,228,218], text2=[168,160,152], text3=[104,100,96];
+    const bg=[10,12,16], bg2=[18,21,28], bg3=[26,30,40], border=[42,47,61];
+    const green=[74,222,128], red=[248,113,113], purple=[167,139,250];
+
+    function setFill(r,g,b){ doc.setFillColor(r,g,b); }
+    function setStroke(r,g,b){ doc.setDrawColor(r,g,b); }
+    function setFont(r,g,b){ doc.setTextColor(r,g,b); }
+
+    function page(){
+      setFill(...bg); doc.rect(0,0,W,H,'F');
+      setFill(...accent); doc.rect(0,0,W,1.5,'F');
+      setFont(...text3); doc.setFontSize(7);
+      doc.text(deptName.toUpperCase()+' — ROSTERCORE.SPACE', W/2, H-6, {align:'center'});
+      doc.text(`Page ${doc.internal.getCurrentPageInfo().pageNumber}`, W-15, H-6, {align:'right'});
+    }
+
+    // COVER
+    page();
+    setFont(...accent); doc.setFontSize(32); doc.setFont('helvetica','bold');
+    doc.text(deptName, W/2, 80, {align:'center'});
+    setFont(...text); doc.setFontSize(14); doc.setFont('helvetica','normal');
+    doc.text('OFFICIAL PERSONNEL ROSTER', W/2, 95, {align:'center'});
+    setFont(...text3); doc.setFontSize(10);
+    doc.text(new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}).toUpperCase(), W/2, 108, {align:'center'});
+    setFill(...accent); doc.rect(W/2-40,112,80,0.8,'F');
+    setFont(...text2); doc.setFontSize(9);
+    doc.text(`Total Members: ${members.length}   Active: ${members.filter(m=>m.status==='Active').length}   Trainees: ${trainees.length}`, W/2, 122, {align:'center'});
+
+    // MAIN ROSTER
+    doc.addPage();
+    page();
+    let y=18;
+    setFont(...accent); doc.setFontSize(16); doc.setFont('helvetica','bold');
+    doc.text('MAIN ROSTER', 15, y); y+=6;
+    setFill(...accent); doc.rect(15,y,W-30,0.5,'F'); y+=6;
+
+    const colW=[28,55,42,28,25,22,20,40];
+    const headers=['Callsign','Name','Position','Subdivision','Status','Strikes','DOH','Notes'];
+
+    rankGroups.forEach(g=>{
+      const gMembers=members.filter(m=>m.rankGroup===g.name).sort((a,b)=>(a.callsign||'').localeCompare(b.callsign||''));
+      const slots=getRangeSlots(g.from,g.to);
+
+      if(y>H-30){ doc.addPage(); page(); y=18; }
+
+      // Group header
+      setFill(...bg3); doc.rect(15,y-4,W-30,8,'F');
+      setFill(...accent); doc.rect(15,y-4,2,8,'F');
+      setFont(...accent); doc.setFontSize(8); doc.setFont('helvetica','bold');
+      doc.text(g.name.toUpperCase(), 20, y+0.5);
+      if(g.position){ setFont(...text2); doc.setFontSize(7); doc.text(g.position, 20+doc.getTextWidth(g.name.toUpperCase())+4, y+0.5); }
+      setFont(...text3); doc.setFontSize(7);
+      doc.text(`${gMembers.length}/${slots.length} filled`, W-18, y+0.5, {align:'right'});
+      y+=10;
+
+      // Column headers
+      setFill(...bg2); doc.rect(15,y-4,W-30,6,'F');
+      let x=15;
+      setFont(...text3); doc.setFontSize(6); doc.setFont('helvetica','bold');
+      headers.forEach((h,i)=>{ doc.text(h,x+1,y); x+=colW[i]; });
+      y+=4;
+
+      // Rows
+      slots.forEach(slot=>{
+        if(y>H-16){ doc.addPage(); page(); y=18; }
+        const m=gMembers.find(mb=>mb.callsign===slot);
+        setFill(m?...[26,30,40]:...[10,12,16]); doc.rect(15,y-3.5,W-30,6,'F');
+        x=15;
+        doc.setFontSize(7); doc.setFont('helvetica','normal');
+        if(m){
+          setFont(...green); doc.text(m.callsign||'—',x+1,y); x+=colW[0];
+          setFont(...text); doc.setFont('helvetica','bold'); doc.text((m.name||'').substring(0,22),x+1,y); x+=colW[1]; doc.setFont('helvetica','normal');
+          setFont(...accent); doc.text((m.position||g.position||'').substring(0,18),x+1,y); x+=colW[2];
+          setFont(...text2); doc.text(((m.subdivs||[]).filter(Boolean).join(', ')||'—').substring(0,16),x+1,y); x+=colW[3];
+          const sc={Active:green,Inactive:red,LOA:[251,191,36],'Part Time':[251,146,60]};
+          setFont(...(sc[m.status]||text2)); doc.text(m.status||'—',x+1,y); x+=colW[4];
+          const stc=m.strikes===0?green:m.strikes===1?[251,191,36]:m.strikes===2?[251,146,60]:red;
+          setFont(...stc); doc.text(String(m.strikes||0),x+1,y); x+=colW[5];
+          setFont(...text3); doc.text(m.doh||'—',x+1,y); x+=colW[6];
+          doc.text((m.notes||'—').substring(0,22),x+1,y);
+        } else {
+          setFont(...border); doc.text(slot,x+1,y); x+=colW[0];
+          doc.text('— VACANT —',x+1,y);
+        }
+        setStroke(...border); doc.setLineWidth(0.1);
+        doc.line(15,y+2.5,W-15,y+2.5);
+        y+=6;
+      });
+      y+=4;
+    });
+
+    // TRAINEE ROSTER
+    if(trainees.length||traineeFormat){
+      doc.addPage(); page();
+      y=18;
+      setFont(...purple); doc.setFontSize(16); doc.setFont('helvetica','bold');
+      doc.text('TRAINEE ROSTER', 15, y); y+=6;
+      setFill(...purple); doc.rect(15,y,W-30,0.5,'F'); y+=6;
+
+      const tSlots=getRangeSlots(traineeFormat,traineeFormatTo);
+      const tHeaders=['Callsign','Name','Status','DOH','ID','Strikes','Notes'];
+      const tColW=[28,60,28,28,45,20,60];
+
+      // Column headers
+      setFill(...bg2); doc.rect(15,y-4,W-30,6,'F');
+      x=15; setFont(...text3); doc.setFontSize(6); doc.setFont('helvetica','bold');
+      tHeaders.forEach((h,i)=>{ doc.text(h,x+1,y); x+=tColW[i]; });
+      y+=4;
+
+      const rows=tSlots.length?tSlots:trainees.map(t=>t.callsign);
+      rows.forEach(slot=>{
+        if(y>H-16){ doc.addPage(); page(); y=18; }
+        const t=trainees.find(tr=>tr.callsign===slot);
+        setFill(t?...[26,30,40]:...[10,12,16]); doc.rect(15,y-3.5,W-30,6,'F');
+        x=15; doc.setFontSize(7); doc.setFont('helvetica','normal');
+        if(t){
+          setFont(...purple); doc.text(t.callsign||'—',x+1,y); x+=tColW[0];
+          setFont(...text); doc.setFont('helvetica','bold'); doc.text((t.name||'').substring(0,28),x+1,y); x+=tColW[1]; doc.setFont('helvetica','normal');
+          const sc={Active:green,Inactive:red,LOA:[251,191,36],'Part Time':[251,146,60]};
+          setFont(...(sc[t.status]||text2)); doc.text(t.status||'—',x+1,y); x+=tColW[2];
+          setFont(...text3); doc.text(t.doh||'—',x+1,y); x+=tColW[3];
+          doc.text((t.discord||'—').substring(0,20),x+1,y); x+=tColW[4];
+          setFont(...green); doc.text(String(t.strikes||0),x+1,y); x+=tColW[5];
+          setFont(...text2); doc.text((t.notes||'—').substring(0,28),x+1,y);
+        } else {
+          setFont(...border); doc.text(slot,x+1,y); x+=tColW[0];
+          doc.text('— VACANT —',x+1,y);
+        }
+        setStroke(...border); doc.setLineWidth(0.1);
+        doc.line(15,y+2.5,W-15,y+2.5);
+        y+=6;
+      });
+    }
+
+    doc.save(deptName.replace(/\s+/g,'-')+'-Roster.pdf');
+    showToast('✓ Roster PDF downloaded!');
+  } catch(e){
+    console.error(e);
+    showToast('⚠ PDF generation failed.',true);
   }
 }
 
