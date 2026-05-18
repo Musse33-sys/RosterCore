@@ -2166,6 +2166,8 @@ function demote(id){
   const newCS=nextMemberCallsign(newGroup,id);
   const old=m.callsign;
   m.rankGroup=newGroup; m.callsign=newCS;
+  // Remove from promo log on demotion
+  promotions=promotions.filter(p=>p.name!==m.name);
   renderRoster(); renderStats(); scheduleSave();
   showToast(`▼ ${m.name} demoted to ${newGroup} → ${newCS} (was ${old})`);
 }
@@ -2270,7 +2272,7 @@ function saveMember(){
 
     if(data.rankGroup!==old.rankGroup || data.callsign!==old.callsign){
       if(newGroupIdx<oldGroupIdx){
-        // Promoted to higher rank group
+        // Promoted to higher rank group — log it
         promotions.push({
           id:Date.now(),
           name:data.name,
@@ -2281,12 +2283,14 @@ function saveMember(){
           date:new Date().toISOString(),
           toGroupIndex:newGroupIdx
         });
+      } else if(newGroupIdx>oldGroupIdx){
+        // Demoted to lower rank group — remove from promo log
+        promotions=promotions.filter(p=>p.name!==old.name);
       } else if(data.rankGroup===old.rankGroup && data.callsign!==old.callsign){
-        // Same group — check if callsign number is lower (higher rank within group)
         const oldNum=parseInt((old.callsign||'').match(/\d+$/)?.[0]||'999');
         const newNum=parseInt((data.callsign||'').match(/\d+$/)?.[0]||'999');
         if(newNum<oldNum){
-          // Lower number = higher callsign = promotion within group
+          // Lower callsign number = higher rank within group — log it
           promotions.push({
             id:Date.now(),
             name:data.name,
@@ -2297,8 +2301,11 @@ function saveMember(){
             date:new Date().toISOString(),
             toGroupIndex:newGroupIdx
           });
+        } else if(newNum>oldNum){
+          // Higher callsign number = lower rank within group — remove from promo log
+          promotions=promotions.filter(p=>p.name!==old.name);
         } else {
-          // Just a callsign correction — update existing promo entry if exists
+          // Same number, just correction — update existing entry
           const existing=promotions.find(p=>p.name===old.name&&p.toCS===old.callsign);
           if(existing) existing.toCS=data.callsign;
         }
