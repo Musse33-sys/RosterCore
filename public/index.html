@@ -1170,6 +1170,28 @@ function getRangeSlots(from, to){
   return slots;
 }
 
+// Smart render — only show filled slots + MAX_VACANT vacant slots total
+const MAX_VACANT = 50;
+function getSmartSlots(from, to, filledCallsigns){
+  const all = getRangeSlots(from, to);
+  if(all.length <= 200) return {slots: all, total: all.length, capped: false};
+  
+  // Always include filled slots
+  const filledSet = new Set(filledCallsigns);
+  const result = [];
+  let vacantCount = 0;
+  
+  for(const slot of all){
+    if(filledSet.has(slot)){
+      result.push(slot);
+    } else if(vacantCount < MAX_VACANT){
+      result.push(slot);
+      vacantCount++;
+    }
+  }
+  return {slots: result, total: all.length, capped: all.length > result.length};
+}
+
 function nextMemberCallsign(groupName, excludeId=null){
   const g = rankGroups.find(r=>r.name===groupName);
   if(!g||!g.from) return '';
@@ -2199,7 +2221,8 @@ function renderRoster(){
     }).sort((a,b)=>(a.callsign||'').localeCompare(b.callsign||''));
 
     const actionsCols = currentUser ? '<th>Actions</th>' : '';
-    const slots = getRangeSlots(g.from, g.to);
+    const filledCallsigns = gMembers.map(m=>m.callsign);
+    const {slots, total, capped} = getSmartSlots(g.from, g.to, filledCallsigns);
 
     const rows = slots.length
       ? slots.map(slot=>{
@@ -2274,7 +2297,7 @@ function renderRoster(){
               <th class="col-doh">DOH</th><th class="col-discord">ID</th><th class="col-strikes">Strikes</th><th class="col-notes">Notes</th>
               ${actionsCols}
             </tr></thead>
-            <tbody>${rows}</tbody>
+            <tbody>${rows}${capped?`<tr class="row-empty"><td colspan="${currentUser?9:8}" style="text-align:center;padding:10px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);">Showing ${filledCallsigns.length} filled + ${MAX_VACANT} vacant of ${total} total slots</td></tr>`:''}</tbody>
           </table>
         </div>
       </div>
@@ -2288,7 +2311,8 @@ function renderTrainees(){
 
   
   if(traineeFormat && traineeFormatTo){
-    const slots=getRangeSlots(traineeFormat, traineeFormatTo);
+    const filledCS = trainees.map(t=>t.callsign);
+    const {slots, total, capped} = getSmartSlots(traineeFormat, traineeFormatTo, filledCS);
     const rows=slots.map(slot=>{
       const t=trainees.find(tr=>tr.callsign===slot);
       if(t) return`<tr class="row-filled">
@@ -2314,7 +2338,7 @@ function renderTrainees(){
       <div class="rg-label" style="background:rgba(167,139,250,.08);color:var(--purple);border-right-color:rgba(167,139,250,.3);">Trainees</div>
       <div class="rg-table-wrap"><table class="roster-table">
         <thead><tr><th>Callsign</th><th>Name</th><th>Status</th><th class="col-doh">DOH</th><th class="col-discord">ID</th><th class="col-strikes">Strikes</th><th class="col-notes">Notes</th>${currentUser?'<th>Actions</th>':''}</tr></thead>
-        <tbody>${rows}</tbody>
+        <tbody>${rows}${capped?`<tr class="row-empty"><td colspan="${currentUser?8:7}" style="text-align:center;padding:10px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--purple);">Showing ${filledCS.length} filled + ${MAX_VACANT} vacant of ${total} total slots</td></tr>`:''}</tbody>
       </table></div></div></div>`;
     return;
   }
@@ -2856,9 +2880,12 @@ function updateTraineeFormatPreview(){
   if(!el) return;
   if(traineeFormat&&traineeFormatTo){
     const slots=getRangeSlots(traineeFormat,traineeFormatTo);
-    el.textContent=slots.length+' slots';
+    const warn = slots.length > 500 ? ' ⚠ Large range — only filled + 50 vacant shown' : '';
+    el.textContent=slots.length+' slots'+warn;
+    el.style.color = slots.length > 500 ? 'var(--yellow)' : 'var(--purple)';
   } else if(traineeFormat){
     el.textContent=nextTraineeCallsign()||'—';
+    el.style.color='var(--purple)';
   } else {
     el.textContent='—';
   }
