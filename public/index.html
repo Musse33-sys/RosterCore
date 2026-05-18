@@ -1372,6 +1372,12 @@ async function onLoginSuccess(user){
     document.getElementById('saTab').classList.remove('hidden');
     document.getElementById('adminPill').classList.remove('hidden');
     document.getElementById('historyBtn').classList.remove('hidden');
+    // Explicitly hide all roster-related nav tabs
+    ['tab-roster','tab-trainees','tab-members'].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el){el.style.display='none';el.classList.remove('active');}
+    });
+    document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
     setAvatar('SA');
     document.getElementById('headerName').textContent='Super Admin';
     showToast('Welcome back, Super Admin!');
