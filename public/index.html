@@ -573,6 +573,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
         <div class="section-title">Promotion <span>Log</span></div>
         <div style="display:flex;gap:8px;">
           <button class="btn btn-primary btn-sm" onclick="generatePromoAnnouncement()">📋 Generate Announcement</button>
+          <button class="btn btn-sm" style="background:rgba(248,113,113,.1);color:var(--red);border:1px solid var(--red2);" onclick="generateInactiveCard()">📋 Generate Inactive List</button>
           <button class="btn btn-danger" onclick="clearPromoLog()">Clear Log</button>
         </div>
       </div>
@@ -797,6 +798,19 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="document.getElementById('createDeptModal').classList.add('hidden')">Cancel</button>
       <button class="btn btn-primary" onclick="createDepartment()">Create Account</button>
+    </div>
+  </div>
+</div>
+
+<!-- INACTIVE CARD MODAL -->
+<div class="modal-overlay hidden" id="inactiveCardModal" onclick="if(event.target===this)this.classList.add('hidden')">
+  <div class="modal" style="max-width:560px;">
+    <div class="modal-title" style="color:var(--red);">Inactive List</div>
+    <div class="modal-sub">Download as image to post in Discord.</div>
+    <div id="inactiveCard" style="background:#0e0808;border:1px solid #3d2222;border-radius:6px;overflow:hidden;font-family:'JetBrains Mono',monospace;margin-bottom:16px;"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="document.getElementById('inactiveCardModal').classList.add('hidden')">Close</button>
+      <button class="btn" style="background:rgba(248,113,113,.15);color:var(--red);border:1px solid var(--red2);" onclick="downloadInactiveImage()">⬇ Download Image</button>
     </div>
   </div>
 </div>
@@ -1699,7 +1713,63 @@ async function clearPromoLog(){
   showToast('Promotion log cleared.');
 }
 
-function generatePromoAnnouncement(){
+function generateInactiveCard(){
+  const inactive=members.filter(m=>m.status==='Inactive')
+    .sort((a,b)=>rgIndex(a.rankGroup)-rgIndex(b.rankGroup));
+
+  if(!inactive.length){showToast('⚠ No inactive members.',true);return;}
+
+  const today=new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}).toUpperCase();
+
+  const rows=inactive.map((m,i)=>{
+    const g=rankGroups.find(rg=>rg.name===m.rankGroup);
+    const position=m.position||g?.position||m.rankGroup;
+    return`<div style="display:flex;align-items:center;gap:14px;padding:11px 18px;${i<inactive.length-1?'border-bottom:1px solid #2d1515;':''}">
+      <div style="width:3px;height:36px;background:#f87171;border-radius:2px;opacity:.7;flex-shrink:0;"></div>
+      <div style="flex:1;">
+        <div style="color:#e8e4da;font-size:13px;font-weight:700;font-family:'JetBrains Mono',monospace;">${m.name}</div>
+        <div style="color:#f87171;font-size:10px;letter-spacing:1px;text-transform:uppercase;margin-top:2px;font-family:'JetBrains Mono',monospace;">${position}</div>
+      </div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#686460;">${m.callsign||'—'}</div>
+    </div>`;
+  }).join('');
+
+  const cardHtml=`
+    <div style="background:#180f0f;border-bottom:3px solid #f87171;padding:20px 22px 14px;">
+      <div style="font-size:9px;letter-spacing:4px;color:#7f1d1d;margin-bottom:3px;font-family:'JetBrains Mono',monospace;">OFFICIAL NOTICE</div>
+      <div style="font-size:22px;font-weight:700;color:#e8e4da;letter-spacing:2px;font-family:sans-serif;">${deptName}</div>
+      <div style="font-size:10px;letter-spacing:3px;color:#f87171;margin-top:3px;font-family:'JetBrains Mono',monospace;">INACTIVE LIST — ${today}</div>
+    </div>
+    <div style="padding:14px 22px 10px;background:#0e0808;">${rows}</div>
+    <div style="padding:10px 22px;border-top:1px solid #2d1515;background:#0e0808;display:flex;align-items:center;justify-content:space-between;">
+      <span style="font-size:10px;color:#686460;font-family:'JetBrains Mono',monospace;">${inactive.length} member${inactive.length>1?'s':''} currently inactive</span>
+      <span style="font-size:9px;color:#3d2222;letter-spacing:2px;font-family:'JetBrains Mono',monospace;">ROSTERCORE.SPACE</span>
+    </div>`;
+
+  document.getElementById('inactiveCard').innerHTML=cardHtml;
+  document.getElementById('inactiveCardModal').classList.remove('hidden');
+}
+
+async function downloadInactiveImage(){
+  const card=document.getElementById('inactiveCard');
+  try{
+    if(!window.html2canvas){
+      const script=document.createElement('script');
+      script.src='https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
+      document.head.appendChild(script);
+      await new Promise(r=>script.onload=r);
+    }
+    showToast('Generating image…');
+    const canvas=await html2canvas(card,{backgroundColor:'#0e0808',scale:2,useCORS:true,logging:false});
+    const link=document.createElement('a');
+    link.download=deptName.replace(/\s+/g,'-')+'-Inactive-List.png';
+    link.href=canvas.toDataURL('image/png');
+    link.click();
+    showToast('✓ Image downloaded!');
+  }catch(e){
+    showToast('⚠ Download failed. Try screenshot instead.',true);
+  }
+}
   if(!promotions.length){showToast('⚠ No promotions to announce.',true);return;}
 
   const sorted=[...promotions].sort((a,b)=>{
