@@ -790,6 +790,27 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   </div>
 </div>
 
+<!-- EDIT PROMO MODAL -->
+<div class="modal-overlay hidden" id="editPromoModal" onclick="if(event.target===this)this.classList.add('hidden')">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-title">Edit Promotion</div>
+    <div class="modal-sub">Manually adjust this promotion entry.</div>
+    <input type="hidden" id="editPromoId">
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Name</label><input class="form-input" id="editPromoName"></div>
+      <div class="form-group"><label class="form-label">Rank Group</label><select class="form-select" id="editPromoGroup"></select></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">From Callsign</label><input class="form-input" id="editPromoFromCS" placeholder="e.g. 1W-45"></div>
+      <div class="form-group"><label class="form-label">To Callsign</label><input class="form-input" id="editPromoToCS" placeholder="e.g. 1W-21"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="document.getElementById('editPromoModal').classList.add('hidden')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveEditPromo()">Save</button>
+    </div>
+  </div>
+</div>
+
 <!-- CONFIRM DELETE -->
 <div class="modal-overlay hidden" id="confirmModal" onclick="if(event.target===this)this.classList.add('hidden')">
   <div class="modal confirm-modal">
@@ -1566,6 +1587,7 @@ function renderPromotions(){
           <span style="color:var(--green);">${p.toCS||'—'}</span>
         </div>
         <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);min-width:80px;text-align:right;">${fmtDate(p.date.split('T')[0])}</div>
+        <button class="btn btn-ghost btn-xs" onclick="openEditPromo(${p.id})">Edit</button>
         <button class="btn btn-danger" style="padding:3px 8px;font-size:10px;" onclick="removePromo(${p.id})">✕</button>
       </div>`).join('');
 
@@ -1587,6 +1609,31 @@ function removePromo(id){
   promotions=promotions.filter(p=>p.id!==id);
   renderPromotions();
   scheduleSave();
+}
+
+function openEditPromo(id){
+  const p=promotions.find(pr=>pr.id===id); if(!p)return;
+  document.getElementById('editPromoId').value=id;
+  document.getElementById('editPromoName').value=p.name;
+  document.getElementById('editPromoFromCS').value=p.fromCS||'';
+  document.getElementById('editPromoToCS').value=p.toCS||'';
+  populateSel('editPromoGroup', rankGroups.map(g=>g.name), false);
+  document.getElementById('editPromoGroup').value=p.toGroup||rankGroups[0]?.name||'';
+  document.getElementById('editPromoModal').classList.remove('hidden');
+}
+
+function saveEditPromo(){
+  const id=parseInt(document.getElementById('editPromoId').value);
+  const p=promotions.find(pr=>pr.id===id); if(!p)return;
+  p.name=document.getElementById('editPromoName').value.trim();
+  p.fromCS=document.getElementById('editPromoFromCS').value.trim();
+  p.toCS=document.getElementById('editPromoToCS').value.trim();
+  p.toGroup=document.getElementById('editPromoGroup').value;
+  p.toGroupIndex=rgIndex(p.toGroup);
+  document.getElementById('editPromoModal').classList.add('hidden');
+  renderPromotions();
+  scheduleSave();
+  showToast('✓ Promotion entry updated.');
 }
 
 async function clearPromoLog(){
@@ -2221,10 +2268,9 @@ function saveMember(){
     const oldGroupIdx=rgIndex(old.rankGroup);
     const newGroupIdx=rgIndex(data.rankGroup);
 
-    // Log promotion if rank group moved up or callsign changed within same group
     if(data.rankGroup!==old.rankGroup || data.callsign!==old.callsign){
       if(newGroupIdx<oldGroupIdx){
-        // Promoted (moved up = lower index)
+        // Promoted to higher rank group
         promotions.push({
           id:Date.now(),
           name:data.name,
@@ -2236,9 +2282,26 @@ function saveMember(){
           toGroupIndex:newGroupIdx
         });
       } else if(data.rankGroup===old.rankGroup && data.callsign!==old.callsign){
-        // Same group, callsign updated — update existing promo log entry if exists
-        const existingPromo=promotions.find(p=>p.name===old.name&&p.toCS===old.callsign);
-        if(existingPromo) existingPromo.toCS=data.callsign;
+        // Same group — check if callsign number is lower (higher rank within group)
+        const oldNum=parseInt((old.callsign||'').match(/\d+$/)?.[0]||'999');
+        const newNum=parseInt((data.callsign||'').match(/\d+$/)?.[0]||'999');
+        if(newNum<oldNum){
+          // Lower number = higher callsign = promotion within group
+          promotions.push({
+            id:Date.now(),
+            name:data.name,
+            fromGroup:old.rankGroup,
+            toGroup:data.rankGroup,
+            fromCS:old.callsign,
+            toCS:data.callsign,
+            date:new Date().toISOString(),
+            toGroupIndex:newGroupIdx
+          });
+        } else {
+          // Just a callsign correction — update existing promo entry if exists
+          const existing=promotions.find(p=>p.name===old.name&&p.toCS===old.callsign);
+          if(existing) existing.toCS=data.callsign;
+        }
       }
     }
 
