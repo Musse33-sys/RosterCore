@@ -1601,6 +1601,8 @@ function quickSetActive(id){
   renderInactive(); renderRoster(); renderStats(); scheduleSave();
   showToast(`✓ ${m.name} set to Active.`);
 }
+
+function renderPromotions(){
   const wrap=document.getElementById('promoWrap');
   if(!promotions.length){
     wrap.innerHTML=`<div class="empty-state"><div class="empty-icon">🎖️</div><div class="empty-text">No promotions logged yet.<br><br>Use the <span>▲ promote</span> button on any member to log a promotion here.</div></div>`;
