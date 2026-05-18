@@ -514,6 +514,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
       <button class="nav-tab" onclick="switchTab('members',this)">All Members</button>
       <button class="nav-tab hidden" id="editorTab" onclick="switchTab('editor',this)">Editor</button>
       <button class="nav-tab hidden" id="promoTab" onclick="switchTab('promotions',this)">Promotions</button>
+      <button class="nav-tab hidden" id="inactiveTab" onclick="switchTab('inactive',this)">Inactive List</button>
       <button class="nav-tab hidden" id="saTab" onclick="switchTab('superadmin',this)">⬡ Super Admin</button>
     </nav>
   </header>
@@ -554,6 +555,16 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
       </div>
       <div class="divider"></div>
       <div id="allMembersWrap"></div>
+    </div>
+
+    <!-- INACTIVE TAB -->
+    <div class="tab-panel" style="display:none;" id="tab-inactive">
+      <div class="section-hdr">
+        <div class="section-title">Inactive <span style="color:var(--red);">List</span></div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);letter-spacing:1px;">Members will be removed when set back to Active</div>
+      </div>
+      <div class="divider" style="background:linear-gradient(90deg,var(--red2),transparent);"></div>
+      <div id="inactiveWrap"></div>
     </div>
 
     <!-- PROMOTIONS TAB -->
@@ -995,6 +1006,7 @@ function loadDemo(){
   document.getElementById('addTraineeBtn').classList.remove('hidden');
   document.getElementById('editorTab').classList.remove('hidden');
   document.getElementById('promoTab').classList.remove('hidden');
+  document.getElementById('inactiveTab').classList.remove('hidden');
   document.getElementById('demoBanner').style.display='flex';
 
   renderAll();
@@ -1253,6 +1265,7 @@ async function onLoginSuccess(user){
   setAvatar(deptName);
   document.getElementById('editorTab').classList.remove('hidden');
   document.getElementById('promoTab').classList.remove('hidden');
+  document.getElementById('inactiveTab').classList.remove('hidden');
   document.getElementById('addMemberBtn').classList.remove('hidden');
   document.getElementById('addTraineeBtn').classList.remove('hidden');
   document.getElementById('shareBtn').classList.remove('hidden');
@@ -1278,7 +1291,7 @@ async function doLogout(){
   traineeFormat=''; traineeFormatTo=''; deptName=''; activeTheme='dark-steel';
   document.getElementById('appPage').style.display='none';
   document.getElementById('landingPage').style.display='flex';
-  ['saTab','editorTab','promoTab','adminPill','addMemberBtn','addTraineeBtn','shareBtn','loginFromPublicBtn'].forEach(id=>{
+  ['saTab','editorTab','promoTab','inactiveTab','adminPill','addMemberBtn','addTraineeBtn','shareBtn','loginFromPublicBtn'].forEach(id=>{
     const el=document.getElementById(id);
     if(el) el.classList.add('hidden');
   });
@@ -1547,7 +1560,47 @@ function grantEditAccess(name){
   renderAll();
 }
 
-function renderPromotions(){
+function renderInactive(){
+  const wrap=document.getElementById('inactiveWrap');
+  const inactive=members.filter(m=>m.status==='Inactive')
+    .sort((a,b)=>rgIndex(a.rankGroup)-rgIndex(b.rankGroup));
+
+  if(!inactive.length){
+    wrap.innerHTML=`<div class="empty-state"><div class="empty-icon">✅</div><div class="empty-text">No inactive members.<br><br>Everyone is <span style="color:var(--green);">Active</span>!</div></div>`;
+    return;
+  }
+
+  const rows=inactive.map(m=>{
+    const g=rankGroups.find(rg=>rg.name===m.rankGroup);
+    const position=m.position||g?.position||m.rankGroup;
+    return`<div style="display:flex;align-items:center;gap:16px;padding:14px 20px;border-bottom:1px solid rgba(248,113,113,.1);background:rgba(248,113,113,.03);">
+      <div style="width:3px;height:40px;background:var(--red);border-radius:2px;flex-shrink:0;opacity:.6;"></div>
+      <div style="flex:1;">
+        <div style="font-weight:600;color:var(--text);font-size:14px;">${m.name}</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--red);letter-spacing:1px;margin-top:2px;text-transform:uppercase;">${position}</div>
+      </div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--text3);">${m.callsign||'—'}</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);">${fmtDate(m.doh)}</div>
+      ${currentUser?`<button class="btn btn-ghost btn-xs" onclick="quickSetActive(${m.id})" style="border-color:var(--green2);color:var(--green);font-size:9px;">Set Active</button>`:''}
+    </div>`;
+  }).join('');
+
+  wrap.innerHTML=`
+    <div style="background:var(--bg2);border:1px solid rgba(248,113,113,.2);border-top:2px solid var(--red);border-radius:var(--radius);overflow:hidden;">
+      <div style="padding:12px 20px;border-bottom:1px solid rgba(248,113,113,.15);display:flex;align-items:center;justify-content:space-between;background:rgba(248,113,113,.04);">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--red);">● ${inactive.length} Inactive Member${inactive.length>1?'s':''}</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3);letter-spacing:1px;">Auto-updates when status changes</div>
+      </div>
+      ${rows}
+    </div>`;
+}
+
+function quickSetActive(id){
+  const m=members.find(mb=>mb.id===id); if(!m)return;
+  m.status='Active';
+  renderInactive(); renderRoster(); renderStats(); scheduleSave();
+  showToast(`✓ ${m.name} set to Active.`);
+}
   const wrap=document.getElementById('promoWrap');
   if(!promotions.length){
     wrap.innerHTML=`<div class="empty-state"><div class="empty-icon">🎖️</div><div class="empty-text">No promotions logged yet.<br><br>Use the <span>▲ promote</span> button on any member to log a promotion here.</div></div>`;
@@ -1754,9 +1807,9 @@ function switchTab(name, btn){
   if(name==='superadmin') loadSuperAdminDepts();
   if(name==='members') renderAllMembers();
   if(name==='promotions') renderPromotions();
-  
-  const hashMap={roster:'main-roster',trainees:'trainee-roster',members:'all-members',editor:'editor',promotions:'promotions',superadmin:'super-admin'};
-  const titleMap={roster:'Main Roster',trainees:'Trainee Roster',members:'All Members',editor:'Editor',promotions:'Promotions',superadmin:'Super Admin'};
+  if(name==='inactive') renderInactive();
+  const hashMap={roster:'main-roster',trainees:'trainee-roster',members:'all-members',editor:'editor',promotions:'promotions',inactive:'inactive-list',superadmin:'super-admin'};
+  const titleMap={roster:'Main Roster',trainees:'Trainee Roster',members:'All Members',editor:'Editor',promotions:'Promotions',inactive:'Inactive List',superadmin:'Super Admin'};
   history.replaceState(null,'',window.location.pathname+(window.location.search||'')+'#'+(hashMap[name]||name));
   document.title='RosterCore — '+(titleMap[name]||name);
 }
