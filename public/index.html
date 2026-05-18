@@ -358,7 +358,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
     </div>
     <p class="landing-sub">Professional roster management for FiveM roleplay departments. Built for serious servers.</p>
     <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;">
-      <button class="btn btn-primary" style="font-size:13px;padding:14px 40px;" onclick="showAuthModal()">Department head Login</button>
+      <button class="btn btn-primary" style="font-size:13px;padding:14px 40px;" onclick="showAuthModal()">Department Login</button>
       <button class="btn btn-outline" style="font-size:13px;padding:14px 40px;" onclick="showStaffLoginModal()">Member Login</button>
       <button class="btn" style="font-size:13px;padding:14px 40px;background:rgba(167,139,250,.1);color:var(--purple);border:1px solid rgba(167,139,250,.4);transition:all .2s;" onmouseover="this.style.background='rgba(167,139,250,.25)';this.style.borderColor='var(--purple)';this.style.transform='translateY(-1px)';" onmouseout="this.style.background='rgba(167,139,250,.1)';this.style.borderColor='rgba(167,139,250,.4)';this.style.transform='none';" onclick="loadDemo()">▶ Try Demo</button>
     </div>
@@ -496,13 +496,14 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
       </div>
       <div class="header-center">
         <div class="header-name" id="headerName">My Department</div>
-        <div class="header-sub">Member Management System · <span id="onlineCount" style="color:var(--green);font-family:'JetBrains Mono',monospace;font-size:10px;"></span></div>
+        <div class="header-sub">Personnel Management System · <span id="onlineCount" style="color:var(--green);font-family:'JetBrains Mono',monospace;font-size:10px;"></span></div>
       </div>
       <div class="header-right">
         <span class="admin-pill hidden" id="adminPill">⬡ Admin</span>
         <button class="btn btn-ghost btn-sm hidden" id="loginFromPublicBtn" onclick="showAuthModal()" style="font-size:10px;">Admin Login</button>
         <button class="btn btn-outline btn-sm hidden" id="shareBtn" onclick="openShareModal()">Share</button>
         <button class="btn btn-ghost btn-sm hidden" id="saveRosterPdfBtn" onclick="downloadRosterPDF()" style="border-color:var(--green2);color:var(--green);font-size:10px;">⬇ Save Roster</button>
+        <button id="historyBtn" class="hidden" onclick="openHistoryModal()" title="Version History" style="width:34px;height:34px;border-radius:50%;background:rgba(96,165,250,.1);border:1px solid rgba(96,165,250,.3);color:var(--blue);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:all .15s;flex-shrink:0;" onmouseover="this.style.background='rgba(96,165,250,.2)'" onmouseout="this.style.background='rgba(96,165,250,.1)'">⟳</button>
         <button class="logout-btn" onclick="doLogout()">Logout</button>
       </div>
     </div>
@@ -801,6 +802,18 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   </div>
 </div>
 
+<!-- VERSION HISTORY MODAL -->
+<div class="modal-overlay hidden" id="historyModal" onclick="if(event.target===this)this.classList.add('hidden')">
+  <div class="modal" style="max-width:580px;">
+    <div class="modal-title">⟳ Version History</div>
+    <div class="modal-sub">Snapshots from the last 48 hours. Click Restore to roll back to any version.</div>
+    <div id="historyList" style="display:flex;flex-direction:column;gap:6px;max-height:420px;overflow-y:auto;"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="document.getElementById('historyModal').classList.add('hidden')">Close</button>
+    </div>
+  </div>
+</div>
+
 <!-- INACTIVE CARD MODAL -->
 <div class="modal-overlay hidden" id="inactiveCardModal" onclick="if(event.target===this)this.classList.add('hidden')">
   <div class="modal" style="max-width:560px;">
@@ -892,7 +905,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   </div>
 </div>
 
-<!-- Member LOGIN MODAL -->
+<!-- MEMBER LOGIN MODAL -->
 <div class="modal-overlay hidden" id="staffLoginModal">
   <div class="auth-modal">
     <div class="auth-seal"><svg viewBox="20 10 480 140" xmlns="http://www.w3.org/2000/svg" style="width:200px;height:auto;margin:0 auto 8px;">
@@ -1220,12 +1233,72 @@ async function saveRoster(){
     theme: activeTheme, members: members, trainees: trainees,
     updated_at: new Date().toISOString()
   }).eq('id', rosterDataId);
-  
   if(currentUser && currentUser.email !== 'shared' && currentUser.email !== 'staff' && deptId){
     await sb.from('departments').update({name: deptName}).eq('id', deptId);
   }
   if(e1){ showToast('⚠ Save failed: '+e1.message,true); }
-  else { showToast('✓ Saved.'); }
+  else { showToast('✓ Saved.'); saveSnapshot(); }
+}
+
+async function saveSnapshot(){
+  if(!rosterDataId||currentUser?.email==='demo') return;
+  const snapshot={members,trainees,rankGroups,subdivisions,positions,traineeFormat,traineeFormatTo,customTags,promotions,customThemes,activeTheme,deptName};
+  const createdBy=currentUser?.name||currentUser?.email||'Unknown';
+  await sb.from('roster_snapshots').insert({roster_id:rosterDataId,snapshot,created_by:createdBy});
+  const cutoff=new Date(Date.now()-48*60*60*1000).toISOString();
+  await sb.from('roster_snapshots').delete().eq('roster_id',rosterDataId).lt('created_at',cutoff);
+}
+
+async function openHistoryModal(){
+  document.getElementById('historyModal').classList.remove('hidden');
+  const list=document.getElementById('historyList');
+  list.innerHTML=`<p style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);padding:8px;">Loading...</p>`;
+  const {data:snapshots}=await sb.from('roster_snapshots').select('id,created_by,created_at,snapshot').eq('roster_id',rosterDataId).order('created_at',{ascending:false}).limit(50);
+  if(!snapshots||!snapshots.length){
+    list.innerHTML=`<p style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);padding:8px;">No snapshots yet. They are created automatically on every save.</p>`;
+    return;
+  }
+  list.innerHTML=snapshots.map((s,i)=>{
+    const d=new Date(s.created_at);
+    const snap=s.snapshot;
+    return`<div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:12px 16px;display:flex;align-items:center;gap:12px;">
+      <div style="flex:1;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text);font-weight:600;">${getTimeAgo(d)}</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);margin-top:3px;">${d.toLocaleString()} · ${snap.members?.length||0} members · ${snap.trainees?.length||0} trainees</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);margin-top:2px;">Saved by ${s.created_by}</div>
+      </div>
+      ${i===0?`<span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--green);border:1px solid var(--green2);padding:2px 8px;border-radius:2px;letter-spacing:1px;">CURRENT</span>`:`<button class="btn btn-outline btn-sm" onclick="confirmRestore('${s.id}')">Restore</button>`}
+    </div>`;
+  }).join('');
+}
+
+function getTimeAgo(date){
+  const diff=Date.now()-date.getTime();
+  const mins=Math.floor(diff/60000),hours=Math.floor(diff/3600000),days=Math.floor(diff/86400000);
+  if(mins<1)return'Just now';
+  if(mins<60)return`${mins} minute${mins>1?'s':''} ago`;
+  if(hours<24)return`${hours} hour${hours>1?'s':''} ago`;
+  return`${days} day${days>1?'s':''} ago`;
+}
+
+async function confirmRestore(id){
+  if(!confirm('Restore this version? Your current roster will be replaced. This cannot be undone.'))return;
+  const {data:s}=await sb.from('roster_snapshots').select('snapshot').eq('id',id).single();
+  if(!s){showToast('⚠ Snapshot not found.',true);return;}
+  const snap=s.snapshot;
+  members=snap.members||[]; trainees=snap.trainees||[]; rankGroups=snap.rankGroups||[];
+  subdivisions=snap.subdivisions||[]; positions=snap.positions||[];
+  traineeFormat=snap.traineeFormat||''; traineeFormatTo=snap.traineeFormatTo||'';
+  customTags=snap.customTags||[]; promotions=snap.promotions||[];
+  customThemes=snap.customThemes||[{name:'Custom 1',accent:'#c9a84c',bg:'#0a0c10'},{name:'Custom 2',accent:'#60a5fa',bg:'#080c14'}];
+  if(snap.activeTheme) applyTheme(snap.activeTheme);
+  if(snap.deptName){deptName=snap.deptName;document.getElementById('headerName').textContent=deptName;}
+  nextMemberId=members.length>0?Math.max(...members.map(m=>m.id||0))+1:1;
+  nextTraineeId=trainees.length>0?Math.max(...trainees.map(t=>t.id||0))+1:1;
+  document.getElementById('historyModal').classList.add('hidden');
+  await saveRoster();
+  renderAll();
+  showToast('✓ Roster restored to previous version!');
 }
 
 function showAuthModal(){
@@ -1266,6 +1339,7 @@ async function onLoginSuccess(user){
     document.getElementById('addTraineeBtn').classList.remove('hidden');
     document.getElementById('shareBtn').classList.remove('hidden');
   document.getElementById('saveRosterPdfBtn').classList.remove('hidden');
+  document.getElementById('historyBtn').classList.remove('hidden');
     document.getElementById('headerName').textContent='Super Admin';
     showToast('Welcome back, Super Admin!');
     await loadSuperAdminDepts();
@@ -1284,6 +1358,7 @@ async function onLoginSuccess(user){
   document.getElementById('addTraineeBtn').classList.remove('hidden');
   document.getElementById('shareBtn').classList.remove('hidden');
   document.getElementById('saveRosterPdfBtn').classList.remove('hidden');
+  document.getElementById('historyBtn').classList.remove('hidden');
 
   
   const params = new URLSearchParams(window.location.search);
@@ -1306,7 +1381,7 @@ async function doLogout(){
   traineeFormat=''; traineeFormatTo=''; deptName=''; activeTheme='dark-steel';
   document.getElementById('appPage').style.display='none';
   document.getElementById('landingPage').style.display='flex';
-  ['saTab','editorTab','promoTab','inactiveTab','adminPill','addMemberBtn','addTraineeBtn','shareBtn','saveRosterPdfBtn','loginFromPublicBtn'].forEach(id=>{
+  ['saTab','editorTab','promoTab','inactiveTab','adminPill','addMemberBtn','addTraineeBtn','shareBtn','saveRosterPdfBtn','historyBtn','loginFromPublicBtn'].forEach(id=>{
     const el=document.getElementById(id);
     if(el) el.classList.add('hidden');
   });
@@ -1805,7 +1880,7 @@ async function downloadRosterPDF(){
     setFont(accent[0],accent[1],accent[2]); doc.setFontSize(32); doc.setFont('helvetica','bold');
     doc.text(deptName, W/2, 80, {align:'center'});
     setFont(text[0],text[1],text[2]); doc.setFontSize(14); doc.setFont('helvetica','normal');
-    doc.text('OFFICIAL Member ROSTER', W/2, 95, {align:'center'});
+    doc.text('OFFICIAL PERSONNEL ROSTER', W/2, 95, {align:'center'});
     setFont(text3[0],text3[1],text3[2]); doc.setFontSize(10);
     doc.text(new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}).toUpperCase(), W/2, 108, {align:'center'});
     setFill(accent[0],accent[1],accent[2]); doc.rect(W/2-40,112,80,0.8,'F');
@@ -2022,7 +2097,7 @@ function copyPromoAnnouncement(){
     promos.forEach(p=>{text+=`  • ${p.name} — ${p.fromCS} → ${p.toCS}\n`;});
     text+='\n';
   });
-  text+=`${'─'.repeat(40)}\nCongratulations to all promoted Member!\n— ${deptName} Command`;
+  text+=`${'─'.repeat(40)}\nCongratulations to all promoted personnel!\n— ${deptName} Command`;
   navigator.clipboard.writeText(text).then(()=>showToast('✓ Copied to clipboard!'));
 }
 
@@ -2514,7 +2589,7 @@ function openEditMember(id){
   populateSel('mmS2', subdivisions.map(s=>s.name), true);
   populateSel('mmS3', subdivisions.map(s=>s.name), true);
   document.getElementById('mmTitle').textContent='Edit Member';
-  document.getElementById('mmSub').textContent='Update Member details.';
+  document.getElementById('mmSub').textContent='Update personnel details.';
   document.getElementById('mmName').value=m.name;
   document.getElementById('mmCallsign').value=m.callsign||'';
   document.getElementById('mmGroup').value=m.rankGroup;
