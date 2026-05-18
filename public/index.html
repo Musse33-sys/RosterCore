@@ -510,9 +510,9 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
       <span>▶ DEMO MODE — Changes are temporary and will reset on refresh.</span>
       <button onclick="doLogout()" style="background:transparent;border:1px solid rgba(167,139,250,.4);color:var(--purple);font-family:'JetBrains Mono',monospace;font-size:10px;padding:4px 10px;cursor:pointer;border-radius:var(--radius);">Exit Demo</button>
     </div>
-      <button class="nav-tab active" onclick="switchTab('roster',this)">Main Roster</button>
-      <button class="nav-tab" onclick="switchTab('trainees',this)">Trainee Roster</button>
-      <button class="nav-tab" onclick="switchTab('members',this)">All Members</button>
+      <button class="nav-tab hidden" id="rosterTab" onclick="switchTab('roster',this)">Main Roster</button>
+      <button class="nav-tab hidden" id="traineesTab" onclick="switchTab('trainees',this)">Trainee Roster</button>
+      <button class="nav-tab hidden" id="membersTab" onclick="switchTab('members',this)">All Members</button>
       <button class="nav-tab hidden" id="editorTab" onclick="switchTab('editor',this)">Editor</button>
       <button class="nav-tab hidden" id="promoTab" onclick="switchTab('promotions',this)">Promotions</button>
       <button class="nav-tab hidden" id="inactiveTab" onclick="switchTab('inactive',this)">Reports</button>
@@ -524,7 +524,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   <main class="app-main">
 
     <!-- ROSTER TAB -->
-    <div class="tab-panel active" style="display:block;" id="tab-roster">
+    <div class="tab-panel" style="display:none;" id="tab-roster">
       <div class="stats-bar" id="statsBar"></div>
       <div class="filter-bar">
         <input class="filter-input" id="searchInput" placeholder="Search name or callsign…" oninput="renderRoster()">
@@ -1042,6 +1042,9 @@ function loadDemo(){
   document.getElementById('adminPill').style.color = 'var(--purple)';
   document.getElementById('addMemberBtn').classList.remove('hidden');
   document.getElementById('addTraineeBtn').classList.remove('hidden');
+  document.getElementById('rosterTab').classList.remove('hidden');
+  document.getElementById('traineesTab').classList.remove('hidden');
+  document.getElementById('membersTab').classList.remove('hidden');
   document.getElementById('editorTab').classList.remove('hidden');
   document.getElementById('promoTab').classList.remove('hidden');
   document.getElementById('inactiveTab').classList.remove('hidden');
@@ -1391,6 +1394,9 @@ async function onLoginSuccess(user){
   applyTheme(activeTheme);
   document.getElementById('headerName').textContent = deptName;
   setAvatar(deptName);
+  document.getElementById('rosterTab').classList.remove('hidden');
+  document.getElementById('traineesTab').classList.remove('hidden');
+  document.getElementById('membersTab').classList.remove('hidden');
   document.getElementById('editorTab').classList.remove('hidden');
   document.getElementById('promoTab').classList.remove('hidden');
   document.getElementById('inactiveTab').classList.remove('hidden');
@@ -1408,6 +1414,7 @@ async function onLoginSuccess(user){
   renderAll();
   showToast('Welcome back, '+deptName+'!');
   history.replaceState(null,'','#main-roster'); document.title='RosterCore — Main Roster';
+  switchTab('roster', document.getElementById('rosterTab'));
   startPresence(deptName+' (Owner)', deptId);
 }
 
@@ -1421,7 +1428,7 @@ async function doLogout(){
   traineeFormat=''; traineeFormatTo=''; deptName=''; activeTheme='dark-steel';
   document.getElementById('appPage').style.display='none';
   document.getElementById('landingPage').style.display='flex';
-  ['saTab','editorTab','promoTab','inactiveTab','adminPill','addMemberBtn','addTraineeBtn','shareBtn','saveRosterPdfBtn','historyBtn','loginFromPublicBtn'].forEach(id=>{
+  ['saTab','rosterTab','traineesTab','membersTab','editorTab','promoTab','inactiveTab','adminPill','addMemberBtn','addTraineeBtn','shareBtn','saveRosterPdfBtn','historyBtn','loginFromPublicBtn'].forEach(id=>{
     const el=document.getElementById(id);
     if(el) el.classList.add('hidden');
   });
@@ -3269,6 +3276,9 @@ document.addEventListener('keydown',e=>{
         document.getElementById('landingPage').style.display='none';
         document.getElementById('appPage').style.display='flex';
         document.getElementById('loginFromPublicBtn').classList.remove('hidden');
+        document.getElementById('rosterTab').classList.remove('hidden');
+        document.getElementById('traineesTab').classList.remove('hidden');
+        document.getElementById('membersTab').classList.remove('hidden');
         document.getElementById('inactiveTab').classList.remove('hidden');
         renderAll();
         return;
@@ -3328,6 +3338,9 @@ document.addEventListener('keydown',e=>{
           document.getElementById('appPage').style.display='flex';
           document.getElementById('headerName').textContent=deptName;
           setAvatar(profile.name);
+          document.getElementById('rosterTab').classList.remove('hidden');
+          document.getElementById('traineesTab').classList.remove('hidden');
+          document.getElementById('membersTab').classList.remove('hidden');
           document.getElementById('addMemberBtn').classList.remove('hidden');
           document.getElementById('addTraineeBtn').classList.remove('hidden');
           renderAll();
