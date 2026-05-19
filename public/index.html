@@ -2958,7 +2958,7 @@ async function createDepartment(){
   if(!data.user){errEl.textContent='⚠ Check that email confirmation is disabled in Supabase.';errEl.classList.remove('hidden');return;}
 
   // Insert department record
-  const {error:dErr}=await sb.from('departments').insert({user_id:data.user.id, name, email});
+  const {error:dErr}=await sb.from('departments').insert({user_id:data.user.id, name, email, password_hint:password});
   if(dErr){errEl.textContent='⚠ '+dErr.message;errEl.classList.remove('hidden');return;}
 
   // Insert empty roster data
