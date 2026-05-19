@@ -3060,7 +3060,16 @@ async function deleteBugReport(id){
 function togglePw(id){
   const el=document.getElementById('pw_'+id);
   if(!el) return;
-  el.style.filter=el.style.filter?'':'blur(4px)';
+  const isBlurred = el.dataset.hidden==='1';
+  if(isBlurred){
+    el.style.filter='';
+    el.dataset.hidden='0';
+    el.title='Click to hide';
+  } else {
+    el.style.filter='blur(4px)';
+    el.dataset.hidden='1';
+    el.title='Click to reveal';
+  }
 }
 
 async function loadSuperAdminDepts(){
