@@ -74,13 +74,13 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 #landingPage{min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:0;background:var(--bg);overflow-y:auto;}
 #landingPage::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 70% 50% at 50% 0%,rgba(201,168,76,.06) 0%,transparent 60%);pointer-events:none;z-index:0;}
 #landingPage > *{position:relative;z-index:1;}
-.landing-seal{margin:0 auto 20px;display:flex;align-items:center;justify-content:center;}
+
 .rc-logo .rc-ring{stroke:var(--accent);transition:stroke .3s;}
 .rc-logo .rc-r{fill:var(--text);}
 .rc-logo .rc-r-stroke{stroke:var(--text);}
 .rc-logo .rc-c{fill:var(--accent);transition:fill .3s;}
 .rc-logo .rc-c-stroke{stroke:var(--accent);transition:stroke .3s;}
-.landing-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(56px,10vw,100px);letter-spacing:6px;color:var(--text);line-height:1;text-align:center;margin-bottom:12px;}
+
 .landing-title span{color:var(--accent);}
 .landing-sub{font-size:16px;color:var(--text2);text-align:center;max-width:440px;line-height:1.7;margin-bottom:40px;}
 .landing-features{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;max-width:860px;width:100%;margin-bottom:48px;}
@@ -100,7 +100,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .header-inner{display:flex;align-items:center;justify-content:space-between;padding:16px 32px;border-bottom:1px solid var(--border);}
 .header-seal{display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .header-center{text-align:center;flex:1;padding:0 20px;}
-.header-dept{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:4px;text-transform:uppercase;color:var(--accent);margin-bottom:3px;}
+
 .header-name{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:4px;color:var(--text);line-height:1;}
 .header-sub{font-size:11px;color:var(--text2);font-style:italic;margin-top:2px;}
 .header-right{display:flex;align-items:center;gap:8px;}
@@ -148,7 +148,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .cs-empty{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--border2);}
 .member-name{font-weight:600;color:var(--text);font-size:13px;display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
 .member-pos{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);letter-spacing:.5px;margin-top:2px;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.fto-badge{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1px;background:rgba(96,165,250,.1);border:1px solid rgba(96,165,250,.3);color:var(--blue);padding:1px 6px;border-radius:2px;text-transform:uppercase;}
+
 .subdiv-wrap{display:flex;flex-direction:column;gap:3px;}
 .sdiv-badge{display:inline-flex;font-family:'JetBrains Mono',monospace;font-size:10px;padding:2px 7px;border-radius:2px;border:1px solid;white-space:nowrap;width:fit-content;}
 
@@ -217,7 +217,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .dept-table td{padding:12px 14px;border-bottom:1px solid var(--border);color:var(--text2);font-size:13px;vertical-align:middle;}
 .dept-table tr:hover td{background:rgba(255,255,255,.02);}
 .dept-name-cell{font-weight:600;color:var(--text);font-size:13px;}
-.dept-email-cell{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);}
 
 .share-url{background:var(--bg3);border:1px solid var(--border2);padding:10px 13px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);word-break:break-all;cursor:pointer;border-radius:var(--radius);min-height:42px;margin-bottom:14px;}
 
@@ -250,7 +249,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   .header-inner{padding:10px 14px;gap:8px;}
   .header-center{padding:0 8px;}
   .header-name{font-size:18px;letter-spacing:2px;}
-  .header-dept{font-size:8px;letter-spacing:2px;}
+  
   .header-sub{display:none;}
   .header-right{gap:6px;}
   .header-right span{display:none;}
@@ -315,7 +314,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   .section-hdr{flex-direction:column;align-items:flex-start;gap:10px;}
 
   
-  .landing-title{font-size:clamp(42px,12vw,72px);letter-spacing:3px;}
+  
   .landing-sub{font-size:14px;}
   .landing-features{grid-template-columns:1fr 1fr;gap:10px;}
   .feat{padding:16px;}
@@ -940,17 +939,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   </div>
 </div>
 
-<!-- NAME GATE — shown when someone opens edit link -->
-<div class="modal-overlay hidden" id="nameGateModal">
-  <div class="modal" style="max-width:400px;">
-    <div class="auth-seal"><svg viewBox="20 10 480 140" xmlns="http://www.w3.org/2000/svg" style="width:200px;height:auto;margin:0 auto 8px;">
-  <circle cx="80" cy="80" r="58" fill="none" stroke="var(--accent)" stroke-width="3.5"/>
-  <text x="80" y="72" font-family="'Arial Black',Arial,sans-serif" font-size="36" font-weight="900" fill="var(--text)" text-anchor="middle">R</text>
-  <text x="80" y="108" font-family="'Arial Black',Arial,sans-serif" font-size="36" font-weight="900" fill="var(--accent)" text-anchor="middle">C</text>
-  <line x1="158" y1="20" x2="158" y2="140" stroke="var(--accent)" stroke-width="1.5" opacity="0.4"/>
-  <text x="172" y="76" font-family="'Arial',sans-serif" font-size="52" font-weight="700" fill="var(--text)" letter-spacing="-1">Roster<tspan fill="var(--accent)">Core</tspan></text>
-  <text x="174" y="104" font-family="'Arial',sans-serif" font-size="12" font-weight="500" fill="var(--accent)" letter-spacing="4">THE ROSTER FOR ALL ROLEPLAY</text>
-</svg></div>
     <div class="modal-title" style="text-align:center;">Enter Your Name</div>
     <div class="modal-sub" style="text-align:center;">To get edit access to this roster, enter your name. The roster owner can remove your access at any time.</div>
     <div class="form-error hidden" id="nameGateError"></div>
@@ -1439,21 +1427,6 @@ async function doLogout(){
   showToast('Logged out.');
 }
 
-async function loadByShareToken(token){
-  const {data:rd} = await sb.from('roster_data').select('*').eq('share_token',token).eq('share_enabled',true).single();
-  if(!rd){ showToast('⚠ Invalid or expired share link.',true); return; }
-  rosterDataId = rd.id;
-  const {data:dept} = await sb.from('departments').select('*').eq('id',rd.dept_id).single();
-  if(dept){ deptId=dept.id; deptName=dept.name||'Department'; }
-  rankGroups=rd.rank_groups||[]; subdivisions=rd.subdivisions||[];
-  positions=rd.positions||[]; traineeFormat=rd.trainee_format||''; traineeFormatTo=rd.trainee_format_to||''; customTags=rd.custom_tags||[]; promotions=rd.promotions||[]; customThemes=(rd.custom_themes&&rd.custom_themes.length?rd.custom_themes:[{name:'Custom 1',accent:'#c9a84c',bg:'#0a0c10'},{name:'Custom 2',accent:'#60a5fa',bg:'#080c14'}]);
-  activeTheme=rd.theme||'dark-steel'; members=rd.members||[]; trainees=rd.trainees||[];
-  applyTheme(activeTheme);
-  document.getElementById('headerName').textContent=deptName;
-}
-
-let currentAccessToken = null;
-
 function makeSlug(name){
   const rand = Math.floor(1000 + Math.random() * 9000);
   return name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'') + '-' + rand;
@@ -1606,135 +1579,6 @@ async function doStaffLogin(){
     hash: hash,
     profile_id: profile.id
   }));
-}
-
-async function loadAccessList(){
-  const {data:list}=await sb.from('roster_access').select('*').eq('roster_id',rosterDataId).order('created_at');
-  const el=document.getElementById('accessList');
-  if(!el) return;
-  if(!list||!list.length){
-    el.innerHTML=`<p style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);">No one has edit access yet.</p>`;
-    return;
-  }
-  el.innerHTML=list.map(a=>`
-    <div style="display:flex;align-items:center;justify-content:space-between;background:var(--bg3);border:1px solid var(--border);padding:8px 12px;border-radius:var(--radius);">
-      <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text);">👤 ${a.name}</span>
-      <div style="display:flex;align-items:center;gap:8px;">
-        <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);">${new Date(a.created_at).toLocaleDateString()}</span>
-        <button class="btn btn-danger" onclick="revokeAccess('${a.id}','${a.name}')">Remove</button>
-      </div>
-    </div>`).join('');
-}
-
-async function revokeAccess(id,name){
-  await sb.from('roster_access').delete().eq('id',id);
-  await loadAccessList();
-  showToast(`✓ ${name}'s access removed.`);
-}
-
-function copyShareLink(){
-  const t=document.getElementById('shareUrl')?.textContent;
-  if(!t||t.includes('disabled')){showToast('⚠ No share link.',true);return;}
-  navigator.clipboard.writeText(t).then(()=>showToast('✓ Edit link copied!'));
-}
-async function disableShare(){
-  await sb.from('roster_data').update({share_enabled:false}).eq('id',rosterDataId);
-  await sb.from('roster_access').delete().eq('roster_id',rosterDataId);
-  showToast('Share link disabled.');
-}
-
-async function showNameGate(shareToken){
-  
-  const storedToken = localStorage.getItem('rc_access_'+shareToken);
-  if(storedToken){
-    const {data:access}=await sb.from('roster_access').select('*').eq('token',storedToken).single();
-    if(access){
-      
-      currentAccessToken=storedToken;
-      grantEditAccess(access.name);
-      return;
-    }
-    
-    localStorage.removeItem('rc_access_'+shareToken);
-  }
-  
-  document.getElementById('nameGateModal').classList.remove('hidden');
-  setTimeout(()=>document.getElementById('nameGateInput').focus(),50);
-  
-  document.getElementById('nameGateModal').dataset.shareToken=shareToken;
-}
-
-async function submitNameGate(){
-  const name=document.getElementById('nameGateInput').value.trim();
-  const errEl=document.getElementById('nameGateError');
-  const shareToken=document.getElementById('nameGateModal').dataset.shareToken;
-  errEl.classList.add('hidden');
-  if(!name){errEl.textContent='⚠ Please enter your name.';errEl.classList.remove('hidden');return;}
-
-  
-  const {data:rd}=await sb.from('roster_data').select('id,share_enabled').eq('share_token',shareToken).single();
-  if(!rd||!rd.share_enabled){errEl.textContent='⚠ This edit link has been disabled.';errEl.classList.remove('hidden');return;}
-
-  
-  const token=Math.random().toString(36).slice(2)+Date.now().toString(36);
-  const {error}=await sb.from('roster_access').insert({roster_id:rd.id,name,token});
-  if(error){errEl.textContent='⚠ '+error.message;errEl.classList.remove('hidden');return;}
-
-  
-  localStorage.setItem('rc_access_'+shareToken,token);
-  currentAccessToken=token;
-  document.getElementById('nameGateModal').classList.add('hidden');
-  grantEditAccess(name);
-  showToast(`✓ Welcome, ${name}! You have edit access.`);
-}
-
-function grantEditAccess(name){
-  currentUser={email:'shared', name};
-  ['addMemberBtn','addTraineeBtn'].forEach(id=>document.getElementById(id).classList.remove('hidden'));
-  setAvatar(name);
-  renderAll();
-}
-
-function renderInactive(){
-  const wrap=document.getElementById('inactiveWrap');
-  const inactive=members.filter(m=>m.status==='Inactive')
-    .sort((a,b)=>rgIndex(a.rankGroup)-rgIndex(b.rankGroup));
-
-  if(!inactive.length){
-    wrap.innerHTML=`<div class="empty-state"><div class="empty-icon">✅</div><div class="empty-text">No inactive members.<br><br>Everyone is <span style="color:var(--green);">Active</span>!</div></div>`;
-    return;
-  }
-
-  const rows=inactive.map(m=>{
-    const g=rankGroups.find(rg=>rg.name===m.rankGroup);
-    const position=m.position||g?.position||m.rankGroup;
-    return`<div style="display:flex;align-items:center;gap:16px;padding:14px 20px;border-bottom:1px solid rgba(248,113,113,.1);background:rgba(248,113,113,.03);">
-      <div style="width:3px;height:40px;background:var(--red);border-radius:2px;flex-shrink:0;opacity:.6;"></div>
-      <div style="flex:1;">
-        <div style="font-weight:600;color:var(--text);font-size:14px;">${m.name}</div>
-        <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--red);letter-spacing:1px;margin-top:2px;text-transform:uppercase;">${position}</div>
-      </div>
-      <div style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--text3);">${m.callsign||'—'}</div>
-      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);">${fmtDate(m.doh)}</div>
-      ${currentUser?`<button class="btn btn-ghost btn-xs" onclick="quickSetActive(${m.id})" style="border-color:var(--green2);color:var(--green);font-size:9px;">Set Active</button>`:''}
-    </div>`;
-  }).join('');
-
-  wrap.innerHTML=`
-    <div style="background:var(--bg2);border:1px solid rgba(248,113,113,.2);border-top:2px solid var(--red);border-radius:var(--radius);overflow:hidden;">
-      <div style="padding:12px 20px;border-bottom:1px solid rgba(248,113,113,.15);display:flex;align-items:center;justify-content:space-between;background:rgba(248,113,113,.04);">
-        <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--red);">● ${inactive.length} Inactive Member${inactive.length>1?'s':''}</div>
-        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3);letter-spacing:1px;">Auto-updates when status changes</div>
-      </div>
-      ${rows}
-    </div>`;
-}
-
-function quickSetActive(id){
-  const m=members.find(mb=>mb.id===id); if(!m)return;
-  m.status='Active';
-  renderInactive(); renderRoster(); renderStats(); scheduleSave();
-  showToast(`✓ ${m.name} set to Active.`);
 }
 
 function renderPromotions(){
@@ -2993,14 +2837,6 @@ function renderSDList(){
 function updateSDName(i,v){ const old=subdivisions[i].name; subdivisions[i].name=v; members.forEach(m=>{m.subdivs=(m.subdivs||[]).map(s=>s===old?v:s);}); renderRoster(); scheduleSave(); }
 function updateSDColor(i,v){ subdivisions[i].color=v; renderRoster(); scheduleSave(); }
 function deleteSD(i){ const removed=subdivisions[i].name; subdivisions.splice(i,1); members.forEach(m=>{m.subdivs=(m.subdivs||[]).filter(s=>s!==removed);}); renderSDList(); renderRoster(); scheduleSave(); }
-function addSubdivision(){
-  const name=document.getElementById('sdNew').value.trim();
-  const color=document.getElementById('sdNewColor').value;
-  if(!name)return;
-  subdivisions.push({name,color}); document.getElementById('sdNew').value='';
-  renderSDList(); scheduleSave(); showToast(`✓ "${name}" added.`);
-}
-
 function addSubdivision(){
   const name=document.getElementById('sdNew').value.trim();
   const color=document.getElementById('sdNewColor').value;
