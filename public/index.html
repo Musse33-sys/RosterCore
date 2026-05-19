@@ -3174,7 +3174,7 @@ async function loadSuperAdminDepts(){
   wrap.innerHTML=groups.map((g,gi)=>`
     <div style="margin-bottom:28px;">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;cursor:pointer;" onclick="toggleServerSection(${gi})">
-        <button id="serverArrow_${gi}" style="background:transparent;border:none;color:var(--accent);font-size:14px;cursor:pointer;transition:transform .2s;transform:rotate(0deg);padding:0;width:20px;flex-shrink:0;">▼</button>
+        <button id="serverArrow_${gi}" style="background:transparent;border:none;color:var(--accent);font-size:14px;cursor:pointer;transition:transform .2s;transform:rotate(-90deg);padding:0;width:20px;flex-shrink:0;">▼</button>
         ${g.server
           ? `<div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;color:var(--accent);">${g.server.name}</div>
              <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);">${g.depts.length} dept${g.depts.length!==1?'s':''}</span>
@@ -3185,7 +3185,7 @@ async function loadSuperAdminDepts(){
              <div style="height:1px;flex:1;background:linear-gradient(90deg,var(--border),transparent);"></div>`
         }
       </div>
-      <div id="serverSection_${gi}">
+      <div id="serverSection_${gi}" style="display:none;">
         <table class="dept-table">
           <thead><tr><th>Department</th><th>Email</th><th>Password</th><th>Server</th><th>Created</th><th>Actions</th></tr></thead>
           <tbody>${g.depts.map(d=>`
