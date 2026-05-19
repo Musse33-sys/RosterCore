@@ -1255,9 +1255,9 @@ let isSyncing = false;
 
 function startRealtimeSync(){
   if(!rosterDataId) return;
-  if(realtimeChannel) realtimeChannel.unsubscribe();
+  if(realtimeChannel) sb.removeChannel(realtimeChannel);
 
-  realtimeChannel = sb.channel('roster_changes:'+rosterDataId)
+  realtimeChannel = sb.channel('db-roster-'+rosterDataId)
     .on('postgres_changes', {
       event: 'UPDATE',
       schema: 'public',
@@ -1280,14 +1280,16 @@ function startRealtimeSync(){
       nextMemberId = members.length>0?Math.max(...members.map(m=>m.id||0))+1:1;
       nextTraineeId = trainees.length>0?Math.max(...trainees.map(t=>t.id||0))+1:1;
       renderAll();
-      showToast('🔄 Roster updated by another user.');
+      showToast('🔄 Roster updated.');
     })
-    .subscribe();
+    .subscribe((status)=>{
+      console.log('Realtime status:', status);
+    });
 }
 
 function stopRealtimeSync(){
   if(realtimeChannel){
-    realtimeChannel.unsubscribe();
+    sb.removeChannel(realtimeChannel);
     realtimeChannel = null;
   }
 }
@@ -1824,7 +1826,7 @@ async function doStaffLogin(){
   showToast('Welcome, '+profile.name+'!');
   history.replaceState(null,'','#main-roster'); document.title='RosterCore — Main Roster';
   startPresence(profile.name, rd.dept_id);
-  // Save staff session to localStorage
+  startRealtimeSync();
   localStorage.setItem('rc_staff_session', JSON.stringify({
     username: profile.username,
     hash: hash,
