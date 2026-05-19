@@ -1254,6 +1254,78 @@ let presenceChannel = null;
 let realtimeChannel = null;
 let isSyncing = false;
 
+function patchRosterRow(m){
+  // Find existing row by member id
+  const existing = document.querySelector(`tr[data-member-id="${m.id}"]`);
+  if(!existing) return false; // Row doesn't exist yet, need full render
+
+  // Update callsign
+  const csEl = existing.querySelector('.cs-filled');
+  if(csEl) csEl.textContent = m.callsign||'—';
+
+  // Update name + tags
+  const nameEl = existing.querySelector('.member-name');
+  if(nameEl){
+    const tags = (m.tags||[]).map(tag=>{
+      const t=customTags.find(ct=>ct.name===tag);
+      const c=t?t.color:'#7ec8e3';
+      return`<span style="font-family:'JetBrains Mono',monospace;font-size:9px;background:${c}18;border:1px solid ${c}55;color:${c};padding:1px 6px;border-radius:2px;">${tag}</span>`;
+    }).join('');
+    nameEl.innerHTML = m.name + (onlineUsers.has(m.name)?'<span class="online-dot" title="Online now"></span>':'') + tags;
+  }
+
+  // Update status
+  const statusEl = existing.querySelector('.status-pill');
+  if(statusEl) statusEl.outerHTML = statusPill(m.status);
+
+  // Update strikes
+  const strikeEl = existing.querySelector('.strike');
+  if(strikeEl) strikeEl.outerHTML = strikeBadge(m.strikes||0);
+
+  return true;
+}
+
+function smartSyncUpdate(oldMembers, newMembers, oldTrainees, newTrainees, structureChanged){
+  if(structureChanged){
+    renderAll();
+    return;
+  }
+
+  let needsFullRoster = false;
+  let needsStats = false;
+
+  // Check for added/removed members
+  const oldIds = new Set(oldMembers.map(m=>m.id));
+  const newIds = new Set(newMembers.map(m=>m.id));
+  const added = newMembers.filter(m=>!oldIds.has(m.id));
+  const removed = oldMembers.filter(m=>!newIds.has(m.id));
+
+  if(added.length || removed.length){
+    needsFullRoster = true;
+    needsStats = true;
+  } else {
+    // Try surgical row updates for changed members
+    for(const m of newMembers){
+      const old = oldMembers.find(om=>om.id===m.id);
+      if(old && JSON.stringify(old)!==JSON.stringify(m)){
+        const patched = patchRosterRow(m);
+        if(!patched) needsFullRoster = true;
+        if(old.status !== m.status) needsStats = true;
+      }
+    }
+  }
+
+  // Trainee changes
+  const oldTIds = new Set(oldTrainees.map(t=>t.id));
+  const newTIds = new Set(newTrainees.map(t=>t.id));
+  const tAdded = newTrainees.filter(t=>!oldTIds.has(t.id));
+  const tRemoved = oldTrainees.filter(t=>!newTIds.has(t.id));
+  if(tAdded.length || tRemoved.length){ renderTrainees(); needsStats = true; }
+
+  if(needsFullRoster) renderRoster();
+  if(needsStats) renderStats();
+}
+
 function startRealtimeSync(){
   if(!rosterDataId) return;
   if(realtimeChannel) sb.removeChannel(realtimeChannel);
@@ -1268,9 +1340,8 @@ function startRealtimeSync(){
       if(isSyncing) return;
       const rd = payload.new;
 
-      // Only re-render what actually changed
-      const membersChanged = JSON.stringify(rd.members) !== JSON.stringify(members);
-      const traineesChanged = JSON.stringify(rd.trainees) !== JSON.stringify(trainees);
+      const oldMembers = [...members];
+      const oldTrainees = [...trainees];
       const structureChanged = JSON.stringify(rd.rank_groups) !== JSON.stringify(rankGroups) ||
         JSON.stringify(rd.subdivisions) !== JSON.stringify(subdivisions) ||
         JSON.stringify(rd.custom_tags) !== JSON.stringify(customTags) ||
@@ -1290,13 +1361,7 @@ function startRealtimeSync(){
       nextMemberId = members.length>0?Math.max(...members.map(m=>m.id||0))+1:1;
       nextTraineeId = trainees.length>0?Math.max(...trainees.map(t=>t.id||0))+1:1;
 
-      // Only re-render what changed to avoid full page flash
-      if(structureChanged){
-        renderAll();
-      } else {
-        if(membersChanged){ renderRoster(); renderStats(); if(document.getElementById('tab-members')?.classList.contains('active')) renderAllMembers(); }
-        if(traineesChanged){ renderTrainees(); renderStats(); }
-      }
+      smartSyncUpdate(oldMembers, members, oldTrainees, trainees, structureChanged);
       showToast('🔄 Roster updated.');
     })
     .subscribe();
@@ -2378,7 +2443,7 @@ function renderRoster(){
       ? slots.map(slot=>{
           const m = gMembers.find(mb=>mb.callsign===slot);
           if(m){
-            return `<tr class="row-filled">
+            return `<tr class="row-filled" data-member-id="${m.id}">
               <td><span class="cs-filled">${m.callsign||'—'}</span></td>
               <td class="name-td">
                 <div class="member-name">${m.name}${onlineUsers.has(m.name)?'<span class="online-dot" title="Online now"></span>':''}
