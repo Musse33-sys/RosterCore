@@ -709,16 +709,24 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
     <div class="tab-panel" id="tab-superadmin" style="display:none;">
       <div class="sa-panel">
         <div class="sa-notice">⬡ SUPER ADMIN — Only you can see this panel. Create and manage department accounts here.</div>
+
+        <!-- SERVERS -->
+        <div class="section-hdr">
+          <div class="section-title">Server <span>Categories</span></div>
+          <button class="btn btn-primary btn-sm" onclick="openCreateServer()">+ Add Server</button>
+        </div>
+        <div class="divider"></div>
+        <div id="serversList" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:32px;"></div>
+
+        <!-- DEPARTMENTS -->
         <div class="section-hdr">
           <div class="section-title">Department <span>Accounts</span></div>
           <button class="btn btn-primary btn-sm" onclick="openCreateDept()">+ Create Department</button>
         </div>
         <div class="divider"></div>
-        <table class="dept-table">
-          <thead><tr><th>Department</th><th>Email</th><th>Password</th><th>Created</th><th>Actions</th></tr></thead>
-          <tbody id="deptTableBody"></tbody>
-        </table>
+        <div id="deptsByServer"></div>
 
+        <!-- BUG REPORTS -->
         <div style="margin-top:40px;">
           <div class="section-hdr">
             <div class="section-title">Bug <span style="color:var(--red);">Reports</span></div>
@@ -799,6 +807,20 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   </div>
 </div>
 
+<!-- CREATE SERVER MODAL -->
+<div class="modal-overlay hidden" id="createServerModal" onclick="if(event.target===this)this.classList.add('hidden')">
+  <div class="modal" style="max-width:380px;">
+    <div class="modal-title">Add Server</div>
+    <div class="modal-sub">Create a new server category.</div>
+    <div class="form-error hidden" id="createServerError"></div>
+    <div class="form-group"><label class="form-label">Server Name</label><input class="form-input" id="serverName" placeholder="e.g. Static Red"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="document.getElementById('createServerModal').classList.add('hidden')">Cancel</button>
+      <button class="btn btn-primary" onclick="createServer()">Create</button>
+    </div>
+  </div>
+</div>
+
 <!-- CREATE DEPARTMENT (super admin) -->
 <div class="modal-overlay hidden" id="createDeptModal" onclick="if(event.target===this)this.classList.add('hidden')">
   <div class="modal">
@@ -806,6 +828,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
     <div class="modal-sub">Create a login account for a new department.</div>
     <div class="form-error hidden" id="createDeptError"></div>
     <div class="form-group"><label class="form-label">Department Name</label><input class="form-input" id="cdName" placeholder="e.g. San Andreas Game Warden"></div>
+    <div class="form-group"><label class="form-label">Server</label><select class="form-select" id="cdServer"><option value="">— No Server —</option></select></div>
     <div class="form-group"><label class="form-label">Email</label><input class="form-input" type="email" id="cdEmail" placeholder="dept@example.com"></div>
     <div class="form-group"><label class="form-label">Password</label><input class="form-input" type="password" id="cdPassword" placeholder="Min 6 characters" autocomplete="new-password"></div>
     <div class="modal-footer">
@@ -2939,6 +2962,8 @@ function openCreateDept(){
   document.getElementById('cdName').value='';
   document.getElementById('cdEmail').value='';
   document.getElementById('cdPassword').value='';
+  const cdServer=document.getElementById('cdServer');
+  if(cdServer) cdServer.value='';
 }
 
 async function createDepartment(){
@@ -2958,7 +2983,8 @@ async function createDepartment(){
   if(!data.user){errEl.textContent='⚠ Check that email confirmation is disabled in Supabase.';errEl.classList.remove('hidden');return;}
 
   // Insert department record
-  const {error:dErr}=await sb.from('departments').insert({user_id:data.user.id, name, email, password_hint:password});
+  const serverId=document.getElementById('cdServer')?.value||null;
+  const {error:dErr}=await sb.from('departments').insert({user_id:data.user.id, name, email, password_hint:password, server_id:serverId||null});
   if(dErr){errEl.textContent='⚠ '+dErr.message;errEl.classList.remove('hidden');return;}
 
   // Insert empty roster data
@@ -3057,6 +3083,39 @@ async function deleteBugReport(id){
   showToast('Bug report deleted.');
 }
 
+let servers = [];
+
+function openCreateServer(){
+  document.getElementById('createServerModal').classList.remove('hidden');
+  document.getElementById('serverName').value='';
+  document.getElementById('createServerError').classList.add('hidden');
+  setTimeout(()=>document.getElementById('serverName').focus(),50);
+}
+
+async function createServer(){
+  const name=document.getElementById('serverName').value.trim();
+  const errEl=document.getElementById('createServerError');
+  errEl.classList.add('hidden');
+  if(!name){errEl.textContent='⚠ Enter a server name.';errEl.classList.remove('hidden');return;}
+  const {error}=await sb.from('servers').insert({name});
+  if(error){errEl.textContent='⚠ '+error.message;errEl.classList.remove('hidden');return;}
+  document.getElementById('createServerModal').classList.add('hidden');
+  await loadSuperAdminDepts();
+  showToast(`✓ "${name}" server created.`);
+}
+
+async function deleteServer(id, name){
+  if(!confirm(`Delete server "${name}"? Departments in this server will become unassigned.`)) return;
+  await sb.from('servers').delete().eq('id',id);
+  await loadSuperAdminDepts();
+  showToast(`Server "${name}" deleted.`);
+}
+
+async function assignDeptServer(deptId, serverId){
+  await sb.from('departments').update({server_id:serverId||null}).eq('id',deptId);
+  await loadSuperAdminDepts();
+}
+
 function togglePw(id){
   const el=document.getElementById('pw_'+id);
   if(!el) return;
@@ -3074,28 +3133,81 @@ function togglePw(id){
 
 async function loadSuperAdminDepts(){
   const {data:depts,error}=await sb.from('departments').select('*').order('created_at',{ascending:false});
-  const tbody=document.getElementById('deptTableBody');
-  if(!tbody) return;
+  const {data:srvs}=await sb.from('servers').select('*').order('created_at',{ascending:true});
+  servers = srvs||[];
+
+  // Render server pills
+  const serversList=document.getElementById('serversList');
+  if(serversList){
+    if(!servers.length){
+      serversList.innerHTML=`<p style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);">No servers yet. Add one above.</p>`;
+    } else {
+      serversList.innerHTML=servers.map(s=>`
+        <div style="display:flex;align-items:center;gap:8px;background:var(--bg3);border:1px solid var(--border);border-left:3px solid var(--accent);padding:8px 14px;border-radius:var(--radius);">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);font-weight:700;">${s.name}</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);">${(depts||[]).filter(d=>d.server_id===s.id).length} dept${(depts||[]).filter(d=>d.server_id===s.id).length!==1?'s':''}</span>
+          <button class="btn btn-danger" style="padding:2px 7px;font-size:9px;margin-left:4px;" onclick="deleteServer('${s.id}','${s.name}')">✕</button>
+        </div>`).join('');
+    }
+  }
+
+  // Populate server dropdown in create dept modal
+  const cdServer=document.getElementById('cdServer');
+  if(cdServer){
+    cdServer.innerHTML='<option value="">— No Server —</option>'+servers.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+  }
+
+  const wrap=document.getElementById('deptsByServer');
+  if(!wrap) return;
   if(error||!depts||!depts.length){
-    tbody.innerHTML=`<tr><td colspan="4" style="text-align:center;padding:24px;color:var(--text3);font-family:'JetBrains Mono',monospace;font-size:12px;">No departments yet. Click "+ Create Department" to add one.</td></tr>`;
+    wrap.innerHTML=`<p style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);padding:8px;">No departments yet.</p>`;
     return;
   }
-  tbody.innerHTML=depts.map(d=>`
-    <tr>
-      <td><div class="dept-name-cell">${d.name}</div></td>
-      <td><div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);">${d.email||'—'}</div></td>
-      <td>
-        <div style="display:flex;align-items:center;gap:6px;">
-          <span id="pw_${d.id}" data-hidden="1" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text2);cursor:pointer;filter:blur(4px);" onclick="togglePw('${d.id}')" title="Click to reveal">${d.password_hint||'—'}</span>
-        </div>
-      </td>
-      <td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);">${new Date(d.created_at).toLocaleDateString()}</td>
-      <td style="display:flex;gap:6px;align-items:center;">
-        <button title="Version History" onclick="openDeptHistory('${d.id}','${d.name}')" style="width:28px;height:28px;border-radius:50%;background:rgba(96,165,250,.1);border:1px solid rgba(96,165,250,.3);color:var(--blue);cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;transition:all .15s;" onmouseover="this.style.background='rgba(96,165,250,.25)'" onmouseout="this.style.background='rgba(96,165,250,.1)'">⟳</button>
-        <button class="btn btn-outline btn-sm" onclick="openChangePw('${d.user_id}','${d.name}')">Change PW</button>
-        <button class="btn btn-danger" onclick="deleteDept('${d.id}','${d.name}')">Delete</button>
-      </td>
-    </tr>`).join('');
+
+  // Group by server
+  const groups = [];
+  servers.forEach(s=>{
+    const serverDepts=depts.filter(d=>d.server_id===s.id);
+    if(serverDepts.length) groups.push({server:s, depts:serverDepts});
+  });
+  const unassigned=depts.filter(d=>!d.server_id);
+  if(unassigned.length) groups.push({server:null, depts:unassigned});
+
+  wrap.innerHTML=groups.map(g=>`
+    <div style="margin-bottom:28px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+        ${g.server
+          ? `<div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;color:var(--accent);">${g.server.name}</div>
+             <div style="height:1px;flex:1;background:linear-gradient(90deg,var(--accent3),transparent);"></div>`
+          : `<div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;color:var(--text3);">Unassigned</div>
+             <div style="height:1px;flex:1;background:linear-gradient(90deg,var(--border),transparent);"></div>`
+        }
+      </div>
+      <table class="dept-table">
+        <thead><tr><th>Department</th><th>Email</th><th>Password</th><th>Server</th><th>Created</th><th>Actions</th></tr></thead>
+        <tbody>${g.depts.map(d=>`
+          <tr>
+            <td><div class="dept-name-cell">${d.name}</div></td>
+            <td><div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);">${d.email||'—'}</div></td>
+            <td>
+              <span id="pw_${d.id}" data-hidden="1" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text2);cursor:pointer;filter:blur(4px);" onclick="togglePw('${d.id}')" title="Click to reveal">${d.password_hint||'—'}</span>
+            </td>
+            <td>
+              <select class="form-select" style="font-size:10px;padding:4px 8px;" onchange="assignDeptServer('${d.id}',this.value)">
+                <option value="">— None —</option>
+                ${servers.map(s=>`<option value="${s.id}" ${d.server_id===s.id?'selected':''}>${s.name}</option>`).join('')}
+              </select>
+            </td>
+            <td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);">${new Date(d.created_at).toLocaleDateString()}</td>
+            <td style="display:flex;gap:6px;align-items:center;">
+              <button title="Version History" onclick="openDeptHistory('${d.id}','${d.name}')" style="width:28px;height:28px;border-radius:50%;background:rgba(96,165,250,.1);border:1px solid rgba(96,165,250,.3);color:var(--blue);cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;transition:all .15s;" onmouseover="this.style.background='rgba(96,165,250,.25)'" onmouseout="this.style.background='rgba(96,165,250,.1)'">⟳</button>
+              <button class="btn btn-outline btn-sm" onclick="openChangePw('${d.user_id}','${d.name}')">Change PW</button>
+              <button class="btn btn-danger" onclick="deleteDept('${d.id}','${d.name}')">Delete</button>
+            </td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`).join('');
 }
 
 let changePwUserId = null;
