@@ -1405,13 +1405,22 @@ async function onLoginSuccess(user){
 }
 
 async function doLogout(){
-  
   if(currentUser && currentUser.email !== 'shared' && currentUser.email !== 'staff'){
     await sb.auth.signOut({scope:'global'});
   }
   currentUser=null; isSuperAdmin=false; deptId=null; rosterDataId=null;
   members=[]; trainees=[]; rankGroups=[]; subdivisions=[]; positions=[];
   traineeFormat=''; traineeFormatTo=''; deptName=''; activeTheme='dark-steel';
+  customTags=[]; promotions=[]; customThemes=[{name:'Custom 1',accent:'#c9a84c',bg:'#0a0c10'},{name:'Custom 2',accent:'#60a5fa',bg:'#080c14'}];
+  nextMemberId=1; nextTraineeId=1;
+
+  // Clear all rendered content
+  ['rosterWrap','traineeWrap','allMembersWrap','promoWrap','statsBar','deptTableBody','historyList'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.innerHTML='';
+  });
+  document.getElementById('headerName').textContent='My Department';
+
   document.getElementById('appPage').style.display='none';
   document.getElementById('landingPage').style.display='flex';
   ['saTab','rosterTab','traineesTab','membersTab','editorTab','promoTab','inactiveTab','adminPill','addMemberBtn','addTraineeBtn','shareBtn','saveRosterPdfBtn','historyBtn','loginFromPublicBtn'].forEach(id=>{
