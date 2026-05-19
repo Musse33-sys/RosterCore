@@ -3560,6 +3560,7 @@ document.addEventListener('keydown',e=>{
         document.getElementById('membersTab').classList.remove('hidden');
         document.getElementById('inactiveTab').classList.remove('hidden');
         renderAll();
+        switchTab('roster', document.getElementById('rosterTab'));
         return;
       }
     }
