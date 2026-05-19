@@ -341,7 +341,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 <body>
 
 <!-- ══════════ LANDING ══════════ -->
-<div id="landingPage" style="display:flex;">
+<div id="landingPage" style="display:none;">
 
   <!-- NAV -->
   <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 40px;border-bottom:1px solid #1e1e1e;width:100%;background:var(--bg);">
@@ -3631,7 +3631,10 @@ document.addEventListener('keydown',e=>{
     localStorage.removeItem('rc_staff_session');
   }
 
-  })();
+  // No session found — show landing page
+  document.getElementById('landingPage').style.display='flex';
+
+})();
 </script>
 </body>
 </html>
