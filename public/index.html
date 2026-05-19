@@ -1209,7 +1209,7 @@ function loadDemo(){
   nextMemberId = 12;
   nextTraineeId = 4;
 
-  document.getElementById('landingPage').style.display='none';
+  const lp=document.getElementById('landingPage'); lp.style.display='none'; lp.style.visibility='hidden'; lp.style.height='0'; lp.style.overflow='hidden';
   document.getElementById('appPage').style.display='flex';
   window.scrollTo(0,0);
   document.getElementById('headerName').textContent = deptName;
@@ -1588,7 +1588,7 @@ async function onLoginSuccess(user){
   currentUser = user;
   isSuperAdmin = isSuperAdminEmail(user.email);
   closeAuthModal();
-  document.getElementById('landingPage').style.display='none';
+  const lp=document.getElementById('landingPage'); lp.style.display='none'; lp.style.visibility='hidden'; lp.style.height='0'; lp.style.overflow='hidden';
   document.getElementById('appPage').style.display='flex';
   window.scrollTo(0,0);
 
@@ -1656,7 +1656,7 @@ async function doLogout(){
   document.getElementById('headerName').textContent='My Department';
 
   document.getElementById('appPage').style.display='none';
-  document.getElementById('landingPage').style.display='flex';
+  const lp2=document.getElementById('landingPage'); lp2.style.display='flex'; lp2.style.visibility='visible'; lp2.style.height=''; lp2.style.overflow='';
   ['saTab','rosterTab','traineesTab','membersTab','editorTab','promoTab','inactiveTab','adminPill','addMemberBtn','addTraineeBtn','shareBtn','saveRosterPdfBtn','historyBtn','loginFromPublicBtn'].forEach(id=>{
     const el=document.getElementById(id);
     if(el) el.classList.add('hidden');
@@ -1806,7 +1806,7 @@ async function doStaffLogin(){
   currentUser={email:'staff', name:profile.name, username:profile.username};
 
   document.getElementById('staffLoginModal').classList.add('hidden');
-  document.getElementById('landingPage').style.display='none';
+  const lp=document.getElementById('landingPage'); lp.style.display='none'; lp.style.visibility='hidden'; lp.style.height='0'; lp.style.overflow='hidden';
   document.getElementById('appPage').style.display='flex';
   window.scrollTo(0,0);
   document.getElementById('headerName').textContent=deptName;
@@ -3543,7 +3543,7 @@ document.addEventListener('keydown',e=>{
         activeTheme=rd.theme||'dark-steel'; members=rd.members||[]; trainees=rd.trainees||[];
         applyTheme(activeTheme);
         document.getElementById('headerName').textContent=deptName;
-        document.getElementById('landingPage').style.display='none';
+        const lp=document.getElementById('landingPage'); lp.style.display='none'; lp.style.visibility='hidden'; lp.style.height='0'; lp.style.overflow='hidden';
         document.getElementById('appPage').style.display='flex';
         document.getElementById('loginFromPublicBtn').classList.remove('hidden');
         document.getElementById('rosterTab').classList.remove('hidden');
@@ -3568,7 +3568,7 @@ document.addEventListener('keydown',e=>{
       activeTheme=rd.theme||'dark-steel'; members=rd.members||[]; trainees=rd.trainees||[];
       applyTheme(activeTheme);
       document.getElementById('headerName').textContent=deptName;
-      document.getElementById('landingPage').style.display='none';
+      const lp=document.getElementById('landingPage'); lp.style.display='none'; lp.style.visibility='hidden'; lp.style.height='0'; lp.style.overflow='hidden';
       document.getElementById('appPage').style.display='flex';
       renderAll();
       
@@ -3604,7 +3604,7 @@ document.addEventListener('keydown',e=>{
           nextTraineeId=trainees.length>0?Math.max(...trainees.map(t=>t.id||0))+1:1;
           applyTheme(activeTheme);
           currentUser={email:'staff',name:profile.name,username:profile.username};
-          document.getElementById('landingPage').style.display='none';
+          const lp=document.getElementById('landingPage'); lp.style.display='none'; lp.style.visibility='hidden'; lp.style.height='0'; lp.style.overflow='hidden';
           document.getElementById('appPage').style.display='flex';
           document.getElementById('headerName').textContent=deptName;
           setAvatar(profile.name);
