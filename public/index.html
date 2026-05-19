@@ -1267,6 +1267,15 @@ function startRealtimeSync(){
     }, (payload) => {
       if(isSyncing) return;
       const rd = payload.new;
+
+      // Only re-render what actually changed
+      const membersChanged = JSON.stringify(rd.members) !== JSON.stringify(members);
+      const traineesChanged = JSON.stringify(rd.trainees) !== JSON.stringify(trainees);
+      const structureChanged = JSON.stringify(rd.rank_groups) !== JSON.stringify(rankGroups) ||
+        JSON.stringify(rd.subdivisions) !== JSON.stringify(subdivisions) ||
+        JSON.stringify(rd.custom_tags) !== JSON.stringify(customTags) ||
+        rd.theme !== activeTheme;
+
       members = rd.members||[];
       trainees = rd.trainees||[];
       rankGroups = rd.rank_groups||[];
@@ -1280,12 +1289,17 @@ function startRealtimeSync(){
       if(rd.theme && rd.theme !== activeTheme) applyTheme(rd.theme);
       nextMemberId = members.length>0?Math.max(...members.map(m=>m.id||0))+1:1;
       nextTraineeId = trainees.length>0?Math.max(...trainees.map(t=>t.id||0))+1:1;
-      renderAll();
+
+      // Only re-render what changed to avoid full page flash
+      if(structureChanged){
+        renderAll();
+      } else {
+        if(membersChanged){ renderRoster(); renderStats(); if(document.getElementById('tab-members')?.classList.contains('active')) renderAllMembers(); }
+        if(traineesChanged){ renderTrainees(); renderStats(); }
+      }
       showToast('🔄 Roster updated.');
     })
-    .subscribe((status)=>{
-      console.log('Realtime status:', status);
-    });
+    .subscribe();
 }
 
 function stopRealtimeSync(){
