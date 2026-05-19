@@ -341,7 +341,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 <body>
 
 <!-- ══════════ LANDING ══════════ -->
-<div id="landingPage">
+<div id="landingPage" style="display:flex;">
 
   <!-- NAV -->
   <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 40px;border-bottom:1px solid #1e1e1e;width:100%;background:var(--bg);">
@@ -1585,6 +1585,12 @@ async function doLogin(){
 }
 
 async function onLoginSuccess(user){
+  // Reset all state first
+  members=[]; trainees=[]; rankGroups=[]; subdivisions=[]; positions=[];
+  traineeFormat=''; traineeFormatTo=''; customTags=[]; promotions=[];
+  customThemes=[{name:'Custom 1',accent:'#c9a84c',bg:'#0a0c10'},{name:'Custom 2',accent:'#60a5fa',bg:'#080c14'}];
+  deptId=null; rosterDataId=null; deptName=''; activeTheme='dark-steel';
+  nextMemberId=1; nextTraineeId=1;
   currentUser = user;
   isSuperAdmin = isSuperAdminEmail(user.email);
   closeAuthModal();
