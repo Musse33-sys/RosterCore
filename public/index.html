@@ -1211,6 +1211,7 @@ function loadDemo(){
 
   document.getElementById('landingPage').style.display='none';
   document.getElementById('appPage').style.display='flex';
+  window.scrollTo(0,0);
   document.getElementById('headerName').textContent = deptName;
   setAvatar('Demo');
   document.getElementById('adminPill').style.background = 'rgba(167,139,250,.1)';
@@ -1589,6 +1590,7 @@ async function onLoginSuccess(user){
   closeAuthModal();
   document.getElementById('landingPage').style.display='none';
   document.getElementById('appPage').style.display='flex';
+  window.scrollTo(0,0);
 
   if(isSuperAdmin){
     document.getElementById('saTab').classList.remove('hidden');
@@ -1806,6 +1808,7 @@ async function doStaffLogin(){
   document.getElementById('staffLoginModal').classList.add('hidden');
   document.getElementById('landingPage').style.display='none';
   document.getElementById('appPage').style.display='flex';
+  window.scrollTo(0,0);
   document.getElementById('headerName').textContent=deptName;
   setAvatar(profile.name);
   document.getElementById('addMemberBtn').classList.remove('hidden');
@@ -3624,4 +3627,3 @@ document.addEventListener('keydown',e=>{
 </script>
 </body>
 </html>
-
