@@ -72,6 +72,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 #toast.warn{border-left-color:var(--red);}
 
 #landingPage{min-height:100vh;display:flex;flex-direction:column;align-items:center;background:var(--bg);overflow-y:auto;}
+#landingPage[style*="display:none"]{height:0!important;overflow:hidden!important;min-height:0!important;}
 #landingPage::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 70% 40% at 50% 0%,rgba(201,168,76,.04) 0%,transparent 60%);pointer-events:none;z-index:0;}
 #landingPage > *{position:relative;z-index:1;}
 
@@ -94,7 +95,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .auth-title{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:3px;text-align:center;color:var(--text);margin-bottom:4px;}
 .auth-sub{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--accent);text-align:center;margin-bottom:28px;}
 
-#appPage{display:none;flex-direction:column;min-height:100vh;}
+#appPage{display:none;flex-direction:column;min-height:100vh;position:relative;z-index:1;background:var(--bg);}
 
 .app-header{background:linear-gradient(180deg,#07090d 0%,var(--bg2) 100%);border-bottom:1px solid var(--border2);}
 .header-inner{display:flex;align-items:center;justify-content:space-between;padding:16px 32px;border-bottom:1px solid var(--border);}
@@ -1209,8 +1210,8 @@ function loadDemo(){
   nextMemberId = 12;
   nextTraineeId = 4;
 
-  const lp=document.getElementById('landingPage'); lp.style.display='none'; lp.style.visibility='hidden'; lp.style.height='0'; lp.style.overflow='hidden';
-  document.getElementById('appPage').style.display='flex';
+  document.getElementById('landingPage').style.display='none';
+  document.getElementById('appPage').style.display='flex'; document.getElementById('appPage').style.flexDirection='column';
   window.scrollTo(0,0);
   document.getElementById('headerName').textContent = deptName;
   setAvatar('Demo');
@@ -1596,8 +1597,8 @@ async function onLoginSuccess(user){
   currentUser = user;
   isSuperAdmin = isSuperAdminEmail(user.email);
   closeAuthModal();
-  const lp=document.getElementById('landingPage'); lp.style.display='none'; lp.style.visibility='hidden'; lp.style.height='0'; lp.style.overflow='hidden';
-  document.getElementById('appPage').style.display='flex';
+  document.getElementById('landingPage').style.display='none';
+  document.getElementById('appPage').style.display='flex'; document.getElementById('appPage').style.flexDirection='column';
   window.scrollTo(0,0);
 
   if(isSuperAdmin){
@@ -1814,8 +1815,8 @@ async function doStaffLogin(){
   currentUser={email:'staff', name:profile.name, username:profile.username};
 
   document.getElementById('staffLoginModal').classList.add('hidden');
-  const lp=document.getElementById('landingPage'); lp.style.display='none'; lp.style.visibility='hidden'; lp.style.height='0'; lp.style.overflow='hidden';
-  document.getElementById('appPage').style.display='flex';
+  document.getElementById('landingPage').style.display='none';
+  document.getElementById('appPage').style.display='flex'; document.getElementById('appPage').style.flexDirection='column';
   window.scrollTo(0,0);
   document.getElementById('headerName').textContent=deptName;
   setAvatar(profile.name);
@@ -3551,8 +3552,8 @@ document.addEventListener('keydown',e=>{
         activeTheme=rd.theme||'dark-steel'; members=rd.members||[]; trainees=rd.trainees||[];
         applyTheme(activeTheme);
         document.getElementById('headerName').textContent=deptName;
-        const lp=document.getElementById('landingPage'); lp.style.display='none'; lp.style.visibility='hidden'; lp.style.height='0'; lp.style.overflow='hidden';
-        document.getElementById('appPage').style.display='flex';
+        document.getElementById('landingPage').style.display='none';
+        document.getElementById('appPage').style.display='flex'; document.getElementById('appPage').style.flexDirection='column';
         document.getElementById('loginFromPublicBtn').classList.remove('hidden');
         document.getElementById('rosterTab').classList.remove('hidden');
         document.getElementById('traineesTab').classList.remove('hidden');
@@ -3576,8 +3577,8 @@ document.addEventListener('keydown',e=>{
       activeTheme=rd.theme||'dark-steel'; members=rd.members||[]; trainees=rd.trainees||[];
       applyTheme(activeTheme);
       document.getElementById('headerName').textContent=deptName;
-      const lp=document.getElementById('landingPage'); lp.style.display='none'; lp.style.visibility='hidden'; lp.style.height='0'; lp.style.overflow='hidden';
-      document.getElementById('appPage').style.display='flex';
+      document.getElementById('landingPage').style.display='none';
+      document.getElementById('appPage').style.display='flex'; document.getElementById('appPage').style.flexDirection='column';
       renderAll();
       
       await showNameGate(token);
@@ -3612,8 +3613,8 @@ document.addEventListener('keydown',e=>{
           nextTraineeId=trainees.length>0?Math.max(...trainees.map(t=>t.id||0))+1:1;
           applyTheme(activeTheme);
           currentUser={email:'staff',name:profile.name,username:profile.username};
-          const lp=document.getElementById('landingPage'); lp.style.display='none'; lp.style.visibility='hidden'; lp.style.height='0'; lp.style.overflow='hidden';
-          document.getElementById('appPage').style.display='flex';
+          document.getElementById('landingPage').style.display='none';
+          document.getElementById('appPage').style.display='flex'; document.getElementById('appPage').style.flexDirection='column';
           document.getElementById('headerName').textContent=deptName;
           setAvatar(profile.name);
           document.getElementById('rosterTab').classList.remove('hidden');
