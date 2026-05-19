@@ -3058,6 +3058,8 @@ async function deleteBugReport(id){
   loadBugReports();
   showToast('Bug report deleted.');
 }
+
+function togglePw(id){
   const el=document.getElementById('pw_'+id);
   if(!el) return;
   el.style.filter=el.style.filter?'':'blur(4px)';
