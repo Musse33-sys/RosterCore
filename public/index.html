@@ -1322,7 +1322,7 @@ function buildMemberRow(m, gi){
   const g=rankGroups[gi]||{};
   return `<tr class="row-filled" data-member-id="${m.id}">
     <td><span class="cs-filled">${m.callsign||'—'}</span></td>
-    ${showInsignia?`<td style="padding:8px 12px;text-align:center;vertical-align:middle;">${getRankInsignia(gi)}</td>`:''}
+    ${showInsignia?`<td style="padding:8px 16px;text-align:center;vertical-align:middle;min-width:80px;">${getRankInsignia(gi)}</td>`:''}
     <td class="name-td"><div class="member-name">${m.name}${onlineUsers.has(m.name)?'<span class="online-dot" title="Online now"></span>':''} ${tags}</div>${(m.position||g.position)?`<div class="member-pos">${m.position||g.position}</div>`:''}</td>
     <td>${sdBadges(m.subdivs)}</td>
     <td>${statusPill(m.status)}</td>
@@ -2522,7 +2522,7 @@ function renderRoster(){
           if(m){
             return `<tr class="row-filled" data-member-id="${m.id}">
               <td><span class="cs-filled">${m.callsign||'—'}</span></td>
-              ${showInsignia?`<td style="padding:8px 12px;text-align:center;vertical-align:middle;">${getRankInsignia(gi)}</td>`:''}
+              ${showInsignia?`<td style="padding:8px 16px;text-align:center;vertical-align:middle;min-width:80px;">${getRankInsignia(gi)}</td>`:''}
               <td class="name-td">
                 <div class="member-name">${m.name}${onlineUsers.has(m.name)?'<span class="online-dot" title="Online now"></span>':''}
                   ${(m.tags||[]).map(tag=>{const t=customTags.find(ct=>ct.name===tag);const c=t?t.color:'#7ec8e3';return`<span style="font-family:'JetBrains Mono',monospace;font-size:9px;background:${c}18;border:1px solid ${c}55;color:${c};padding:1px 6px;border-radius:2px;">${tag}</span>`;}).join('')}
