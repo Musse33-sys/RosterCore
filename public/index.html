@@ -2580,14 +2580,14 @@ function renderRoster(){
         <div class="rg-table-wrap">
           <table class="roster-table">
             <colgroup>
-              <col style="width:90px;">${showInsignia?'<col style="width:44px;">':''}
+              <col style="width:90px;">${showInsignia?'<col style="width:56px;">':''}
               <col style="width:180px;"><col style="width:150px;">
               <col style="width:110px;"><col style="width:100px;"><col style="width:130px;">
               <col style="width:55px;"><col style="width:110px;">
               ${currentUser?'<col style="width:120px;">':''}
             </colgroup>
             <thead><tr>
-              <th>Callsign</th>${showInsignia?'<th style="width:44px;"></th>':''}<th>Name</th><th>Subdivision</th><th>Status</th>
+              <th>Callsign</th>${showInsignia?'<th style="width:56px;"></th>':''}<th>Name</th><th>Subdivision</th><th>Status</th>
               <th class="col-doh">DOH</th><th class="col-discord">ID</th><th class="col-strikes">Strikes</th><th class="col-notes">Notes</th>
               ${actionsCols}
             </tr></thead>
