@@ -141,6 +141,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .roster-table tbody tr.row-filled:hover{background:var(--bg3);}
 .roster-table tbody tr.row-empty{background:var(--bg);border-bottom:1px solid rgba(42,47,61,.5);}
 .roster-table td{padding:8px 12px;vertical-align:middle;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.roster-table td.cs-cell{padding-right:0;}
+.roster-table td.ins-cell{padding:8px 0;}
 .roster-table td.name-td{white-space:normal;overflow:visible;}
 .roster-table tr.row-empty td{color:var(--border2);font-family:'JetBrains Mono',monospace;font-size:10px;}
 .subdiv-wrap{display:flex;flex-direction:row;flex-wrap:wrap;gap:3px;}
@@ -1321,8 +1323,8 @@ function buildMemberRow(m, gi){
   const tags=(m.tags||[]).map(tag=>{const t=customTags.find(ct=>ct.name===tag);const c=t?t.color:'#7ec8e3';return`<span style="font-family:'JetBrains Mono',monospace;font-size:9px;background:${c}18;border:1px solid ${c}55;color:${c};padding:1px 6px;border-radius:2px;">${tag}</span>`;}).join('');
   const g=rankGroups[gi]||{};
   return `<tr class="row-filled" data-member-id="${m.id}">
-    <td style="padding-right:0!important;"><span class="cs-filled">${m.callsign||'—'}</span></td>
-    ${showInsignia?`<td style="padding:8px 0!important;text-align:center;vertical-align:middle;">${getRankInsignia(gi)}</td>`:''}
+    <td class="cs-cell"><span class="cs-filled">${m.callsign||'—'}</span></td>
+    ${showInsignia?`<td class="ins-cell" style="text-align:center;vertical-align:middle;">${getRankInsignia(gi)}</td>`:''}
     <td class="name-td"><div class="member-name">${m.name}${onlineUsers.has(m.name)?'<span class="online-dot" title="Online now"></span>':''} ${tags}</div>${(m.position||g.position)?`<div class="member-pos">${m.position||g.position}</div>`:''}</td>
     <td>${sdBadges(m.subdivs)}</td>
     <td>${statusPill(m.status)}</td>
@@ -2521,8 +2523,8 @@ function renderRoster(){
           const m = gMembers.find(mb=>mb.callsign===slot);
           if(m){
             return `<tr class="row-filled" data-member-id="${m.id}">
-              <td style="padding-right:0!important;"><span class="cs-filled">${m.callsign||'—'}</span></td>
-              ${showInsignia?`<td style="padding:8px 0!important;text-align:center;vertical-align:middle;">${getRankInsignia(gi)}</td>`:''}
+              <td class="cs-cell"><span class="cs-filled">${m.callsign||'—'}</span></td>
+              ${showInsignia?`<td class="ins-cell" style="text-align:center;vertical-align:middle;">${getRankInsignia(gi)}</td>`:''}
               <td class="name-td">
                 <div class="member-name">${m.name}${onlineUsers.has(m.name)?'<span class="online-dot" title="Online now"></span>':''}
                   ${(m.tags||[]).map(tag=>{const t=customTags.find(ct=>ct.name===tag);const c=t?t.color:'#7ec8e3';return`<span style="font-family:'JetBrains Mono',monospace;font-size:9px;background:${c}18;border:1px solid ${c}55;color:${c};padding:1px 6px;border-radius:2px;">${tag}</span>`;}).join('')}
