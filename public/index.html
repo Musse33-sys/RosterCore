@@ -773,16 +773,18 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
         </div>
         <div class="editor-divider"></div>
 
-        <!-- POSITIONS -->
+        <!-- FIXED POSITIONS -->
         <div class="editor-section">
-          <div class="editor-h3">Positions</div>
+          <div class="editor-h3">Fixed Positions &amp; Callsigns</div>
+          <p style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);margin-bottom:10px;line-height:1.7;">Assign a fixed callsign and insignia to a position. Members with this position will display the fixed callsign and insignia on the roster.</p>
+          <div class="col-labels" style="grid-template-columns:1fr 110px 44px 28px;"><span>Title</span><span>Callsign</span><span>Insignia</span><span></span></div>
           <div class="edit-list" id="posList"></div>
           <div class="add-form">
-            <input class="add-input" id="posNew" placeholder="Position title (e.g. Director, Sergeant)">
+            <input class="add-input" id="posNew" placeholder="Position title (e.g. Director)">
+            <input class="add-input" id="posNewCS" placeholder="Callsign" style="max-width:110px;">
             <button class="btn btn-primary btn-sm" onclick="addPosition()">+ Add</button>
           </div>
         </div>
-        <div class="editor-divider"></div>
 
         <!-- SUBDIVISIONS -->
         <div class="editor-section">
@@ -1190,7 +1192,13 @@ function loadDemo(){
     {name:'Marine', color:'#60a5fa'},
   ];
 
-  positions = ['SAGW Director','Deputy Commissioner','Lieutenant','Sergeant','Game Warden'];
+  positions = [
+    {name:'SAGW Director', callsign:'1W-01', insignia:''},
+    {name:'Deputy Commissioner', callsign:'1W-07', insignia:''},
+    {name:'Lieutenant', callsign:'', insignia:''},
+    {name:'Sergeant', callsign:'', insignia:''},
+    {name:'Game Warden', callsign:'', insignia:''},
+  ];
   customTags = [{name:'FTO', color:'#60a5fa'},{name:'Volunteer', color:'#a78bfa'}];
   traineeFormat = 'G-01';
   traineeFormatTo = 'G-50';
@@ -1323,9 +1331,11 @@ function patchRosterRow(m){
 function buildMemberRow(m, gi){
   const tags=(m.tags||[]).map(tag=>{const t=customTags.find(ct=>ct.name===tag);const c=t?t.color:'#7ec8e3';return`<span style="font-family:'JetBrains Mono',monospace;font-size:9px;background:${c}18;border:1px solid ${c}55;color:${c};padding:1px 6px;border-radius:2px;">${tag}</span>`;}).join('');
   const g=rankGroups[gi]||{};
+  const pd=getPosData(m.position);
+  const displayCS=(pd&&pd.callsign)?pd.callsign:(m.callsign||'—');
   return `<tr class="row-filled" data-member-id="${m.id}">
-    <td class="cs-cell"><span class="cs-filled">${m.callsign||'—'}</span></td>
-    ${showInsignia?`<td class="ins-cell" style="text-align:center;vertical-align:middle;">${getRankInsignia(gi)}</td>`:''}
+    <td class="cs-cell"><span class="cs-filled">${displayCS}</span></td>
+    ${showInsignia?`<td class="ins-cell" style="text-align:center;vertical-align:middle;">${getRankInsignia(gi,m.position)}</td>`:''}
     <td class="name-td"><div class="member-name">${m.name}${onlineUsers.has(m.name)?'<span class="online-dot" title="Online now"></span>':''} ${tags}</div>${(m.position||g.position)?`<div class="member-pos">${m.position||g.position}</div>`:''}</td>
     <td>${sdBadges(m.subdivs)}</td>
     <td>${statusPill(m.status)}</td>
@@ -1421,7 +1431,7 @@ function startRealtimeSync(){
       trainees = rd.trainees||[];
       rankGroups = rd.rank_groups||[];
       subdivisions = rd.subdivisions||[];
-      positions = rd.positions||[];
+      positions = migratePositions(rd.positions);
       traineeFormat = rd.trainee_format||'';
       traineeFormatTo = rd.trainee_format_to||'';
       customTags = rd.custom_tags||[];
@@ -1614,7 +1624,7 @@ async function loadDepartment(userId){
   rosterDataId = rd.id;
   rankGroups = rd.rank_groups||[];
   subdivisions = rd.subdivisions||[];
-  positions = rd.positions||[];
+  positions = migratePositions(rd.positions);
   traineeFormat = rd.trainee_format||''; traineeFormatTo = rd.trainee_format_to||'';
   customTags = rd.custom_tags||[];
   promotions = rd.promotions||[];
@@ -1699,7 +1709,7 @@ async function confirmRestore(id){
   if(!s){showToast('⚠ Snapshot not found.',true);return;}
   const snap=s.snapshot;
   members=snap.members||[]; trainees=snap.trainees||[]; rankGroups=snap.rankGroups||[];
-  subdivisions=snap.subdivisions||[]; positions=snap.positions||[];
+  subdivisions=snap.subdivisions||[]; positions=migratePositions(snap.positions);
   traineeFormat=snap.traineeFormat||''; traineeFormatTo=snap.traineeFormatTo||'';
   customTags=snap.customTags||[]; promotions=snap.promotions||[];
   customThemes=snap.customThemes||[{name:'Custom 1',accent:'#c9a84c',bg:'#0a0c10'},{name:'Custom 2',accent:'#60a5fa',bg:'#080c14'}];
@@ -1952,7 +1962,7 @@ async function doStaffLogin(){
   deptName=dept?.name||'Department';
   rankGroups=rd.rank_groups||[];
   subdivisions=rd.subdivisions||[];
-  positions=rd.positions||[];
+  positions=migratePositions(rd.positions);
   customTags=rd.custom_tags||[];
   promotions=rd.promotions||[];
   traineeFormat=rd.trainee_format||'';
@@ -2523,9 +2533,11 @@ function renderRoster(){
       ? slots.map(slot=>{
           const m = gMembers.find(mb=>mb.callsign===slot);
           if(m){
+            const pd = getPosData(m.position);
+            const displayCS = (pd && pd.callsign) ? pd.callsign : (m.callsign||'—');
             return `<tr class="row-filled" data-member-id="${m.id}">
-              <td class="cs-cell"><span class="cs-filled">${m.callsign||'—'}</span></td>
-              ${showInsignia?`<td class="ins-cell" style="text-align:center;vertical-align:middle;">${getRankInsignia(gi)}</td>`:''}
+              <td class="cs-cell"><span class="cs-filled">${displayCS}</span></td>
+              ${showInsignia?`<td class="ins-cell" style="text-align:center;vertical-align:middle;">${getRankInsignia(gi,m.position)}</td>`:''}
               <td class="name-td">
                 <div class="member-name">${m.name}${onlineUsers.has(m.name)?'<span class="online-dot" title="Online now"></span>':''}
                   ${(m.tags||[]).map(tag=>{const t=customTags.find(ct=>ct.name===tag);const c=t?t.color:'#7ec8e3';return`<span style="font-family:'JetBrains Mono',monospace;font-size:9px;background:${c}18;border:1px solid ${c}55;color:${c};padding:1px 6px;border-radius:2px;">${tag}</span>`;}).join('')}
@@ -2553,9 +2565,11 @@ function renderRoster(){
             </tr>`;
           }
         }).join('')
-      : gMembers.map(m=>`
-        <tr class="row-filled">
-          <td><span class="cs-filled">${m.callsign||'—'}</span></td>
+      : gMembers.map(m=>{
+        const pd=getPosData(m.position);
+        const displayCS=(pd&&pd.callsign)?pd.callsign:(m.callsign||'—');
+        return `<tr class="row-filled">
+          <td><span class="cs-filled">${displayCS}</span></td>
           <td class="name-td">
             <div class="member-name">${m.name}${onlineUsers.has(m.name)?'<span class="online-dot" title="Online now"></span>':''}
               ${(m.tags||[]).map(tag=>{const t=customTags.find(ct=>ct.name===tag);const c=t?t.color:'#7ec8e3';return`<span style="font-family:'JetBrains Mono',monospace;font-size:9px;background:${c}18;border:1px solid ${c}55;color:${c};padding:1px 6px;border-radius:2px;">${tag}</span>`;}).join('')}
@@ -2574,7 +2588,8 @@ function renderRoster(){
             <button class="btn btn-ghost btn-xs" onclick="openEditMember(${m.id})">Edit</button>
             <button class="btn btn-danger" onclick="openConfirmDelete(${m.id},'member')">✕</button>
           </div></td>`:''}
-        </tr>`).join('') || `<tr class="row-empty"><td colspan="${currentUser?9:8}" style="text-align:center;padding:16px;font-family:'JetBrains Mono',monospace;font-size:11px;">— NO MEMBERS —</td></tr>`;
+        </tr>`;
+      }).join('') || `<tr class="row-empty"><td colspan="${currentUser?9:8}" style="text-align:center;padding:16px;font-family:'JetBrains Mono',monospace;font-size:11px;">— NO MEMBERS —</td></tr>`;
 
     html+=`
     <div class="rank-group fade-up">
@@ -2863,7 +2878,7 @@ function graduate(id){
 function openAddMember(){
   editingMemberId=null;
   populateSel('mmGroup', rankGroups.map(g=>g.name), false);
-  populateSel('mmPosition', positions, true);
+  populateSel('mmPosition', positions.map(p=>typeof p==='string'?p:p.name), true);
   populateSel('mmS1', subdivisions.map(s=>s.name), true);
   populateSel('mmS2', subdivisions.map(s=>s.name), true);
   populateSel('mmS3', subdivisions.map(s=>s.name), true);
@@ -2905,7 +2920,7 @@ function openEditMember(id){
   const m=members.find(mb=>mb.id===id); if(!m)return;
   editingMemberId=id;
   populateSel('mmGroup', rankGroups.map(g=>g.name), false);
-  populateSel('mmPosition', positions, true);
+  populateSel('mmPosition', positions.map(p=>typeof p==='string'?p:p.name), true);
   populateSel('mmS1', subdivisions.map(s=>s.name), true);
   populateSel('mmS2', subdivisions.map(s=>s.name), true);
   populateSel('mmS3', subdivisions.map(s=>s.name), true);
@@ -3177,11 +3192,19 @@ function uploadInsignia(i, input){
   reader.readAsDataURL(file);
 }
 
-function getRankInsignia(gi){
+function getPosData(posName){
+  if(!posName) return null;
+  const p = positions.find(p=>(typeof p==='string'?p:p.name)===posName);
+  if(!p || typeof p==='string') return null;
+  return p;
+}
+
+function getRankInsignia(gi, posName){
+  // Fixed position insignia takes priority
+  const pd = getPosData(posName);
+  if(pd && pd.insignia) return `<img src="${pd.insignia}" style="width:24px;height:24px;object-fit:contain;display:block;margin:0 auto;">`;
   const g = rankGroups[gi];
-  if(g && g.insignia){
-    return `<img src="${g.insignia}" style="width:24px;height:24px;object-fit:contain;display:block;margin:0 auto;">`;
-  }
+  if(g && g.insignia) return `<img src="${g.insignia}" style="width:24px;height:24px;object-fit:contain;display:block;margin:0 auto;">`;
   return '';
 }
 
@@ -3270,18 +3293,39 @@ function addRankGroup(){
 }
 
 function renderPosList(){
-  document.getElementById('posList').innerHTML=positions.map((p,i)=>`
-    <div class="edit-row" style="grid-template-columns:1fr 28px;">
-      <input class="edit-input" value="${p}" oninput="updatePos(${i},this.value)">
+  document.getElementById('posList').innerHTML=positions.map((p,i)=>{
+    const po = typeof p==='string' ? {name:p,callsign:'',insignia:''} : p;
+    return `<div class="edit-row" style="grid-template-columns:1fr 110px 44px 28px;">
+      <input class="edit-input" value="${po.name}" oninput="updatePosName(${i},this.value)" placeholder="Position title">
+      <input class="edit-input" value="${po.callsign||''}" oninput="updatePosCS(${i},this.value)" placeholder="Callsign">
+      <div style="display:flex;align-items:center;justify-content:center;">
+        <label title="Upload insignia" style="cursor:pointer;width:36px;height:28px;display:flex;align-items:center;justify-content:center;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;flex-shrink:0;">
+          ${po.insignia ? `<img src="${po.insignia}" style="width:100%;height:100%;object-fit:contain;">` : `<span style="font-size:14px;color:var(--text3);">+</span>`}
+          <input type="file" accept="image/*" style="display:none;" onchange="uploadPosInsignia(${i},this)">
+        </label>
+      </div>
       <button class="del-btn" onclick="deletePos(${i})">×</button>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
-function updatePos(i,v){ positions[i]=v; members.forEach(m=>{if(m.position===positions[i])m.position=v;}); scheduleSave(); }
+function updatePosName(i,v){ const old=positions[i]?.name||positions[i]; positions[i]={...posObj(i),name:v}; members.forEach(m=>{if(m.position===old)m.position=v;}); scheduleSave(); }
+function updatePosCS(i,v){ positions[i]={...posObj(i),callsign:v}; renderRoster(); scheduleSave(); }
+function posObj(i){ const p=positions[i]; return typeof p==='string'?{name:p,callsign:'',insignia:''}:p; }
+function migratePositions(arr){ return (arr||[]).map(p=>typeof p==='string'?{name:p,callsign:'',insignia:''}:p); }
+function uploadPosInsignia(i, input){
+  const file=input.files[0]; if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{ positions[i]={...posObj(i),insignia:e.target.result}; renderPosList(); renderRoster(); scheduleSave(); showToast('✓ Insignia uploaded.'); };
+  reader.readAsDataURL(file);
+}
 function deletePos(i){ positions.splice(i,1); renderPosList(); scheduleSave(); }
 function addPosition(){
   const name=document.getElementById('posNew').value.trim();
+  const callsign=document.getElementById('posNewCS').value.trim();
   if(!name)return;
-  positions.push(name); document.getElementById('posNew').value='';
+  positions.push({name,callsign,insignia:''});
+  document.getElementById('posNew').value='';
+  document.getElementById('posNewCS').value='';
   renderPosList(); scheduleSave(); showToast(`✓ "${name}" added.`);
 }
 
@@ -3753,7 +3797,7 @@ document.addEventListener('keydown',e=>{
         rosterDataId=rd.id;
         deptId=deptRecord.id; deptName=deptRecord.name||'Department';
         rankGroups=rd.rank_groups||[]; subdivisions=rd.subdivisions||[];
-        positions=rd.positions||[]; traineeFormat=rd.trainee_format||''; traineeFormatTo=rd.trainee_format_to||''; showInsignia=rd.show_insignia||false; customTags=rd.custom_tags||[]; promotions=rd.promotions||[]; customThemes=(rd.custom_themes&&rd.custom_themes.length?rd.custom_themes:[{name:'Custom 1',accent:'#c9a84c',bg:'#0a0c10'},{name:'Custom 2',accent:'#60a5fa',bg:'#080c14'}]);
+        positions=migratePositions(rd.positions); traineeFormat=rd.trainee_format||''; traineeFormatTo=rd.trainee_format_to||''; showInsignia=rd.show_insignia||false; customTags=rd.custom_tags||[]; promotions=rd.promotions||[]; customThemes=(rd.custom_themes&&rd.custom_themes.length?rd.custom_themes:[{name:'Custom 1',accent:'#c9a84c',bg:'#0a0c10'},{name:'Custom 2',accent:'#60a5fa',bg:'#080c14'}]);
         activeTheme=rd.theme||'dark-steel'; members=rd.members||[]; trainees=rd.trainees||[];
         applyTheme(activeTheme);
         document.getElementById('headerName').textContent=deptName;
@@ -3780,7 +3824,7 @@ document.addEventListener('keydown',e=>{
       const {data:dept}=await sb.from('departments').select('*').eq('id',rd.dept_id).single();
       if(dept){deptId=dept.id;deptName=dept.name||'Department';}
       rankGroups=rd.rank_groups||[]; subdivisions=rd.subdivisions||[];
-      positions=rd.positions||[]; traineeFormat=rd.trainee_format||''; traineeFormatTo=rd.trainee_format_to||''; showInsignia=rd.show_insignia||false; customTags=rd.custom_tags||[]; promotions=rd.promotions||[]; customThemes=(rd.custom_themes&&rd.custom_themes.length?rd.custom_themes:[{name:'Custom 1',accent:'#c9a84c',bg:'#0a0c10'},{name:'Custom 2',accent:'#60a5fa',bg:'#080c14'}]);
+      positions=migratePositions(rd.positions); traineeFormat=rd.trainee_format||''; traineeFormatTo=rd.trainee_format_to||''; showInsignia=rd.show_insignia||false; customTags=rd.custom_tags||[]; promotions=rd.promotions||[]; customThemes=(rd.custom_themes&&rd.custom_themes.length?rd.custom_themes:[{name:'Custom 1',accent:'#c9a84c',bg:'#0a0c10'},{name:'Custom 2',accent:'#60a5fa',bg:'#080c14'}]);
       activeTheme=rd.theme||'dark-steel'; members=rd.members||[]; trainees=rd.trainees||[];
       applyTheme(activeTheme);
       document.getElementById('headerName').textContent=deptName;
@@ -3812,7 +3856,7 @@ document.addEventListener('keydown',e=>{
         if(rd && dept){
           rosterDataId=rd.id; deptId=rd.dept_id; deptName=dept.name||'Department';
           rankGroups=rd.rank_groups||[]; subdivisions=rd.subdivisions||[];
-          positions=rd.positions||[]; traineeFormat=rd.trainee_format||''; traineeFormatTo=rd.trainee_format_to||''; showInsignia=rd.show_insignia||false;
+          positions=migratePositions(rd.positions); traineeFormat=rd.trainee_format||''; traineeFormatTo=rd.trainee_format_to||''; showInsignia=rd.show_insignia||false;
           customTags=rd.custom_tags||[]; promotions=rd.promotions||[];
           customThemes=(rd.custom_themes&&rd.custom_themes.length?rd.custom_themes:[{name:'Custom 1',accent:'#c9a84c',bg:'#0a0c10'},{name:'Custom 2',accent:'#60a5fa',bg:'#080c14'}]);
           activeTheme=rd.theme||'dark-steel'; members=rd.members||[]; trainees=rd.trainees||[];
