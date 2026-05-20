@@ -821,10 +821,26 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
           </div>
         </div>
 
+        <div class="editor-divider"></div>
+
+        <!-- INSIGNIA -->
+        <div class="editor-section">
+          <div class="editor-h3">Rank Insignia</div>
+          <p style="font-size:13px;color:var(--text2);margin-bottom:14px;line-height:1.6;">Show a rank insignia between the callsign and name on the main roster.</p>
+          <div style="display:flex;gap:12px;">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;background:var(--bg3);border:1px solid var(--border);padding:10px 16px;border-radius:var(--radius);transition:all .15s;" id="insigniaYesLabel">
+              <input type="radio" name="insigniaToggle" id="insigniaYes" value="yes" onchange="toggleInsignia(true)" style="accent-color:var(--accent);width:15px;height:15px;">
+              <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text);">Yes</span>
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;background:var(--bg3);border:1px solid var(--border);padding:10px 16px;border-radius:var(--radius);transition:all .15s;" id="insigniaNoLabel">
+              <input type="radio" name="insigniaToggle" id="insigniaNo" value="no" onchange="toggleInsignia(false)" style="accent-color:var(--accent);width:15px;height:15px;" checked>
+              <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text);">No</span>
+            </label>
+          </div>
+        </div>
+
       </div>
     </div>
-
-    <!-- SUPER ADMIN TAB -->
     <div class="tab-panel" id="tab-superadmin" style="display:none;">
       <div class="sa-panel">
         <div class="sa-notice">⬡ SUPER ADMIN — Only you can see this panel. Create and manage department accounts here.</div>
@@ -1306,6 +1322,7 @@ function buildMemberRow(m, gi){
   const g=rankGroups[gi]||{};
   return `<tr class="row-filled" data-member-id="${m.id}">
     <td><span class="cs-filled">${m.callsign||'—'}</span></td>
+    ${showInsignia?`<td style="padding:6px 8px;text-align:center;">${getRankInsignia(gi)}</td>`:''}
     <td class="name-td"><div class="member-name">${m.name}${onlineUsers.has(m.name)?'<span class="online-dot" title="Online now"></span>':''} ${tags}</div>${(m.position||g.position)?`<div class="member-pos">${m.position||g.position}</div>`:''}</td>
     <td>${sdBadges(m.subdivs)}</td>
     <td>${statusPill(m.status)}</td>
@@ -1472,6 +1489,7 @@ function stopPresence(){
 
 let deptName = '';
 let rankGroups = [];
+let showInsignia = false;
 let subdivisions = [];
 let positions = [];
 let traineeFormat = '';
@@ -1616,7 +1634,7 @@ async function saveRoster(){
   isSyncing = true;
   const {error:e1} = await sb.from('roster_data').update({
     rank_groups: rankGroups, subdivisions: subdivisions,
-    positions: positions, trainee_format: traineeFormat, trainee_format_to: traineeFormatTo, custom_tags: customTags, promotions: promotions, custom_themes: customThemes,
+    positions: positions, trainee_format: traineeFormat, trainee_format_to: traineeFormatTo, custom_tags: customTags, promotions: promotions, custom_themes: customThemes, show_insignia: showInsignia,
     theme: activeTheme, members: members, trainees: trainees,
     updated_at: new Date().toISOString()
   }).eq('id', rosterDataId);
@@ -1935,7 +1953,7 @@ async function doStaffLogin(){
   customTags=rd.custom_tags||[];
   promotions=rd.promotions||[];
   traineeFormat=rd.trainee_format||'';
-  traineeFormatTo=rd.trainee_format_to||'';
+  traineeFormatTo=rd.trainee_format_to||''; showInsignia=rd.show_insignia||false;
   activeTheme=rd.theme||'dark-steel';
   members=rd.members||[];
   trainees=rd.trainees||[];
@@ -2504,6 +2522,7 @@ function renderRoster(){
           if(m){
             return `<tr class="row-filled" data-member-id="${m.id}">
               <td><span class="cs-filled">${m.callsign||'—'}</span></td>
+              ${showInsignia?`<td style="padding:6px 8px;text-align:center;">${getRankInsignia(gi)}</td>`:''}
               <td class="name-td">
                 <div class="member-name">${m.name}${onlineUsers.has(m.name)?'<span class="online-dot" title="Online now"></span>':''}
                   ${(m.tags||[]).map(tag=>{const t=customTags.find(ct=>ct.name===tag);const c=t?t.color:'#7ec8e3';return`<span style="font-family:'JetBrains Mono',monospace;font-size:9px;background:${c}18;border:1px solid ${c}55;color:${c};padding:1px 6px;border-radius:2px;">${tag}</span>`;}).join('')}
@@ -2567,7 +2586,7 @@ function renderRoster(){
               ${currentUser?'<col style="width:130px;">':''}
             </colgroup>
             <thead><tr>
-              <th>Callsign</th><th>Name</th><th>Subdivision</th><th>Status</th>
+              <th>Callsign</th>${showInsignia?'<th style="width:40px;"></th>':''}<th>Name</th><th>Subdivision</th><th>Status</th>
               <th class="col-doh">DOH</th><th class="col-discord">ID</th><th class="col-strikes">Strikes</th><th class="col-notes">Notes</th>
               ${actionsCols}
             </tr></thead>
@@ -3051,6 +3070,15 @@ function renderEditor(){
   renderPosList();
   renderSDList();
   renderTagList();
+  // Restore insignia toggle
+  const yesBtn=document.getElementById('insigniaYes');
+  const noBtn=document.getElementById('insigniaNo');
+  if(yesBtn) yesBtn.checked=showInsignia;
+  if(noBtn) noBtn.checked=!showInsignia;
+  const yesLabel=document.getElementById('insigniaYesLabel');
+  const noLabel=document.getElementById('insigniaNoLabel');
+  if(yesLabel) yesLabel.style.borderColor=showInsignia?'var(--accent)':'var(--border)';
+  if(noLabel) noLabel.style.borderColor=!showInsignia?'var(--accent)':'var(--border)';
 }
 
 function renderThemesGrid(){
@@ -3135,6 +3163,44 @@ function selectCustomTheme(i){
   renderThemesGrid();
   scheduleSave();
   showToast(`✓ ${customThemes[i].name} applied.`);
+}
+
+function getRankInsignia(gi){
+  const insignias = [
+    // 0 - 5 stars (highest)
+    `<svg width="28" height="16" viewBox="0 0 140 16"><g fill="none" stroke="var(--accent)" stroke-width="1.2" stroke-linejoin="round">${[0,28,56,84,112].map(x=>`<polygon points="${x+7},1 ${x+8.5},5.5 ${x+13},5.5 ${x+9.5},8.5 ${x+11},13 ${x+7},10 ${x+3},13 ${x+4.5},8.5 ${x+1},5.5 ${x+5.5},5.5"/>`).join('')}</g></svg>`,
+    // 1 - 4 stars
+    `<svg width="24" height="16" viewBox="0 0 112 16"><g fill="none" stroke="var(--accent)" stroke-width="1.2" stroke-linejoin="round">${[0,28,56,84].map(x=>`<polygon points="${x+7},1 ${x+8.5},5.5 ${x+13},5.5 ${x+9.5},8.5 ${x+11},13 ${x+7},10 ${x+3},13 ${x+4.5},8.5 ${x+1},5.5 ${x+5.5},5.5"/>`).join('')}</g></svg>`,
+    // 2 - 3 stars
+    `<svg width="20" height="16" viewBox="0 0 84 16"><g fill="none" stroke="var(--accent)" stroke-width="1.2" stroke-linejoin="round">${[0,28,56].map(x=>`<polygon points="${x+7},1 ${x+8.5},5.5 ${x+13},5.5 ${x+9.5},8.5 ${x+11},13 ${x+7},10 ${x+3},13 ${x+4.5},8.5 ${x+1},5.5 ${x+5.5},5.5"/>`).join('')}</g></svg>`,
+    // 3 - 2 stars
+    `<svg width="16" height="16" viewBox="0 0 56 16"><g fill="none" stroke="var(--accent)" stroke-width="1.2" stroke-linejoin="round">${[0,28].map(x=>`<polygon points="${x+7},1 ${x+8.5},5.5 ${x+13},5.5 ${x+9.5},8.5 ${x+11},13 ${x+7},10 ${x+3},13 ${x+4.5},8.5 ${x+1},5.5 ${x+5.5},5.5"/>`).join('')}</g></svg>`,
+    // 4 - 1 star
+    `<svg width="14" height="16" viewBox="0 0 14 16"><polygon points="7,1 8.5,5.5 13,5.5 9.5,8.5 11,13 7,10 3,13 4.5,8.5 1,5.5 5.5,5.5" fill="none" stroke="var(--accent)" stroke-width="1.2" stroke-linejoin="round"/></svg>`,
+    // 5 - 3 chevrons
+    `<svg width="20" height="16" viewBox="0 0 20 16"><polyline points="2,14 10,2 18,14" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/><polyline points="2,10 10,-2 18,10" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/><polyline points="2,18 10,6 18,18" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/></svg>`,
+    // 6 - 2 chevrons
+    `<svg width="20" height="14" viewBox="0 0 20 14"><polyline points="2,12 10,2 18,12" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/><polyline points="2,20 10,10 18,20" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/></svg>`,
+    // 7 - 1 chevron
+    `<svg width="20" height="12" viewBox="0 0 20 12"><polyline points="2,10 10,2 18,10" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/></svg>`,
+    // 8 - 3 bars
+    `<svg width="20" height="14" viewBox="0 0 20 14"><rect x="1" y="1" width="18" height="3" fill="none" stroke="var(--accent)" stroke-width="1"/><rect x="1" y="6" width="18" height="3" fill="none" stroke="var(--accent)" stroke-width="1"/><rect x="1" y="11" width="18" height="3" fill="none" stroke="var(--accent)" stroke-width="1"/></svg>`,
+    // 9 - 2 bars
+    `<svg width="20" height="10" viewBox="0 0 20 10"><rect x="1" y="1" width="18" height="3" fill="none" stroke="var(--accent)" stroke-width="1"/><rect x="1" y="6" width="18" height="3" fill="none" stroke="var(--accent)" stroke-width="1"/></svg>`,
+    // 10+ - 1 bar
+    `<svg width="20" height="6" viewBox="0 0 20 6"><rect x="1" y="1" width="18" height="4" fill="none" stroke="var(--accent)" stroke-width="1"/></svg>`,
+  ];
+  return insignias[Math.min(gi, insignias.length-1)];
+}
+
+function toggleInsignia(val){
+  showInsignia = val;
+  const yesLabel = document.getElementById('insigniaYesLabel');
+  const noLabel = document.getElementById('insigniaNoLabel');
+  if(yesLabel) yesLabel.style.borderColor = val ? 'var(--accent)' : 'var(--border)';
+  if(noLabel) noLabel.style.borderColor = !val ? 'var(--accent)' : 'var(--border)';
+  scheduleSave();
+  renderRoster();
 }
 
 function updateDeptName(val){
@@ -3689,7 +3755,7 @@ document.addEventListener('keydown',e=>{
         rosterDataId=rd.id;
         deptId=deptRecord.id; deptName=deptRecord.name||'Department';
         rankGroups=rd.rank_groups||[]; subdivisions=rd.subdivisions||[];
-        positions=rd.positions||[]; traineeFormat=rd.trainee_format||''; traineeFormatTo=rd.trainee_format_to||''; customTags=rd.custom_tags||[]; promotions=rd.promotions||[]; customThemes=(rd.custom_themes&&rd.custom_themes.length?rd.custom_themes:[{name:'Custom 1',accent:'#c9a84c',bg:'#0a0c10'},{name:'Custom 2',accent:'#60a5fa',bg:'#080c14'}]);
+        positions=rd.positions||[]; traineeFormat=rd.trainee_format||''; traineeFormatTo=rd.trainee_format_to||''; showInsignia=rd.show_insignia||false; customTags=rd.custom_tags||[]; promotions=rd.promotions||[]; customThemes=(rd.custom_themes&&rd.custom_themes.length?rd.custom_themes:[{name:'Custom 1',accent:'#c9a84c',bg:'#0a0c10'},{name:'Custom 2',accent:'#60a5fa',bg:'#080c14'}]);
         activeTheme=rd.theme||'dark-steel'; members=rd.members||[]; trainees=rd.trainees||[];
         applyTheme(activeTheme);
         document.getElementById('headerName').textContent=deptName;
@@ -3716,7 +3782,7 @@ document.addEventListener('keydown',e=>{
       const {data:dept}=await sb.from('departments').select('*').eq('id',rd.dept_id).single();
       if(dept){deptId=dept.id;deptName=dept.name||'Department';}
       rankGroups=rd.rank_groups||[]; subdivisions=rd.subdivisions||[];
-      positions=rd.positions||[]; traineeFormat=rd.trainee_format||''; traineeFormatTo=rd.trainee_format_to||''; customTags=rd.custom_tags||[]; promotions=rd.promotions||[]; customThemes=(rd.custom_themes&&rd.custom_themes.length?rd.custom_themes:[{name:'Custom 1',accent:'#c9a84c',bg:'#0a0c10'},{name:'Custom 2',accent:'#60a5fa',bg:'#080c14'}]);
+      positions=rd.positions||[]; traineeFormat=rd.trainee_format||''; traineeFormatTo=rd.trainee_format_to||''; showInsignia=rd.show_insignia||false; customTags=rd.custom_tags||[]; promotions=rd.promotions||[]; customThemes=(rd.custom_themes&&rd.custom_themes.length?rd.custom_themes:[{name:'Custom 1',accent:'#c9a84c',bg:'#0a0c10'},{name:'Custom 2',accent:'#60a5fa',bg:'#080c14'}]);
       activeTheme=rd.theme||'dark-steel'; members=rd.members||[]; trainees=rd.trainees||[];
       applyTheme(activeTheme);
       document.getElementById('headerName').textContent=deptName;
@@ -3748,7 +3814,7 @@ document.addEventListener('keydown',e=>{
         if(rd && dept){
           rosterDataId=rd.id; deptId=rd.dept_id; deptName=dept.name||'Department';
           rankGroups=rd.rank_groups||[]; subdivisions=rd.subdivisions||[];
-          positions=rd.positions||[]; traineeFormat=rd.trainee_format||''; traineeFormatTo=rd.trainee_format_to||'';
+          positions=rd.positions||[]; traineeFormat=rd.trainee_format||''; traineeFormatTo=rd.trainee_format_to||''; showInsignia=rd.show_insignia||false;
           customTags=rd.custom_tags||[]; promotions=rd.promotions||[];
           customThemes=(rd.custom_themes&&rd.custom_themes.length?rd.custom_themes:[{name:'Custom 1',accent:'#c9a84c',bg:'#0a0c10'},{name:'Custom 2',accent:'#60a5fa',bg:'#080c14'}]);
           activeTheme=rd.theme||'dark-steel'; members=rd.members||[]; trainees=rd.trainees||[];
