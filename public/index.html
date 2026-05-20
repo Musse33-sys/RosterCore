@@ -1595,9 +1595,9 @@ async function saveRoster(){
   if(currentUser && currentUser.email !== 'shared' && currentUser.email !== 'staff' && deptId){
     await sb.from('departments').update({name: deptName}).eq('id', deptId);
   }
-  if(e1){ showToast('⚠ Save failed: '+e1.message,true); }
+  if(e1){ console.error('Save error:', e1); showToast('⚠ Save failed: '+e1.message,true); }
   else { showToast('✓ Saved.'); saveSnapshot(); }
-  isSyncing = false;
+  setTimeout(()=>{ isSyncing = false; }, 3000);
 }
 
 async function saveSnapshot(){
