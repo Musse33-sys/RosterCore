@@ -370,7 +370,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 
   <!-- HERO -->
   <div style="text-align:center;padding:90px 24px 70px;width:100%;max-width:900px;display:flex;flex-direction:column;align-items:center;position:relative;">
-    <div style="position:fixed;inset:0;background-image:radial-gradient(circle,#2a2a2a 1px,transparent 1px);background-size:24px 24px;opacity:0.5;pointer-events:none;z-index:0;"></div>
+    <div style="position:fixed;inset:0;background-image:radial-gradient(circle,#2a2a2a 1px,transparent 1px);background-size:24px 24px;opacity:0.5;pointer-events:none;z-index:0;top:60px;"></div>
     <h1 style="font-family:'Inter',sans-serif;font-size:clamp(36px,6vw,62px);font-weight:800;line-height:1.1;color:var(--text);margin-bottom:14px;letter-spacing:-2px;position:relative;z-index:1;">The Roster System Your<br>Department <span id="deserves" style="font-style:italic;">Deserves.</span></h1>
     <style>
       @keyframes rgb-sweep{0%{background-position:200% 50%}100%{background-position:0% 50%}}
@@ -1918,10 +1918,16 @@ async function doStaffLogin(){
   setAvatar(profile.name);
   document.getElementById('addMemberBtn').classList.remove('hidden');
   document.getElementById('addTraineeBtn').classList.remove('hidden');
+  document.getElementById('rosterTab').classList.remove('hidden');
+  document.getElementById('traineesTab').classList.remove('hidden');
+  document.getElementById('membersTab').classList.remove('hidden');
+  document.getElementById('inactiveTab').classList.remove('hidden');
+  document.getElementById('promotionsTab').classList.remove('hidden');
 
   renderAll();
   showToast('Welcome, '+profile.name+'!');
   history.replaceState(null,'','#main-roster'); document.title='RosterCore — Main Roster';
+  switchTab('roster', document.getElementById('rosterTab'));
   startPresence(profile.name, rd.dept_id);
   startRealtimeSync();
   localStorage.setItem('rc_staff_session', JSON.stringify({
