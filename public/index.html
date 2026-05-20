@@ -2900,8 +2900,16 @@ function openAddMember(){
 }
 function onGroupChange(){
   const g=document.getElementById('mmGroup').value;
-  // Always auto-assign callsign when group changes
-  document.getElementById('mmCallsign').value=nextMemberCallsign(g, editingMemberId);
+  const cs=nextMemberCallsign(g, editingMemberId);
+  document.getElementById('mmCallsign').value=cs;
+  // Auto-detect fixed position from the newly assigned callsign
+  const fixedPos=positions.find(p=>{
+    const po=typeof p==='string'?{name:p,callsign:''}:p;
+    return po.callsign && po.callsign.trim()===cs;
+  });
+  if(fixedPos){
+    document.getElementById('mmPosition').value=typeof fixedPos==='string'?fixedPos:fixedPos.name;
+  }
 }
 
 function onCallsignChange(){
@@ -2914,6 +2922,14 @@ function onCallsignChange(){
   });
   if(detected){
     document.getElementById('mmGroup').value=detected.name;
+  }
+  // Auto-detect fixed position from callsign
+  const fixedPos=positions.find(p=>{
+    const po=typeof p==='string'?{name:p,callsign:''}:p;
+    return po.callsign && po.callsign.trim()===cs;
+  });
+  if(fixedPos){
+    document.getElementById('mmPosition').value=typeof fixedPos==='string'?fixedPos:fixedPos.name;
   }
 }
 function openEditMember(id){
