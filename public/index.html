@@ -1325,8 +1325,12 @@ function smartSyncUpdate(oldMembers, newMembers, oldTrainees, newTrainees, struc
     for(const m of newMembers){
       const old = oldMembers.find(om=>om.id===m.id);
       if(old && JSON.stringify(old)!==JSON.stringify(m)){
-        const patched = patchRosterRow(m);
-        if(!patched) needsFullRoster = true;
+        if(old.callsign !== m.callsign || old.rank !== m.rank){
+          needsFullRoster = true;
+        } else {
+          const patched = patchRosterRow(m);
+          if(!patched) needsFullRoster = true;
+        }
         if(old.status !== m.status) needsStats = true;
       }
     }
