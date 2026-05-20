@@ -1349,7 +1349,7 @@ function buildMemberRow(m, gi){
   const displayCS=(pd&&pd.callsign)?pd.callsign:(m.callsign||'—');
   return `<tr class="row-filled" data-member-id="${m.id}">
     <td class="cs-cell"><span class="cs-filled">${displayCS}</span></td>
-    ${showInsignia?`<td class="ins-cell" style="text-align:center;vertical-align:middle;">${getRankInsignia(gi,m.position)}</td>`:''}
+    ${showInsignia?`<td class="ins-cell" style="text-align:center;vertical-align:middle;">${getRankInsignia(gi,m.position,m.callsign)}</td>`:''}
     <td class="name-td"><div class="member-name">${m.name}${onlineUsers.has(m.name)?'<span class="online-dot" title="Online now"></span>':''} ${tags}</div>${(m.position||g.position)?`<div class="member-pos">${m.position||g.position}</div>`:''}</td>
     <td>${sdBadges(m.subdivs)}</td>
     <td>${statusPill(m.status)}</td>
@@ -2555,7 +2555,7 @@ function renderRoster(){
             const displayCS = (pd && pd.callsign) ? pd.callsign : (m.callsign||'—');
             return `<tr class="row-filled" data-member-id="${m.id}">
               <td class="cs-cell"><span class="cs-filled">${displayCS}</span></td>
-              ${showInsignia?`<td class="ins-cell" style="text-align:center;vertical-align:middle;">${getRankInsignia(gi,m.position)}</td>`:''}
+              ${showInsignia?`<td class="ins-cell" style="text-align:center;vertical-align:middle;">${getRankInsignia(gi,m.position,m.callsign)}</td>`:''}
               <td class="name-td">
                 <div class="member-name">${m.name}${onlineUsers.has(m.name)?'<span class="online-dot" title="Online now"></span>':''}
                   ${(m.tags||[]).map(tag=>{const t=customTags.find(ct=>ct.name===tag);const c=t?t.color:'#7ec8e3';return`<span style="font-family:'JetBrains Mono',monospace;font-size:9px;background:${c}18;border:1px solid ${c}55;color:${c};padding:1px 6px;border-radius:2px;">${tag}</span>`;}).join('')}
@@ -2578,7 +2578,7 @@ function renderRoster(){
           } else {
             return `<tr class="row-empty">
               <td><span class="cs-empty">${slot}</span></td>
-              ${showInsignia ? `<td class="ins-cell" style="text-align:center;vertical-align:middle;">${alwaysShowInsignia ? getRankInsignia(gi,'') : ''}</td>` : ''}
+              ${showInsignia ? `<td class="ins-cell" style="text-align:center;vertical-align:middle;">${alwaysShowInsignia ? getRankInsignia(gi,'',slot) : ''}</td>` : ''}
               <td colspan="${currentUser?(showInsignia?8:8):(showInsignia?7:7)}" style="color:var(--border2);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;padding:10px 12px;">— VACANT —</td>
             </tr>`;
           }
@@ -3262,9 +3262,17 @@ function getPosData(posName){
   return p;
 }
 
-function getRankInsignia(gi, posName){
+function getRankInsignia(gi, posName, callsign){
+  // First try: fixed position insignia by position name
   const pd = getPosData(posName);
   if(pd && pd.insignia) return `<img src="${pd.insignia}" style="max-width:36px;max-height:22px;width:auto;height:auto;object-fit:contain;display:block;margin:0 auto;">`;
+  // Second try: look up fixed position by callsign
+  if(callsign){
+    const byCS = positions.find(p=>{const po=typeof p==='string'?{name:p,callsign:'',insignia:''}:p; return po.callsign&&po.callsign.trim().toUpperCase()===callsign.trim().toUpperCase();});
+    const byCSObj = byCS && typeof byCS!=='string' ? byCS : null;
+    if(byCSObj && byCSObj.insignia) return `<img src="${byCSObj.insignia}" style="max-width:36px;max-height:22px;width:auto;height:auto;object-fit:contain;display:block;margin:0 auto;">`;
+  }
+  // Third try: rank group insignia
   const g = rankGroups[gi];
   if(g && g.insignia) return `<img src="${g.insignia}" style="max-width:36px;max-height:22px;width:auto;height:auto;object-fit:contain;display:block;margin:0 auto;">`;
   return '';
