@@ -117,7 +117,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 
 .app-main{flex:1;padding:28px 32px;max-width:1600px;margin:0 auto;width:100%;}
 
-.tab-panel{display:none;}.tab-panel.active{display:block;}
+#rosterWrap{transition:opacity .1s ease;}
+#rosterWrap.updating{opacity:.7;}
 
 .stats-bar{display:flex;gap:10px;margin-bottom:24px;flex-wrap:wrap;}
 .stat{background:var(--bg2);border:1px solid var(--border);border-top:2px solid var(--accent3);padding:14px 18px;flex:1;min-width:100px;}
@@ -1383,6 +1384,8 @@ function startRealtimeSync(){
       nextTraineeId = trainees.length>0?Math.max(...trainees.map(t=>t.id||0))+1:1;
 
       smartSyncUpdate(oldMembers, members, oldTrainees, trainees, structureChanged);
+      const wrap = document.getElementById('rosterWrap');
+      if(wrap){ wrap.classList.add('updating'); setTimeout(()=>wrap.classList.remove('updating'), 150); }
       showToast('🔄 Roster updated.');
     })
     .subscribe();
@@ -2439,7 +2442,6 @@ function renderRoster(){
   const fs = document.getElementById('filterSubdiv').value;
   const fst = document.getElementById('filterStatus').value;
 
-  
   const fgEl = document.getElementById('filterGroup');
   const fgCur = fgEl.value;
   fgEl.innerHTML='<option value="">All Groups</option>'+rankGroups.map(g=>`<option value="${g.name}">${g.name}</option>`).join('');
@@ -2449,8 +2451,10 @@ function renderRoster(){
   fsEl.innerHTML='<option value="">All Subdivisions</option>'+subdivisions.map(s=>`<option value="${s.name}">${s.name}</option>`).join('');
   fsEl.value=fsCur;
 
+  const wrap = document.getElementById('rosterWrap');
+
   if(!rankGroups.length){
-    document.getElementById('rosterWrap').innerHTML=`<div class="empty-state"><div class="empty-icon">⚙️</div><div class="empty-text">No rank groups set up yet.<br>Go to the <span>Editor</span> tab to build your roster.</div></div>`;
+    wrap.innerHTML=`<div class="empty-state"><div class="empty-icon">⚙️</div><div class="empty-text">No rank groups set up yet.<br>Go to the <span>Editor</span> tab to build your roster.</div></div>`;
     return;
   }
 
@@ -2548,7 +2552,8 @@ function renderRoster(){
       </div>
     </div>`;
   });
-  document.getElementById('rosterWrap').innerHTML = html||`<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-text">No results found.</div></div>`;
+  const newHtml = html||`<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-text">No results found.</div></div>`;
+  requestAnimationFrame(()=>{ wrap.innerHTML = newHtml; });
 }
 
 function renderTrainees(){
