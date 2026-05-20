@@ -252,11 +252,9 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .confirm-modal .modal-title{color:var(--red);}
 
 @media(max-width:768px){
-  
   .header-inner{padding:10px 14px;gap:8px;}
   .header-center{padding:0 8px;}
   .header-name{font-size:18px;letter-spacing:2px;}
-  
   .header-sub{display:none;}
   .header-right{gap:6px;}
   .header-right span{display:none;}
@@ -264,15 +262,13 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   .logout-btn{font-size:8px;padding:5px 8px;}
   .app-nav{padding:0 8px;overflow-x:auto;-webkit-overflow-scrolling:touch;}
   .nav-tab{font-size:9px;letter-spacing:1px;padding:10px 10px;}
-  .app-main{padding:14px 12px;}
+  .app-main{padding:10px 8px;}
 
-  
   .stats-bar{gap:6px;}
   .stat{min-width:calc(33.33% - 4px);padding:10px 10px;}
   .stat-val{font-size:28px;}
   .stat-label{font-size:8px;letter-spacing:1px;}
 
-  
   .filter-bar{gap:6px;}
   .filter-input{width:100%;font-size:11px;}
   .filter-select{font-size:10px;padding:7px 8px;}
@@ -280,27 +276,78 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   .btn-sm{font-size:9px;padding:5px 9px;}
   .btn-xs{font-size:9px;padding:3px 7px;}
 
-  
+  /* ── MOBILE ROSTER CARDS ── */
+  .rank-group+.rank-group{margin-top:10px;}
   .rg-wrap{flex-direction:column;}
-  .rg-label{writing-mode:horizontal-tb;transform:none;min-width:unset;padding:6px 12px;font-size:9px;letter-spacing:2px;border-right:none;border-bottom:1px solid var(--border);}
-  .rg-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
-  .roster-table{font-size:12px;table-layout:auto;}
-  .roster-table thead th{padding:8px 10px;font-size:9px;}
-  .roster-table td{padding:8px 10px;}
+  .rg-label{writing-mode:horizontal-tb;transform:none;min-width:unset;padding:7px 12px;font-size:8px;letter-spacing:2.5px;border-right:none;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+  .rg-label::after{content:attr(data-count);font-size:8px;color:var(--text3);letter-spacing:1px;}
+  .rg-table-wrap{overflow-x:visible;}
 
-  
+  /* hide table structure, render as cards */
+  .roster-table{display:block;}
+  .roster-table thead{display:none;}
+  .roster-table tbody{display:block;}
+
+  /* filled row → flex card */
+  .roster-table tbody tr.row-filled{
+    display:flex;align-items:center;gap:8px;
+    padding:9px 12px;border-bottom:1px solid var(--border);
+    background:var(--bg2);
+  }
+  .roster-table tbody tr.row-filled:hover{background:var(--bg3);}
+
+  /* vacant row */
+  .roster-table tbody tr.row-empty{
+    display:flex;align-items:center;gap:8px;
+    padding:7px 12px;border-bottom:1px solid rgba(42,47,61,.4);
+    background:var(--bg);opacity:.5;
+  }
+
+  /* hide all td by default, show only what we want */
+  .roster-table td{display:none;padding:0;}
+
+  /* callsign cell */
+  .roster-table td.cs-cell{display:flex;align-items:center;min-width:48px;padding:0;}
+  .roster-table td.cs-cell .cs-filled{font-size:12px;}
+
+  /* insignia cell */
+  .roster-table td.ins-cell{display:flex;align-items:center;justify-content:center;width:28px;max-width:28px;padding:0;}
+
+  /* name cell */
+  .roster-table td.name-td{display:flex;flex-direction:column;flex:1;min-width:0;padding:0;}
+  .roster-table td.name-td .member-name{font-size:12px;flex-wrap:nowrap;overflow:hidden;}
+  .roster-table td.name-td .member-pos{font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+
+  /* status cell */
+  .roster-table td:nth-child(5){display:flex;align-items:center;flex-shrink:0;padding:0;}
+  .status-pill{font-size:7px;padding:2px 6px;letter-spacing:.5px;}
+  .s-dot{width:4px;height:4px;}
+
+  /* actions cell */
+  .roster-table td:last-child{display:flex;align-items:center;flex-shrink:0;padding:0;}
+  .row-acts{display:flex!important;opacity:1!important;gap:3px;}
+  .btn-promote,.btn-demote{font-size:9px;padding:3px 6px;}
+  .btn.btn-ghost.btn-xs{font-size:8px;padding:3px 6px;}
+  .btn.btn-danger{font-size:8px;padding:3px 6px;}
+
+  /* vacant slot — show cs and label */
+  .roster-table tbody tr.row-empty td:first-child{display:flex;align-items:center;min-width:48px;padding:0;}
+  .roster-table tbody tr.row-empty td:nth-child(2){display:flex;flex:1;align-items:center;padding:0;font-size:9px;letter-spacing:1px;color:var(--border2);}
+  .roster-table tbody tr.row-empty td.ins-cell{display:flex;}
+
+  /* hide extra cols */
   .roster-table .col-doh,
   .roster-table .col-discord,
   .roster-table .col-notes,
-  .roster-table .col-strikes{display:none;}
+  .roster-table .col-strikes{display:none!important;}
+
+  /* subdivision hidden on mobile */
+  .roster-table td:nth-child(4){display:none;}
 
   .members-table .col-doh,
   .members-table .col-discord,
   .members-table .col-notes{display:none;}
 
-  .rank-group+.rank-group{margin-top:12px;}
-
-  
   .modal{padding:20px;width:96vw;}
   .modal-title{font-size:20px;}
   .auth-modal{padding:24px;width:96vw;}
@@ -309,7 +356,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   .form-input{font-size:16px;}
   .form-select{font-size:16px;}
 
-  
   .editor-wrap{max-width:100%;}
   .edit-row{gap:4px;}
   .add-form{flex-wrap:wrap;}
@@ -317,20 +363,12 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   .themes-grid{gap:6px;}
   .theme-btn{min-width:calc(50% - 3px);font-size:9px;padding:8px 10px;}
 
-  
   .section-hdr{flex-direction:column;align-items:flex-start;gap:10px;}
-
-  
-  
   .landing-sub{font-size:14px;}
   .landing-features{grid-template-columns:1fr 1fr;gap:10px;}
   .feat{padding:16px;}
-
-  
   .dept-table{font-size:12px;}
   .dept-table th,.dept-table td{padding:8px 10px;}
-
-  
   .action-menu{right:auto;left:0;}
 }
 
@@ -342,6 +380,21 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   .nav-tab{font-size:8px;padding:9px 8px;letter-spacing:.5px;}
   .theme-btn{min-width:calc(50% - 3px);}
   .col-labels{display:none;}
+  .roster-table td.cs-cell .cs-filled{font-size:11px;}
+  .roster-table td.name-td .member-name{font-size:11px;}
+}
+
+.mobile-fab{display:none;}
+@media(max-width:768px){
+  .mobile-fab{
+    display:flex;position:fixed;bottom:20px;right:16px;width:48px;height:48px;
+    border-radius:50%;background:var(--accent);border:none;cursor:pointer;
+    align-items:center;justify-content:center;z-index:100;
+    box-shadow:0 4px 16px rgba(59,130,246,.4);font-size:24px;color:#fff;font-weight:300;
+  }
+  .mobile-fab:active{transform:scale(0.95);}
+  /* hide desktop add buttons */
+  #addMemberBtn,#addTraineeBtn{display:none!important;}
 }
 </style>
 <!-- v2.1 -->
@@ -2463,6 +2516,15 @@ function switchTab(name, btn){
   const titleMap={roster:'Main Roster',trainees:'Trainee Roster',members:'All Members',editor:'Editor',promotions:'Promotions',inactive:'Reports',superadmin:'Super Admin'};
   history.replaceState(null,'',window.location.pathname+(window.location.search||'')+'#'+(hashMap[name]||name));
   document.title='RosterCore — '+(titleMap[name]||name);
+  // Show FAB on roster/trainees tabs for mobile
+  const fab=document.getElementById('mobileFab');
+  if(fab){ if(currentUser&&(name==='roster'||name==='trainees')) fab.classList.remove('hidden'); else fab.classList.add('hidden'); }
+}
+
+function onMobileFab(){
+  const active=document.querySelector('.nav-tab.active')?.textContent?.toLowerCase()||'';
+  if(active.includes('trainee')) openAddTrainee();
+  else openAddMember();
 }
 
 function sdColor(name){ const s=subdivisions.find(s=>s.name===name); return s?s.color:'#4ade80'; }
@@ -2612,7 +2674,7 @@ function renderRoster(){
     html+=`
     <div class="rank-group fade-up">
       <div class="rg-wrap">
-        <div class="rg-label">${g.name}</div>
+        <div class="rg-label" data-count="${gMembers.length}/${total}">${g.name}</div>
         <div class="rg-table-wrap">
           <table class="roster-table">
 
@@ -3985,5 +4047,6 @@ document.addEventListener('keydown',e=>{
 
 })();
 </script>
+<button class="mobile-fab hidden" id="mobileFab" onclick="onMobileFab()">+</button>
 </body>
 </html>
