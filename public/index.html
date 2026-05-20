@@ -141,7 +141,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .roster-table tbody tr.row-filled:hover{background:var(--bg3);}
 .roster-table tbody tr.row-empty{background:var(--bg);border-bottom:1px solid rgba(42,47,61,.5);}
 .roster-table td{padding:8px 12px;vertical-align:middle;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.roster-table td.cs-cell{padding-right:4px;padding-left:12px;text-align:center;}
+.roster-table td.cs-cell{padding-right:12px;padding-left:12px;text-align:center;}
+.roster-table th.cs-th{text-align:center;}
 .roster-table td.ins-cell{padding:8px 0;width:24px;max-width:24px;}
 .roster-table td.name-td{white-space:normal;overflow:visible;}
 .roster-table tr.row-empty td{color:var(--border2);font-family:'JetBrains Mono',monospace;font-size:10px;}
@@ -2583,7 +2584,7 @@ function renderRoster(){
           <table class="roster-table">
 
             <thead><tr>
-              <th>Callsign</th>${showInsignia?'<th style="width:80px;"></th>':''}<th>Name</th><th>Subdivision</th><th>Status</th>
+              <th class="cs-th">Callsign</th>${showInsignia?'<th style="width:80px;"></th>':''}<th>Name</th><th>Subdivision</th><th>Status</th>
               <th class="col-doh">DOH</th><th class="col-discord">ID</th><th class="col-strikes">Strikes</th><th class="col-notes">Notes</th>
               ${actionsCols}
             </tr></thead>
@@ -2630,7 +2631,7 @@ function renderTrainees(){
     wrap.innerHTML=`<div class="rank-group"><div class="rg-wrap">
       <div class="rg-label" style="background:rgba(167,139,250,.08);color:var(--purple);border-right-color:rgba(167,139,250,.3);">Trainees</div>
       <div class="rg-table-wrap"><table class="roster-table">
-        <thead><tr><th>Callsign</th><th>Name</th><th>Status</th><th class="col-doh">DOH</th><th class="col-discord">ID</th><th class="col-strikes">Strikes</th><th class="col-notes">Notes</th>${currentUser?'<th>Actions</th>':''}</tr></thead>
+        <thead><tr><th class="cs-th">Callsign</th><th>Name</th><th>Status</th><th class="col-doh">DOH</th><th class="col-discord">ID</th><th class="col-strikes">Strikes</th><th class="col-notes">Notes</th>${currentUser?'<th>Actions</th>':''}</tr></thead>
         <tbody>${rows}${capped?`<tr class="row-empty"><td colspan="${currentUser?8:7}" style="text-align:center;padding:10px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--purple);">Showing ${filledCS.length} filled + ${MAX_VACANT} vacant of ${total} total slots</td></tr>`:''}</tbody>
       </table></div></div></div>`;
     return;
@@ -2663,7 +2664,7 @@ function renderTrainees(){
         <div class="rg-table-wrap">
           <table class="roster-table">
             <thead><tr>
-              <th>Callsign</th><th>Name</th><th>Status</th><th class="col-doh">DOH</th>
+              <th class="cs-th">Callsign</th><th>Name</th><th>Status</th><th class="col-doh">DOH</th>
               <th class="col-discord">ID</th><th class="col-strikes">Strikes</th><th class="col-notes">Notes</th>
               ${currentUser?'<th>Actions</th>':''}
             </tr></thead>
@@ -2805,7 +2806,7 @@ function renderAllMembers(){
   wrap.innerHTML=`
     <table class="members-table">
       <thead><tr>
-        <th>Callsign</th><th>Name</th><th>Rank Group</th><th>Status</th>
+        <th class="cs-th">Callsign</th><th>Name</th><th>Rank Group</th><th>Status</th>
         <th class="col-doh">DOH</th><th class="col-discord">ID</th><th class="col-strikes">Strikes</th><th>Actions</th>
       </tr></thead>
       <tbody>${rows}</tbody>
