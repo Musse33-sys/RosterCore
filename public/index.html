@@ -141,9 +141,9 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .roster-table tbody tr.row-filled:hover{background:var(--bg3);}
 .roster-table tbody tr.row-empty{background:var(--bg);border-bottom:1px solid rgba(42,47,61,.5);}
 .roster-table td{padding:8px 12px;vertical-align:middle;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.roster-table td.cs-cell{padding-right:12px;padding-left:12px;text-align:center;}
-.roster-table th.cs-th{text-align:center;}
-.roster-table td.ins-cell{padding:8px 0;width:48px;max-width:48px;text-align:center;}
+.roster-table td.cs-cell{padding-right:4px;padding-left:12px;text-align:center;width:80px;min-width:80px;max-width:80px;}
+.roster-table th.cs-th{text-align:center;width:80px;min-width:80px;max-width:80px;}
+.roster-table td.ins-cell{padding:8px 4px;width:32px;max-width:32px;text-align:center;}
 .roster-table td.name-td{white-space:normal;overflow:visible;}
 .roster-table tr.row-empty td{color:var(--border2);font-family:'JetBrains Mono',monospace;font-size:10px;}
 .subdiv-wrap{display:flex;flex-direction:row;flex-wrap:wrap;gap:3px;}
@@ -2584,7 +2584,7 @@ function renderRoster(){
           <table class="roster-table">
 
             <thead><tr>
-              <th class="cs-th">Callsign</th>${showInsignia?'<th style="width:48px;text-align:center;"></th>':''}<th>Name</th><th>Subdivision</th><th>Status</th>
+              <th class="cs-th">Callsign</th>${showInsignia?'<th style="width:32px;text-align:center;"></th>':''}<th>Name</th><th>Subdivision</th><th>Status</th>
               <th class="col-doh">DOH</th><th class="col-discord">ID</th><th class="col-strikes">Strikes</th><th class="col-notes">Notes</th>
               ${actionsCols}
             </tr></thead>
