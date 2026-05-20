@@ -243,7 +243,9 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 .fade-up{animation:fadeUp .25s ease both;}
 
-.online-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);margin-left:6px;flex-shrink:0;animation:pulse-dot 2s infinite;}
+.ins-upload{position:relative;cursor:pointer;width:36px;height:28px;display:flex;align-items:center;justify-content:center;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;flex-shrink:0;}
+.ins-upload .ins-remove{position:absolute;inset:0;background:rgba(248,113,113,.85);color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .15s;pointer-events:none;}
+.ins-upload:hover .ins-remove{opacity:1;}
 @keyframes pulse-dot{0%,100%{box-shadow:0 0 4px var(--green);opacity:1;}50%{box-shadow:0 0 10px var(--green);opacity:.7;}}
 .confirm-modal{max-width:360px;padding:28px;}
 .confirm-modal .modal-title{color:var(--red);}
@@ -3273,16 +3275,23 @@ function renderRGList(){
       <input class="edit-input" value="${g.to||''}" oninput="updateRGTo(${i},this.value)" placeholder="e.g. 1W-06">
       <input class="edit-input" value="${g.position||''}" oninput="updateRGPos(${i},this.value)" placeholder="Position title">
       <div style="display:flex;align-items:center;justify-content:center;">
-        <label title="Upload insignia" style="cursor:pointer;width:36px;height:28px;display:flex;align-items:center;justify-content:center;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;flex-shrink:0;">
-          ${g.insignia ? `<img src="${g.insignia}" style="width:100%;height:100%;object-fit:contain;">` : `<span style="font-size:14px;color:var(--text3);">+</span>`}
-          <input type="file" accept="image/*" style="display:none;" onchange="uploadInsignia(${i},this)">
-        </label>
+        ${g.insignia
+          ? `<div class="ins-upload" onclick="removeRGInsignia(${i})" title="Click to remove insignia">
+               <img src="${g.insignia}" style="width:100%;height:100%;object-fit:contain;">
+               <div class="ins-remove">✕</div>
+             </div>`
+          : `<label class="ins-upload" title="Upload insignia">
+               <span style="font-size:14px;color:var(--text3);">+</span>
+               <input type="file" accept="image/*" style="display:none;" onchange="uploadInsignia(${i},this)">
+             </label>`
+        }
       </div>
       <button class="icon-btn" onclick="moveRG(${i},-1)" ${i===0?'disabled':''}>↑</button>
       <button class="icon-btn" onclick="moveRG(${i},1)" ${i===rankGroups.length-1?'disabled':''}>↓</button>
       <button class="del-btn" onclick="deleteRG(${i})">×</button>
     </div>`).join('');
 }
+function removeRGInsignia(i){ rankGroups[i].insignia=''; renderRGList(); renderRoster(); scheduleSave(); showToast('Insignia removed.'); }
 function updateRGName(i,v){ rankGroups[i].name=v; renderRoster(); scheduleSave(); }
 function updateRGFrom(i,v){ rankGroups[i].from=v; scheduleSave(); }
 function updateRGTo(i,v){ rankGroups[i].to=v; scheduleSave(); }
@@ -3315,10 +3324,16 @@ function renderPosList(){
       <input class="edit-input" value="${po.name}" oninput="updatePosName(${i},this.value)" placeholder="Position title">
       <input class="edit-input" value="${po.callsign||''}" oninput="updatePosCS(${i},this.value)" placeholder="Callsign">
       <div style="display:flex;align-items:center;justify-content:center;">
-        <label title="Upload insignia" style="cursor:pointer;width:36px;height:28px;display:flex;align-items:center;justify-content:center;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;flex-shrink:0;">
-          ${po.insignia ? `<img src="${po.insignia}" style="width:100%;height:100%;object-fit:contain;">` : `<span style="font-size:14px;color:var(--text3);">+</span>`}
-          <input type="file" accept="image/*" style="display:none;" onchange="uploadPosInsignia(${i},this)">
-        </label>
+        ${po.insignia
+          ? `<div class="ins-upload" onclick="removePosInsignia(${i})" title="Click to remove insignia">
+               <img src="${po.insignia}" style="width:100%;height:100%;object-fit:contain;">
+               <div class="ins-remove">✕</div>
+             </div>`
+          : `<label class="ins-upload" title="Upload insignia">
+               <span style="font-size:14px;color:var(--text3);">+</span>
+               <input type="file" accept="image/*" style="display:none;" onchange="uploadPosInsignia(${i},this)">
+             </label>`
+        }
       </div>
       <button class="del-btn" onclick="deletePos(${i})">×</button>
     </div>`;
@@ -3334,6 +3349,7 @@ function uploadPosInsignia(i, input){
   reader.onload=e=>{ positions[i]={...posObj(i),insignia:e.target.result}; renderPosList(); renderRoster(); scheduleSave(); showToast('✓ Insignia uploaded.'); };
   reader.readAsDataURL(file);
 }
+function removePosInsignia(i){ positions[i]={...posObj(i),insignia:''}; renderPosList(); renderRoster(); scheduleSave(); showToast('Insignia removed.'); }
 function deletePos(i){ positions.splice(i,1); renderPosList(); scheduleSave(); }
 function addPosition(){
   const name=document.getElementById('posNew').value.trim();
