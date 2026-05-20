@@ -95,6 +95,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .auth-title{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:3px;text-align:center;color:var(--text);margin-bottom:4px;}
 .auth-sub{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--accent);text-align:center;margin-bottom:28px;}
 
+@keyframes grad-sweep{0%{background-position:200% 50%}100%{background-position:0% 50%}}
 #appPage{display:none;flex-direction:column;min-height:100vh;position:fixed;inset:0;z-index:5;background:var(--bg);overflow-y:auto;}
 
 .app-header{background:linear-gradient(180deg,#07090d 0%,var(--bg2) 100%);border-bottom:1px solid var(--border2);}
@@ -564,21 +565,37 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 
 <!-- ══════════ AUTH MODAL ══════════ -->
 <div class="modal-overlay hidden" id="authModal" onclick="if(event.target===this)closeAuthModal()">
-  <div class="auth-modal">
-    <div class="auth-seal"><svg viewBox="20 10 480 140" xmlns="http://www.w3.org/2000/svg" style="width:200px;height:auto;margin:0 auto 8px;">
-  <circle cx="80" cy="80" r="58" fill="none" stroke="var(--accent)" stroke-width="3.5"/>
-  <text x="80" y="72" font-family="'Arial Black',Arial,sans-serif" font-size="36" font-weight="900" fill="var(--text)" text-anchor="middle">R</text>
-  <text x="80" y="108" font-family="'Arial Black',Arial,sans-serif" font-size="36" font-weight="900" fill="var(--accent)" text-anchor="middle">C</text>
-  <line x1="158" y1="20" x2="158" y2="140" stroke="var(--accent)" stroke-width="1.5" opacity="0.4"/>
-  <text x="172" y="76" font-family="'Arial',sans-serif" font-size="52" font-weight="700" fill="var(--text)" letter-spacing="-1">Roster<tspan fill="var(--accent)">Core</tspan></text>
-  <text x="174" y="104" font-family="'Arial',sans-serif" font-size="12" font-weight="500" fill="var(--accent)" letter-spacing="4">THE ROSTER FOR ALL ROLEPLAY</text>
-</svg></div>
-    <div class="auth-title" id="authTitle">Welcome Back</div>
-    <div class="auth-sub" id="authSub">Sign in to your department</div>
-    <div class="form-error hidden" id="authError"></div>
-    <div class="form-group"><label class="form-label">Email</label><input class="form-input" type="email" id="authEmail" placeholder="you@example.com" autocomplete="off"></div>
-    <div class="form-group"><label class="form-label">Password</label><input class="form-input" type="password" id="authPassword" placeholder="••••••••"></div>
-    <button class="btn btn-primary w-full" style="padding:13px;font-size:12px;letter-spacing:2px;margin-top:4px;" onclick="doLogin()" id="authSubmitBtn">Sign In</button>
+  <div style="background:#0c0c0c;border:1px solid #1e1e1e;width:520px;max-width:96vw;box-shadow:0 24px 80px rgba(0,0,0,.95);overflow:hidden;display:flex;flex-direction:row;position:relative;">
+    <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#3b82f6,#a78bfa,#f87171,#3b82f6);background-size:200%;animation:grad-sweep 3s linear infinite;z-index:2;"></div>
+    <div style="position:absolute;top:0;left:0;width:20px;height:20px;border-top:1px solid #3b82f6;border-left:1px solid #3b82f6;"></div>
+    <div style="position:absolute;bottom:0;right:0;width:20px;height:20px;border-bottom:1px solid #3b82f6;border-right:1px solid #3b82f6;"></div>
+
+    <!-- SIDE PANEL -->
+    <div style="background:#080808;border-right:1px solid #1e1e1e;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;gap:16px;width:150px;flex-shrink:0;">
+      <div style="width:56px;height:56px;border-radius:50%;border:1.5px solid var(--accent);display:flex;align-items:center;justify-content:center;flex-direction:column;">
+        <span style="font-family:'Arial Black',Arial,sans-serif;font-size:16px;font-weight:900;color:var(--text);line-height:1;">R</span>
+        <span style="font-family:'Arial Black',Arial,sans-serif;font-size:16px;font-weight:900;color:var(--accent);line-height:1;">C</span>
+      </div>
+      <div style="text-align:center;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--text);letter-spacing:2px;">ROSTER</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--accent);letter-spacing:2px;">CORE</div>
+      </div>
+      <div style="width:1px;height:40px;background:linear-gradient(180deg,transparent,#2a2a2a,transparent);"></div>
+      <div style="text-align:center;"><div style="font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;color:var(--accent);" id="loginStatDepts">—</div><div style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:1px;color:#404040;margin-top:2px;">DEPTS</div></div>
+      <div style="text-align:center;"><div style="font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;color:var(--green);" id="loginStatMembers">—</div><div style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:1px;color:#404040;margin-top:2px;">MEMBERS</div></div>
+      <div style="text-align:center;"><div style="font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;color:var(--purple);" id="loginStatTrainees">—</div><div style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:1px;color:#404040;margin-top:2px;">TRAINEES</div></div>
+    </div>
+
+    <!-- FORM PANEL -->
+    <div style="flex:1;padding:36px 28px;margin-top:2px;">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--accent);margin-bottom:6px;" id="authSub">DEPT HEAD ACCESS</div>
+      <div style="font-family:'Inter',sans-serif;font-size:22px;font-weight:700;color:var(--text);margin-bottom:24px;" id="authTitle">Sign In</div>
+      <div class="form-error hidden" id="authError"></div>
+      <div class="form-group"><label class="form-label">Email</label><input class="form-input" type="email" id="authEmail" placeholder="you@example.com" autocomplete="off"></div>
+      <div class="form-group"><label class="form-label">Password</label><input class="form-input" type="password" id="authPassword" placeholder="••••••••"></div>
+      <button class="btn btn-primary" style="width:100%;padding:14px;font-size:11px;letter-spacing:3px;margin-top:8px;" onclick="doLogin()" id="authSubmitBtn">SIGN IN →</button>
+      <div style="text-align:center;margin-top:16px;font-family:'JetBrains Mono',monospace;font-size:9px;color:#404040;letter-spacing:1px;">Member? <span style="color:var(--accent);cursor:pointer;" onclick="closeAuthModal();showStaffLoginModal()">Login here →</span></div>
+    </div>
   </div>
 </div>
 
@@ -1082,24 +1099,35 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 
 <!-- MEMBER LOGIN MODAL -->
 <div class="modal-overlay hidden" id="staffLoginModal" onclick="if(event.target===this)this.classList.add('hidden')">
-  <div class="auth-modal">
-    <div class="auth-seal"><svg viewBox="20 10 480 140" xmlns="http://www.w3.org/2000/svg" style="width:200px;height:auto;margin:0 auto 8px;">
-  <circle cx="80" cy="80" r="58" fill="none" stroke="var(--accent)" stroke-width="3.5"/>
-  <text x="80" y="72" font-family="'Arial Black',Arial,sans-serif" font-size="36" font-weight="900" fill="var(--text)" text-anchor="middle">R</text>
-  <text x="80" y="108" font-family="'Arial Black',Arial,sans-serif" font-size="36" font-weight="900" fill="var(--accent)" text-anchor="middle">C</text>
-  <line x1="158" y1="20" x2="158" y2="140" stroke="var(--accent)" stroke-width="1.5" opacity="0.4"/>
-  <text x="172" y="76" font-family="'Arial',sans-serif" font-size="52" font-weight="700" fill="var(--text)" letter-spacing="-1">Roster<tspan fill="var(--accent)">Core</tspan></text>
-  <text x="174" y="104" font-family="'Arial',sans-serif" font-size="12" font-weight="500" fill="var(--accent)" letter-spacing="4">THE ROSTER FOR ALL ROLEPLAY</text>
-</svg></div>
-    <div class="auth-title" id="staffLoginTitle">Member Login</div>
-    <div class="auth-sub" id="staffLoginSub">Sign in to your roster</div>
-    <div class="form-error hidden" id="staffLoginError"></div>
-    <div class="form-group"><label class="form-label">Username</label><input class="form-input" id="staffUsername" placeholder="your.username" autocomplete="off"></div>
-    <div class="form-group"><label class="form-label">Password</label><input class="form-input" type="password" id="staffPassword" placeholder="••••••••"></div>
-    <button class="btn btn-primary w-full" style="padding:13px;font-size:12px;letter-spacing:2px;" onclick="doStaffLogin()">Sign In</button>
-    <p style="text-align:center;margin-top:14px;font-size:11px;color:var(--text2);font-family:'JetBrains Mono',monospace;">
-      Department owner? <a href="#" onclick="switchToOwnerLogin()" style="color:var(--accent);text-decoration:none;">Login here</a>
-    </p>
+  <div style="background:#0c0c0c;border:1px solid #1e1e1e;width:520px;max-width:96vw;box-shadow:0 24px 80px rgba(0,0,0,.95);overflow:hidden;display:flex;flex-direction:row;position:relative;">
+    <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#a78bfa,#3b82f6,#f87171,#a78bfa);background-size:200%;animation:grad-sweep 3s linear infinite;z-index:2;"></div>
+    <div style="position:absolute;top:0;left:0;width:20px;height:20px;border-top:1px solid #a78bfa;border-left:1px solid #a78bfa;"></div>
+    <div style="position:absolute;bottom:0;right:0;width:20px;height:20px;border-bottom:1px solid #a78bfa;border-right:1px solid #a78bfa;"></div>
+
+    <!-- SIDE PANEL -->
+    <div style="background:#080808;border-right:1px solid #1e1e1e;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;gap:16px;width:150px;flex-shrink:0;">
+      <div style="width:56px;height:56px;border-radius:50%;border:1.5px solid var(--purple);display:flex;align-items:center;justify-content:center;flex-direction:column;">
+        <span style="font-family:'Arial Black',Arial,sans-serif;font-size:16px;font-weight:900;color:var(--text);line-height:1;">R</span>
+        <span style="font-family:'Arial Black',Arial,sans-serif;font-size:16px;font-weight:900;color:var(--purple);line-height:1;">C</span>
+      </div>
+      <div style="text-align:center;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--text);letter-spacing:2px;">ROSTER</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--purple);letter-spacing:2px;">CORE</div>
+      </div>
+      <div style="width:1px;height:40px;background:linear-gradient(180deg,transparent,#2a2a2a,transparent);"></div>
+      <div style="text-align:center;font-family:'JetBrains Mono',monospace;font-size:9px;color:#404040;letter-spacing:1px;line-height:2;">ENTER YOUR<br/>CREDENTIALS<br/>TO ACCESS<br/>YOUR ROSTER</div>
+    </div>
+
+    <!-- FORM PANEL -->
+    <div style="flex:1;padding:36px 28px;margin-top:2px;">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--purple);margin-bottom:6px;" id="staffLoginSub">MEMBER ACCESS</div>
+      <div style="font-family:'Inter',sans-serif;font-size:22px;font-weight:700;color:var(--text);margin-bottom:24px;" id="staffLoginTitle">Sign In</div>
+      <div class="form-error hidden" id="staffLoginError"></div>
+      <div class="form-group"><label class="form-label" style="color:var(--purple);">Username</label><input class="form-input" id="staffUsername" placeholder="your.username" autocomplete="off"></div>
+      <div class="form-group"><label class="form-label" style="color:var(--purple);">Password</label><input class="form-input" type="password" id="staffPassword" placeholder="••••••••"></div>
+      <button class="btn" style="width:100%;padding:14px;font-size:11px;letter-spacing:3px;margin-top:8px;background:var(--purple);color:#080808;font-weight:700;font-family:'JetBrains Mono',monospace;" onclick="doStaffLogin()">SIGN IN →</button>
+      <div style="text-align:center;margin-top:16px;font-family:'JetBrains Mono',monospace;font-size:9px;color:#404040;letter-spacing:1px;">Dept head? <span style="color:var(--purple);cursor:pointer;" onclick="switchToOwnerLogin()">Login here →</span></div>
+    </div>
   </div>
 </div>
 
@@ -1218,6 +1246,12 @@ async function loadLandingStats(){
     if(d) d.textContent=depts.length+'+';
     if(m) m.textContent=totalMembers+'+';
     if(t) t.textContent=totalTrainees+'+';
+    const ld=document.getElementById('loginStatDepts');
+    const lm=document.getElementById('loginStatMembers');
+    const lt=document.getElementById('loginStatTrainees');
+    if(ld) ld.textContent=depts.length;
+    if(lm) lm.textContent=totalMembers;
+    if(lt) lt.textContent=totalTrainees;
   }catch(e){}
 }
 
