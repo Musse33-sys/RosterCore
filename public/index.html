@@ -1648,12 +1648,14 @@ async function saveRoster(){
   if(currentUser?.email === 'demo'){ showToast('▶ Demo mode — changes are not saved.'); return; }
   if(!rosterDataId){ showToast('⚠ No roster ID — try logging out and back in.',true); return; }
   isSyncing = true;
+  console.log('[saveRoster] saving show_insignia:', showInsignia, 'rosterDataId:', rosterDataId);
   const {error:e1} = await sb.from('roster_data').update({
     rank_groups: rankGroups, subdivisions: subdivisions,
     positions: positions, trainee_format: traineeFormat, trainee_format_to: traineeFormatTo, custom_tags: customTags, promotions: promotions, custom_themes: customThemes, show_insignia: showInsignia,
     theme: activeTheme, members: members, trainees: trainees,
     updated_at: new Date().toISOString()
   }).eq('id', rosterDataId);
+  console.log('[saveRoster] result error:', e1);
   if(currentUser && currentUser.email !== 'shared' && currentUser.email !== 'staff' && deptId){
     await sb.from('departments').update({name: deptName}).eq('id', deptId);
   }
@@ -3229,6 +3231,7 @@ function getRankInsignia(gi, posName){
 
 function toggleInsignia(val){
   showInsignia = val;
+  console.log('[insignia] toggled to:', val);
   const yesLabel = document.getElementById('insigniaYesLabel');
   const noLabel = document.getElementById('insigniaNoLabel');
   if(yesLabel) yesLabel.style.borderColor = val ? 'var(--accent)' : 'var(--border)';
