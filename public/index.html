@@ -143,7 +143,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .roster-table td{padding:8px 12px;vertical-align:middle;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .roster-table td.cs-cell{padding-right:4px;padding-left:12px;text-align:center;width:80px;min-width:80px;max-width:80px;}
 .roster-table th.cs-th{text-align:center;width:80px;min-width:80px;max-width:80px;}
-.roster-table td.ins-cell{padding:8px 4px;width:32px;max-width:32px;text-align:center;}
+.roster-table td.ins-cell{padding:4px 6px;width:48px;max-width:48px;text-align:center;vertical-align:middle;}
+.roster-table td.ins-cell img{max-width:36px;max-height:22px;width:auto;height:auto;object-fit:contain;display:block;margin:0 auto;}
 .roster-table td.name-td{white-space:normal;overflow:visible;}
 .roster-table tr.row-empty td{color:var(--border2);font-family:'JetBrains Mono',monospace;font-size:10px;}
 .subdiv-wrap{display:flex;flex-direction:row;flex-wrap:wrap;gap:3px;}
@@ -2616,7 +2617,7 @@ function renderRoster(){
           <table class="roster-table">
 
             <thead><tr>
-              <th class="cs-th">Callsign</th>${showInsignia?'<th style="width:32px;text-align:center;"></th>':''}<th>Name</th><th>Subdivision</th><th>Status</th>
+              <th class="cs-th">Callsign</th>${showInsignia?'<th style="width:48px;text-align:center;"></th>':''}<th>Name</th><th>Subdivision</th><th>Status</th>
               <th class="col-doh">DOH</th><th class="col-discord">ID</th><th class="col-strikes">Strikes</th><th class="col-notes">Notes</th>
               ${actionsCols}
             </tr></thead>
@@ -3247,11 +3248,10 @@ function getPosData(posName){
 }
 
 function getRankInsignia(gi, posName){
-  // Fixed position insignia takes priority
   const pd = getPosData(posName);
-  if(pd && pd.insignia) return `<img src="${pd.insignia}" style="width:24px;height:24px;object-fit:contain;display:block;margin:0 auto;">`;
+  if(pd && pd.insignia) return `<img src="${pd.insignia}" style="max-width:36px;max-height:22px;width:auto;height:auto;object-fit:contain;display:block;margin:0 auto;">`;
   const g = rankGroups[gi];
-  if(g && g.insignia) return `<img src="${g.insignia}" style="width:24px;height:24px;object-fit:contain;display:block;margin:0 auto;">`;
+  if(g && g.insignia) return `<img src="${g.insignia}" style="max-width:36px;max-height:22px;width:auto;height:auto;object-fit:contain;display:block;margin:0 auto;">`;
   return '';
 }
 
