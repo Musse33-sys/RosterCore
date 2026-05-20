@@ -1302,47 +1302,32 @@ function patchRosterRow(m){
 }
 
 function smartSyncUpdate(oldMembers, newMembers, oldTrainees, newTrainees, structureChanged){
-  if(structureChanged){
-    renderAll();
-    return;
-  }
+  if(structureChanged){ renderAll(); return; }
 
-  let needsFullRoster = false;
-  let needsStats = false;
-
-  // Check for added/removed members
   const oldIds = new Set(oldMembers.map(m=>m.id));
   const newIds = new Set(newMembers.map(m=>m.id));
   const added = newMembers.filter(m=>!oldIds.has(m.id));
   const removed = oldMembers.filter(m=>!newIds.has(m.id));
+  let needsStats = false;
 
   if(added.length || removed.length){
-    needsFullRoster = true;
-    needsStats = true;
-  } else {
-    // Try surgical row updates for changed members
-    for(const m of newMembers){
-      const old = oldMembers.find(om=>om.id===m.id);
-      if(old && JSON.stringify(old)!==JSON.stringify(m)){
-        if(old.callsign !== m.callsign || old.rank !== m.rank){
-          needsFullRoster = true;
-        } else {
-          const patched = patchRosterRow(m);
-          if(!patched) needsFullRoster = true;
-        }
-        if(old.status !== m.status) needsStats = true;
+    renderRoster(); renderStats(); return;
+  }
+
+  for(const m of newMembers){
+    const old = oldMembers.find(om=>om.id===m.id);
+    if(old && JSON.stringify(old)!==JSON.stringify(m)){
+      if(old.callsign !== m.callsign || old.rankGroup !== m.rankGroup){
+        renderRoster(); renderStats(); return;
       }
+      patchRosterRow(m);
+      if(old.status !== m.status) needsStats = true;
     }
   }
 
-  // Trainee changes
   const oldTIds = new Set(oldTrainees.map(t=>t.id));
   const newTIds = new Set(newTrainees.map(t=>t.id));
-  const tAdded = newTrainees.filter(t=>!oldTIds.has(t.id));
-  const tRemoved = oldTrainees.filter(t=>!newTIds.has(t.id));
-  if(tAdded.length || tRemoved.length){ renderTrainees(); needsStats = true; }
-
-  if(needsFullRoster) renderRoster();
+  if(newTrainees.some(t=>!oldTIds.has(t.id)) || oldTrainees.some(t=>!newTIds.has(t.id))){ renderTrainees(); needsStats=true; }
   if(needsStats) renderStats();
 }
 
@@ -2548,7 +2533,9 @@ function renderRoster(){
     </div>`;
   });
   const newHtml = html||`<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-text">No results found.</div></div>`;
-  wrap.innerHTML = newHtml;
+  const temp = document.createElement('div');
+  temp.innerHTML = newHtml;
+  wrap.replaceChildren(...temp.childNodes);
 }
 
 function renderTrainees(){
