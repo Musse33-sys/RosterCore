@@ -1900,10 +1900,14 @@ async function doStaffLogin(){
   rankGroups=rd.rank_groups||[];
   subdivisions=rd.subdivisions||[];
   positions=rd.positions||[];
+  customTags=rd.custom_tags||[];
+  promotions=rd.promotions||[];
   traineeFormat=rd.trainee_format||'';
+  traineeFormatTo=rd.trainee_format_to||'';
   activeTheme=rd.theme||'dark-steel';
   members=rd.members||[];
   trainees=rd.trainees||[];
+  if(rd.custom_themes&&rd.custom_themes.length) customThemes=rd.custom_themes;
   nextMemberId=members.length>0?Math.max(...members.map(m=>m.id||0))+1:1;
   nextTraineeId=trainees.length>0?Math.max(...trainees.map(t=>t.id||0))+1:1;
 
@@ -1922,7 +1926,6 @@ async function doStaffLogin(){
   document.getElementById('traineesTab').classList.remove('hidden');
   document.getElementById('membersTab').classList.remove('hidden');
   document.getElementById('inactiveTab').classList.remove('hidden');
-  document.getElementById('promotionsTab').classList.remove('hidden');
 
   renderAll();
   showToast('Welcome, '+profile.name+'!');
