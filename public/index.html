@@ -1639,7 +1639,6 @@ async function loadDepartment(userId){
   nextMemberId = members.length>0 ? Math.max(...members.map(m=>m.id||0))+1 : 1;
   nextTraineeId = trainees.length>0 ? Math.max(...trainees.map(t=>t.id||0))+1 : 1;
 }
-}
 
 function scheduleSave(){
   clearTimeout(saveTimer);
