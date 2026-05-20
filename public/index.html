@@ -3165,39 +3165,26 @@ function selectCustomTheme(i){
   showToast(`✓ ${customThemes[i].name} applied.`);
 }
 
-function getRankInsignia(gi){
-  const s = `stroke="var(--accent)" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" fill="none"`;
-  const star = (cx,cy,r=8) => {
-    const pts=[];
-    for(let i=0;i<10;i++){const a=Math.PI/5*i-Math.PI/2;const ri=i%2===0?r:r*0.4;pts.push(`${cx+ri*Math.cos(a)},${cy+ri*Math.sin(a)}`);}
-    return `<polygon points="${pts.join(' ')}" ${s} stroke-width="1.2"/>`;
+function uploadInsignia(i, input){
+  const file = input.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    rankGroups[i].insignia = e.target.result;
+    renderRGList();
+    renderRoster();
+    scheduleSave();
+    showToast('✓ Insignia uploaded.');
   };
-  const w=32,h=24,cx=w/2,cy=h/2;
-  const insignias = [
-    // 0 - 5 stars
-    `<svg width="${w*5+8}" height="${h}" viewBox="0 0 ${w*5+8} ${h}">${[0,1,2,3,4].map(i=>star(i*(w+2)+cx,cy)).join('')}</svg>`,
-    // 1 - 4 stars
-    `<svg width="${w*4+6}" height="${h}" viewBox="0 0 ${w*4+6} ${h}">${[0,1,2,3].map(i=>star(i*(w+2)+cx,cy)).join('')}</svg>`,
-    // 2 - 3 stars
-    `<svg width="${w*3+4}" height="${h}" viewBox="0 0 ${w*3+4} ${h}">${[0,1,2].map(i=>star(i*(w+2)+cx,cy)).join('')}</svg>`,
-    // 3 - 2 stars
-    `<svg width="${w*2+2}" height="${h}" viewBox="0 0 ${w*2+2} ${h}">${[0,1].map(i=>star(i*(w+2)+cx,cy)).join('')}</svg>`,
-    // 4 - 1 star
-    `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">${star(cx,cy)}</svg>`,
-    // 5 - 3 chevrons
-    `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><polyline points="4,22 16,6 28,22" ${s}/><polyline points="4,16 16,0 28,16" ${s}/><polyline points="4,10 16,-6 28,10" ${s}/></svg>`,
-    // 6 - 2 chevrons
-    `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><polyline points="4,20 16,6 28,20" ${s}/><polyline points="4,12 16,-2 28,12" ${s}/></svg>`,
-    // 7 - 1 chevron
-    `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><polyline points="4,18 16,6 28,18" ${s}/></svg>`,
-    // 8 - 3 bars
-    `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><rect x="2" y="3" width="28" height="4" ${s}/><rect x="2" y="10" width="28" height="4" ${s}/><rect x="2" y="17" width="28" height="4" ${s}/></svg>`,
-    // 9 - 2 bars
-    `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><rect x="2" y="6" width="28" height="4" ${s}/><rect x="2" y="14" width="28" height="4" ${s}/></svg>`,
-    // 10+ - 1 bar
-    `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><rect x="2" y="10" width="28" height="4" ${s}/></svg>`,
-  ];
-  return insignias[Math.min(gi, insignias.length-1)];
+  reader.readAsDataURL(file);
+}
+
+function getRankInsignia(gi){
+  const g = rankGroups[gi];
+  if(g && g.insignia){
+    return `<img src="${g.insignia}" style="width:28px;height:28px;object-fit:contain;display:block;margin:0 auto;">`;
+  }
+  return '';
 }
 
 function toggleInsignia(val){
@@ -3243,11 +3230,17 @@ function updateTraineeFormatPreview(){
 
 function renderRGList(){
   document.getElementById('rgList').innerHTML=rankGroups.map((g,i)=>`
-    <div class="edit-row" style="grid-template-columns:1fr 100px 100px 140px 28px 28px 28px;">
+    <div class="edit-row" style="grid-template-columns:1fr 100px 100px 140px 44px 28px 28px 28px;">
       <input class="edit-input" value="${g.name}" oninput="updateRGName(${i},this.value)" placeholder="Group name">
       <input class="edit-input" value="${g.from||''}" oninput="updateRGFrom(${i},this.value)" placeholder="e.g. 1W-01">
       <input class="edit-input" value="${g.to||''}" oninput="updateRGTo(${i},this.value)" placeholder="e.g. 1W-06">
       <input class="edit-input" value="${g.position||''}" oninput="updateRGPos(${i},this.value)" placeholder="Position title">
+      <div style="display:flex;align-items:center;justify-content:center;">
+        <label title="Upload insignia" style="cursor:pointer;width:36px;height:28px;display:flex;align-items:center;justify-content:center;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;flex-shrink:0;">
+          ${g.insignia ? `<img src="${g.insignia}" style="width:100%;height:100%;object-fit:contain;">` : `<span style="font-size:14px;color:var(--text3);">+</span>`}
+          <input type="file" accept="image/*" style="display:none;" onchange="uploadInsignia(${i},this)">
+        </label>
+      </div>
       <button class="icon-btn" onclick="moveRG(${i},-1)" ${i===0?'disabled':''}>↑</button>
       <button class="icon-btn" onclick="moveRG(${i},1)" ${i===rankGroups.length-1?'disabled':''}>↓</button>
       <button class="del-btn" onclick="deleteRG(${i})">×</button>
