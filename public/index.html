@@ -1440,6 +1440,7 @@ function startRealtimeSync(){
       promotions = rd.promotions||[];
       if(rd.custom_themes&&rd.custom_themes.length) customThemes = rd.custom_themes;
       if(rd.theme && rd.theme !== activeTheme) applyTheme(rd.theme);
+      if(rd.show_insignia !== undefined) showInsignia = rd.show_insignia;
       nextMemberId = members.length>0?Math.max(...members.map(m=>m.id||0))+1:1;
       nextTraineeId = trainees.length>0?Math.max(...trainees.map(t=>t.id||0))+1:1;
 
@@ -3232,7 +3233,7 @@ function toggleInsignia(val){
   const noLabel = document.getElementById('insigniaNoLabel');
   if(yesLabel) yesLabel.style.borderColor = val ? 'var(--accent)' : 'var(--border)';
   if(noLabel) noLabel.style.borderColor = !val ? 'var(--accent)' : 'var(--border)';
-  scheduleSave();
+  saveRoster();
   renderRoster();
 }
 
