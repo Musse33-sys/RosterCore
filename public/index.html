@@ -3726,9 +3726,11 @@ document.addEventListener('keydown',e=>{
           document.getElementById('rosterTab').classList.remove('hidden');
           document.getElementById('traineesTab').classList.remove('hidden');
           document.getElementById('membersTab').classList.remove('hidden');
+          document.getElementById('inactiveTab').classList.remove('hidden');
           document.getElementById('addMemberBtn').classList.remove('hidden');
           document.getElementById('addTraineeBtn').classList.remove('hidden');
           renderAll();
+          switchTab('roster', document.getElementById('rosterTab'));
           startPresence(profile.name, rd.dept_id);
           startRealtimeSync();
           return;
