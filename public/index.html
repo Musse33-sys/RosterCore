@@ -3666,6 +3666,7 @@ document.addEventListener('keydown',e=>{
         document.getElementById('inactiveTab').classList.remove('hidden');
         renderAll();
         switchTab('roster', document.getElementById('rosterTab'));
+        startRealtimeSync();
         return;
       }
     }
@@ -3686,7 +3687,7 @@ document.addEventListener('keydown',e=>{
       document.getElementById('landingPage').style.display='none';
       document.getElementById('appPage').style.display='flex'; document.getElementById('appPage').style.flexDirection='column';
       renderAll();
-      
+      startRealtimeSync();
       await showNameGate(token);
       return;
     }
