@@ -1301,6 +1301,37 @@ function patchRosterRow(m){
   return true;
 }
 
+function buildMemberRow(m, gi){
+  const tags=(m.tags||[]).map(tag=>{const t=customTags.find(ct=>ct.name===tag);const c=t?t.color:'#7ec8e3';return`<span style="font-family:'JetBrains Mono',monospace;font-size:9px;background:${c}18;border:1px solid ${c}55;color:${c};padding:1px 6px;border-radius:2px;">${tag}</span>`;}).join('');
+  const g=rankGroups[gi]||{};
+  return `<tr class="row-filled" data-member-id="${m.id}">
+    <td><span class="cs-filled">${m.callsign||'—'}</span></td>
+    <td class="name-td"><div class="member-name">${m.name}${onlineUsers.has(m.name)?'<span class="online-dot" title="Online now"></span>':''} ${tags}</div>${(m.position||g.position)?`<div class="member-pos">${m.position||g.position}</div>`:''}</td>
+    <td>${sdBadges(m.subdivs)}</td>
+    <td>${statusPill(m.status)}</td>
+    <td class="col-doh" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);">${fmtDate(m.doh)}</td>
+    <td class="col-discord" style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${m.discord||''}">${m.discord||'—'}</td>
+    <td>${strikeBadge(m.strikes||0)}</td>
+    <td class="col-notes" style="font-size:11px;color:var(--text2);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${m.notes||''}">${m.notes||'—'}</td>
+    ${currentUser?`<td><div class="row-acts">
+      ${gi>0?`<button class="btn-promote btn" onclick="promote(${m.id})">▲</button>`:''}
+      ${gi<rankGroups.length-1?`<button class="btn-demote btn" onclick="demote(${m.id})">▼</button>`:''}
+      <button class="btn btn-ghost btn-xs" onclick="openEditMember(${m.id})">Edit</button>
+      <button class="btn btn-danger" onclick="openConfirmDelete(${m.id},'member')">✕</button>
+    </div></td>`:''}
+  </tr>`;
+}
+
+function diffUpdateRow(m, gi){
+  const row = document.querySelector(`tr[data-member-id="${m.id}"]`);
+  if(!row) return false;
+  const temp = document.createElement('tbody');
+  temp.innerHTML = buildMemberRow(m, gi);
+  const newRow = temp.firstElementChild;
+  row.replaceWith(newRow);
+  return true;
+}
+
 function smartSyncUpdate(oldMembers, newMembers, oldTrainees, newTrainees, structureChanged){
   if(structureChanged){ renderAll(); return; }
 
@@ -1310,24 +1341,39 @@ function smartSyncUpdate(oldMembers, newMembers, oldTrainees, newTrainees, struc
   const removed = oldMembers.filter(m=>!newIds.has(m.id));
   let needsStats = false;
 
+  // Members added or removed — full re-render unavoidable
   if(added.length || removed.length){
     renderRoster(); renderStats(); return;
   }
 
+  // Only edits — patch individual rows in-place
   for(const m of newMembers){
     const old = oldMembers.find(om=>om.id===m.id);
-    if(old && JSON.stringify(old)!==JSON.stringify(m)){
-      if(old.callsign !== m.callsign || old.rankGroup !== m.rankGroup){
-        renderRoster(); renderStats(); return;
-      }
-      patchRosterRow(m);
-      if(old.status !== m.status) needsStats = true;
+    if(!old || JSON.stringify(old)===JSON.stringify(m)) continue;
+
+    if(old.callsign !== m.callsign || old.rankGroup !== m.rankGroup){
+      // Position changed — need full re-render
+      renderRoster(); renderStats(); return;
+    }
+
+    // Same position — just swap the row in-place, no flash
+    const gi = rankGroups.findIndex(g=>g.name===m.rankGroup);
+    const swapped = diffUpdateRow(m, gi);
+    if(!swapped){ renderRoster(); return; }
+    if(old.status !== m.status) needsStats = true;
+  }
+
+  // Trainees
+  const oldTIds = new Set(oldTrainees.map(t=>t.id));
+  const newTIds = new Set(newTrainees.map(t=>t.id));
+  if(newTrainees.some(t=>!oldTIds.has(t.id))||oldTrainees.some(t=>!newTIds.has(t.id))){ renderTrainees(); needsStats=true; }
+  else {
+    for(const t of newTrainees){
+      const old = oldTrainees.find(ot=>ot.id===t.id);
+      if(old && JSON.stringify(old)!==JSON.stringify(t)){ renderTrainees(); break; }
     }
   }
 
-  const oldTIds = new Set(oldTrainees.map(t=>t.id));
-  const newTIds = new Set(newTrainees.map(t=>t.id));
-  if(newTrainees.some(t=>!oldTIds.has(t.id)) || oldTrainees.some(t=>!newTIds.has(t.id))){ renderTrainees(); needsStats=true; }
   if(needsStats) renderStats();
 }
 
