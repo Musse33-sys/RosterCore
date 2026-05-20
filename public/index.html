@@ -2564,7 +2564,7 @@ function renderRoster(){
             
             return `<tr class="row-empty">
               <td><span class="cs-empty">${slot}</span></td>
-              <td colspan="${currentUser?8:7}" style="color:var(--border2);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;padding:10px 12px;">— VACANT —</td>
+              <td colspan="${currentUser?(showInsignia?9:8):(showInsignia?8:7)}" style="color:var(--border2);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;padding:10px 12px;">— VACANT —</td>
             </tr>`;
           }
         }).join('')
@@ -2592,7 +2592,7 @@ function renderRoster(){
             <button class="btn btn-danger" onclick="openConfirmDelete(${m.id},'member')">✕</button>
           </div></td>`:''}
         </tr>`;
-      }).join('') || `<tr class="row-empty"><td colspan="${currentUser?9:8}" style="text-align:center;padding:16px;font-family:'JetBrains Mono',monospace;font-size:11px;">— NO MEMBERS —</td></tr>`;
+      }).join('') || `<tr class="row-empty"><td colspan="${currentUser?(showInsignia?10:9):(showInsignia?9:8)}" style="text-align:center;padding:16px;font-family:'JetBrains Mono',monospace;font-size:11px;">— NO MEMBERS —</td></tr>`;
 
     html+=`
     <div class="rank-group fade-up">
@@ -2606,7 +2606,7 @@ function renderRoster(){
               <th class="col-doh">DOH</th><th class="col-discord">ID</th><th class="col-strikes">Strikes</th><th class="col-notes">Notes</th>
               ${actionsCols}
             </tr></thead>
-            <tbody>${rows}${capped?`<tr class="row-empty"><td colspan="${currentUser?9:8}" style="text-align:center;padding:10px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);">Showing ${filledCallsigns.length} filled + ${MAX_VACANT} vacant of ${total} total slots</td></tr>`:''}</tbody>
+            <tbody>${rows}${capped?`<tr class="row-empty"><td colspan="${currentUser?(showInsignia?10:9):(showInsignia?9:8)}" style="text-align:center;padding:10px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);">Showing ${filledCallsigns.length} filled + ${MAX_VACANT} vacant of ${total} total slots</td></tr>`:''}</tbody>
           </table>
         </div>
       </div>
