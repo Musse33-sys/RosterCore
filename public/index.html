@@ -136,7 +136,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .rg-label{writing-mode:vertical-rl;transform:rotate(180deg);background:var(--bg3);border-right:1px solid var(--border);color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:3px;text-transform:uppercase;padding:10px 7px;display:flex;align-items:center;justify-content:center;min-width:30px;max-width:30px;font-weight:700;flex-shrink:0;align-self:stretch;}
 .rg-table-wrap{flex:1;overflow-x:auto;}
 .roster-table{width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed;}
-.roster-table .col-stretch{width:auto;}
 .roster-table thead th{background:var(--bg3);border-bottom:1px solid var(--border2);font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);padding:10px 12px;text-align:left;white-space:nowrap;font-weight:500;overflow:hidden;}
 .roster-table tbody tr.row-filled{background:var(--bg2);border-bottom:1px solid var(--border);}
 .roster-table tbody tr.row-filled:hover{background:var(--bg3);}
@@ -2582,10 +2581,10 @@ function renderRoster(){
           <table class="roster-table">
             <colgroup>
               <col style="width:90px;">${showInsignia?'<col style="width:44px;">':''}
-              <col><col style="width:160px;">
-              <col style="width:100px;"><col style="width:100px;"><col style="width:130px;">
-              <col style="width:60px;"><col style="width:120px;">
-              ${currentUser?'<col style="width:130px;">':''}
+              <col style="width:180px;"><col style="width:150px;">
+              <col style="width:110px;"><col style="width:100px;"><col style="width:130px;">
+              <col style="width:55px;"><col style="width:110px;">
+              ${currentUser?'<col style="width:120px;">':''}
             </colgroup>
             <thead><tr>
               <th>Callsign</th>${showInsignia?'<th style="width:44px;text-align:center;">Insignia</th>':''}<th>Name</th><th>Subdivision</th><th>Status</th>
