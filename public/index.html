@@ -1369,9 +1369,11 @@ function smartSyncUpdate(oldMembers, newMembers, oldTrainees, newTrainees, struc
         temp.innerHTML = buildMemberRow(m, newGi);
         const newRow = temp.firstElementChild;
         const rows = [...newTbody.querySelectorAll('tr[data-member-id]')];
+        const getNum = cs => parseInt((cs.match(/\d+$/)||[0])[0])||0;
+        const newNum = getNum(m.callsign||'');
         const insertBefore = rows.find(r=>{
           const cs = r.querySelector('.cs-filled')?.textContent||'';
-          return cs.localeCompare(m.callsign||'') > 0;
+          return getNum(cs) > newNum;
         });
         if(insertBefore) newTbody.insertBefore(newRow, insertBefore);
         else newTbody.appendChild(newRow);
