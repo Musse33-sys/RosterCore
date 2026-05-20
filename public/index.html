@@ -904,7 +904,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
     <div class="modal-sub" id="mmSub">New member will be auto-assigned a callsign.</div>
     <div class="form-row">
       <div class="form-group"><label class="form-label">Full Name</label><input class="form-input" id="mmName" placeholder="John Smith"></div>
-      <div class="form-group"><label class="form-label">Callsign</label><input class="form-input" id="mmCallsign" placeholder="Auto-assigned" oninput="onCallsignChange()"></div>
+      <div class="form-group"><label class="form-label">Callsign</label><input class="form-input" id="mmCallsign" placeholder="Auto-assigned" oninput="onCallsignChange()" onblur="onCallsignChange()"></div>
     </div>
     <div class="form-row">
       <div class="form-group"><label class="form-label">Rank Group</label><select class="form-select" id="mmGroup" onchange="onGroupChange()"></select></div>
@@ -2945,9 +2945,9 @@ function onGroupChange(){
 }
 
 function onCallsignChange(){
-  // Auto-detect rank group from typed callsign
   const cs=document.getElementById('mmCallsign').value.trim();
   if(!cs) return;
+  // Auto-detect rank group from typed callsign
   const detected=rankGroups.find(g=>{
     const slots=getRangeSlots(g.from,g.to);
     return slots.includes(cs);
@@ -2955,13 +2955,20 @@ function onCallsignChange(){
   if(detected){
     document.getElementById('mmGroup').value=detected.name;
   }
-  // Auto-detect fixed position from callsign
+  // Auto-detect fixed position — only exact full match
   const fixedPos=positions.find(p=>{
     const po=typeof p==='string'?{name:p,callsign:''}:p;
-    return po.callsign && po.callsign.trim()===cs;
+    return po.callsign && po.callsign.trim().toUpperCase()===cs.toUpperCase();
   });
   if(fixedPos){
     document.getElementById('mmPosition').value=typeof fixedPos==='string'?fixedPos:fixedPos.name;
+  } else {
+    // Clear position only if the current one has a fixed callsign that no longer matches
+    const curPos=document.getElementById('mmPosition').value;
+    const pd=getPosData(curPos);
+    if(pd && pd.callsign && pd.callsign.trim().toUpperCase()!==cs.toUpperCase()){
+      document.getElementById('mmPosition').value='';
+    }
   }
 }
 function openEditMember(id){
