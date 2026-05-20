@@ -1352,18 +1352,22 @@ function smartSyncUpdate(oldMembers, newMembers, oldTrainees, newTrainees, struc
     if(!old || JSON.stringify(old)===JSON.stringify(m)) continue;
 
     if(old.callsign !== m.callsign || old.rankGroup !== m.rankGroup){
-      // Move the row to the new group's tbody without full re-render
       const oldRow = document.querySelector(`tr[data-member-id="${m.id}"]`);
       const newGi = rankGroups.findIndex(g=>g.name===m.rankGroup);
-      // Find the new group's tbody - each rank group has its own table
-      const allTables = document.querySelectorAll('#rosterWrap .roster-table tbody');
-      const newTbody = allTables[newGi];
+      // Find tbody by rank group label text instead of index
+      const allGroups = document.querySelectorAll('#rosterWrap .rank-group');
+      let newTbody = null;
+      allGroups.forEach(grp=>{
+        const label = grp.querySelector('.rg-label');
+        if(label && label.textContent.trim()===m.rankGroup){
+          newTbody = grp.querySelector('.roster-table tbody');
+        }
+      });
       if(oldRow && newTbody){
         oldRow.remove();
         const temp = document.createElement('tbody');
         temp.innerHTML = buildMemberRow(m, newGi);
         const newRow = temp.firstElementChild;
-        // Insert in callsign order
         const rows = [...newTbody.querySelectorAll('tr[data-member-id]')];
         const insertBefore = rows.find(r=>{
           const cs = r.querySelector('.cs-filled')?.textContent||'';
