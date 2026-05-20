@@ -1633,10 +1633,12 @@ async function loadDepartment(userId){
   promotions = rd.promotions||[];
   customThemes = (rd.custom_themes&&rd.custom_themes.length?rd.custom_themes:[{name:'Custom 1',accent:'#c9a84c',bg:'#0a0c10'},{name:'Custom 2',accent:'#60a5fa',bg:'#080c14'}]);
   activeTheme = rd.theme||'dark-steel';
+  showInsignia = rd.show_insignia||false;
   members = rd.members||[];
   trainees = rd.trainees||[];
   nextMemberId = members.length>0 ? Math.max(...members.map(m=>m.id||0))+1 : 1;
   nextTraineeId = trainees.length>0 ? Math.max(...trainees.map(t=>t.id||0))+1 : 1;
+  console.log('[loadDepartment] show_insignia from DB:', rd.show_insignia, '→ showInsignia:', showInsignia);
 }
 
 function scheduleSave(){
