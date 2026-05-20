@@ -2883,9 +2883,10 @@ function demote(id){
   const newCS=nextMemberCallsign(newGroup,id);
   const old=m.callsign;
   m.rankGroup=newGroup; m.callsign=newCS;
-  // Clear fixed position if it has a fixed callsign
-  const pd=getPosData(m.position);
-  if(pd && pd.callsign) m.position='';
+  // Auto-detect fixed position from new callsign, or clear if old one no longer matches
+  const demoteFixedPos=positions.find(p=>{const po=typeof p==='string'?{name:p,callsign:''}:p; return po.callsign&&po.callsign.trim()===newCS;});
+  if(demoteFixedPos) m.position=typeof demoteFixedPos==='string'?demoteFixedPos:demoteFixedPos.name;
+  else { const pd=getPosData(m.position); if(pd&&pd.callsign) m.position=''; }
   // Remove from promo log on demotion
   promotions=promotions.filter(p=>p.name!==m.name);
   const scrollY = window.scrollY;
