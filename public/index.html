@@ -248,6 +248,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .ins-upload .ins-remove{position:absolute;inset:0;background:rgba(248,113,113,.85);color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .15s;pointer-events:none;}
 .ins-upload:hover .ins-remove{opacity:1;}
 @keyframes pulse-dot{0%,100%{box-shadow:0 0 4px var(--green);opacity:1;}50%{box-shadow:0 0 10px var(--green);opacity:.7;}}
+.mobile-discord{display:none;}
 .confirm-modal{max-width:360px;padding:28px;}
 .confirm-modal .modal-title{color:var(--red);}
 
@@ -326,8 +327,13 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   /* name + position */
   .roster-table td.name-td{display:flex;flex-direction:column;flex:1;min-width:0;padding:0;overflow:hidden;}
   .roster-table td.name-td .member-name{font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
-  .roster-table td.name-td .member-name span[style]{display:none;}
+  .roster-table td.name-td .member-name span[style]{display:inline!important;font-size:8px!important;padding:1px 4px!important;}
   .roster-table td.name-td .member-pos{font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .roster-table td.name-td .mobile-discord{display:block;font-size:8px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:'JetBrains Mono',monospace;margin-top:1px;}
+
+  /* show strikes on mobile */
+  .roster-table .col-strikes{display:flex!important;align-items:center;flex-shrink:0;padding:0!important;}
+  .strike-badge{font-size:8px!important;padding:2px 5px!important;min-width:18px;text-align:center;}
 
   /* status — 5th td */
   .roster-table tr.row-filled td:nth-child(5){display:flex;align-items:center;flex-shrink:0;padding:0;}
@@ -346,11 +352,10 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   .roster-table tbody tr.row-empty td:nth-child(3){display:flex;flex:1;align-items:center;padding:0;font-size:9px;letter-spacing:1px;color:var(--border2);}
 
   /* hide columns not needed */
-  .roster-table td:nth-child(4),
   .roster-table .col-doh,
   .roster-table .col-discord,
-  .roster-table .col-notes,
-  .roster-table .col-strikes{display:none!important;}
+  .roster-table .col-notes{display:none!important;}
+  .roster-table .col-strikes{display:flex!important;align-items:center;flex-shrink:0;padding:0 0 0 2px!important;}
 
   .members-table .col-doh,
   .members-table .col-discord,
@@ -2650,6 +2655,7 @@ function renderRoster(){
                   ${(m.tags||[]).map(tag=>{const t=customTags.find(ct=>ct.name===tag);const c=t?t.color:'#7ec8e3';return`<span style="font-family:'JetBrains Mono',monospace;font-size:9px;background:${c}18;border:1px solid ${c}55;color:${c};padding:1px 6px;border-radius:2px;">${tag}</span>`;}).join('')}
                 </div>
                 ${(m.position||g.position)?`<div class="member-pos">${m.position||g.position}</div>`:''}
+                ${m.discord?`<div class="mobile-discord">${m.discord}</div>`:''}
               </td>
               <td>${sdBadges(m.subdivs)}</td>
               <td>${statusPill(m.status)}</td>
