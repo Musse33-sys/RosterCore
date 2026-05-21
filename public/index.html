@@ -407,8 +407,18 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
     box-shadow:0 4px 16px rgba(59,130,246,.4);font-size:24px;color:#fff;font-weight:300;
   }
   .mobile-fab:active{transform:scale(0.95);}
-  /* hide desktop add buttons */
   #addMemberBtn,#addTraineeBtn{display:none!important;}
+  /* fix landing page on mobile */
+  #landingPage{overflow-x:hidden;width:100%;}
+  #landingPage > div{max-width:100%;box-sizing:border-box;}
+  #landingNav{padding:10px 16px!important;}
+  #landingNav svg{height:36px!important;}
+  #landingNav > div:nth-child(2){display:none;}
+  #landingNav > div:last-child{gap:6px!important;}
+  #landingNav a,#landingNav button{font-size:10px!important;padding:6px 10px!important;}
+  .landing-title{font-size:36px!important;}
+  .landing-sub{font-size:13px!important;padding:0 16px;}
+  #features > div:last-child{grid-template-columns:1fr 1fr!important;}
 }
 </style>
 <!-- v2.1 -->
@@ -419,7 +429,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 <div id="landingPage" style="display:none;">
 
   <!-- NAV -->
-  <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 40px;border-bottom:1px solid #1e1e1e;width:100%;background:var(--bg);">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 40px;border-bottom:1px solid #1e1e1e;width:100%;background:var(--bg);box-sizing:border-box;flex-wrap:wrap;gap:8px;" id="landingNav">
     <div style="display:flex;align-items:center;">
       <svg viewBox="0 0 480 120" xmlns="http://www.w3.org/2000/svg" style="height:52px;width:auto;">
         <circle cx="60" cy="60" r="45" fill="none" stroke="var(--accent)" stroke-width="3"></circle>
