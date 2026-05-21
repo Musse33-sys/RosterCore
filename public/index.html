@@ -2437,6 +2437,18 @@ async function downloadRosterPDF(){
 function generatePromoAnnouncement(){
   if(!promotions.length){showToast('⚠ No promotions to announce.',true);return;}
 
+  // Get current theme colors
+  const theme = builtinThemes.find(t=>t.id===activeTheme);
+  const customTheme = activeTheme==='custom-1'?customThemes[0]:activeTheme==='custom-2'?customThemes[1]:null;
+  const accent = customTheme?.accent || theme?.vars['--accent'] || '#4ade80';
+  const accentDim = accent+'55';
+  const accentFaint = accent+'18';
+  const bg = customTheme?.bg || theme?.vars['--bg'] || '#07090d';
+  const bg2 = theme?.vars['--bg2'] || '#0e1812';
+  const border = theme?.vars['--border'] || '#1e3a28';
+  const text = theme?.vars['--text'] || '#e0f5e8';
+  const text3 = theme?.vars['--text3'] || '#4a7a58';
+
   const sorted=[...promotions].sort((a,b)=>{
     if(a.toGroupIndex!==b.toGroupIndex) return a.toGroupIndex-b.toGroupIndex;
     return new Date(b.date)-new Date(a.date);
@@ -2448,41 +2460,37 @@ function generatePromoAnnouncement(){
     grouped[p.toGroup].push(p);
   });
 
-  const colors=['#fbbf24','#60a5fa','#4ade80','#f87171','#a78bfa','#fb923c','#7ec8e3','#e879f9'];
   const today=new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}).toUpperCase();
 
   let sectionsHtml='';
-  let colorIdx=0;
   Object.entries(grouped).forEach(([group,promos])=>{
-    const color=colors[colorIdx%colors.length];
-    colorIdx++;
-    const groupPos = rankGroups.find(g=>g.name===group)?.position||'';
     const rows=promos.map((p,i)=>`
-      <div style="display:flex;align-items:center;gap:12px;padding:10px 16px;${i<promos.length-1?'border-bottom:1px solid #1a1e28':''}">
-        <span style="color:#4ade80;font-size:13px;font-weight:700;min-width:65px;font-family:'JetBrains Mono',monospace;">${p.toCS||'—'}</span>
-        <span style="color:#e8e4da;font-size:13px;flex:1;font-family:'JetBrains Mono',monospace;">${p.name}</span>
-        <span style="font-size:10px;color:#686460;font-family:'JetBrains Mono',monospace;">from <span style="color:#f87171;">${p.fromCS||'—'}</span></span>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;${i<promos.length-1?`border-bottom:1px solid ${border};`:''}">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span style="color:${accent};font-size:12px;font-weight:700;min-width:52px;font-family:'JetBrains Mono',monospace;">${p.toCS||'—'}</span>
+          <span style="color:${text};font-size:12px;font-family:'JetBrains Mono',monospace;">${p.name}</span>
+        </div>
+        ${p.toGroup?`<span style="color:${accent};font-size:8px;letter-spacing:1px;font-family:'JetBrains Mono',monospace;opacity:0.8;">${(rankGroups.find(g=>g.name===p.toGroup)?.position||'').toUpperCase()}</span>`:''}
       </div>`).join('');
     sectionsHtml+=`
-      <div style="border-radius:4px;overflow:hidden;margin-bottom:10px;">
-        <div style="background:${color}18;border-left:3px solid ${color};padding:8px 16px;display:flex;align-items:center;justify-content:space-between;">
-          <span style="font-size:10px;letter-spacing:2px;color:${color};font-weight:700;font-family:'JetBrains Mono',monospace;">${group.toUpperCase()}</span>
-          ${groupPos?`<span style="font-size:10px;color:${color}99;font-family:'JetBrains Mono',monospace;letter-spacing:1px;">${groupPos}</span>`:''}
-        </div>
-        <div style="background:#12151c;">${rows}</div>
+      <div style="margin-bottom:14px;">
+        <p style="font-size:8px;color:${accent};letter-spacing:2px;margin:0 0 8px;font-family:'JetBrains Mono',monospace;">— ${group.toUpperCase()} —</p>
+        <div>${rows}</div>
       </div>`;
   });
 
   const cardHtml=`
-    <div style="background:#0a0c10;border-bottom:3px solid #c9a84c;padding:20px 22px 14px;">
-      <div style="font-size:9px;letter-spacing:4px;color:#6b561f;margin-bottom:3px;font-family:'JetBrains Mono',monospace;">OFFICIAL ANNOUNCEMENT</div>
-      <div style="font-size:22px;font-weight:700;color:#e8e4da;letter-spacing:2px;font-family:sans-serif;">${deptName}</div>
-      <div style="font-size:10px;letter-spacing:3px;color:#c9a84c;margin-top:3px;font-family:'JetBrains Mono',monospace;">PROMOTION LIST — ${today}</div>
-    </div>
-    <div style="padding:14px 22px 10px;">${sectionsHtml}</div>
-    <div style="padding:10px 22px;border-top:1px solid #1a1e28;display:flex;align-items:center;justify-content:space-between;">
-      <span style="font-size:10px;color:#686460;font-family:'JetBrains Mono',monospace;">Signed by <span style="color:#c9a84c;">${currentUser?.name||deptName}</span></span>
-      <span style="font-size:9px;color:#363c50;letter-spacing:2px;font-family:'JetBrains Mono',monospace;">ROSTERCORE.SPACE</span>
+    <div style="background:${bg};border:1px solid ${border};border-radius:10px;overflow:hidden;font-family:'JetBrains Mono',monospace;">
+      <div style="padding:18px 22px;border-bottom:1px solid ${border};">
+        <p style="font-size:8px;color:${accent};letter-spacing:3px;margin:0 0 6px;">✦ OFFICIAL ANNOUNCEMENT ✦</p>
+        <p style="font-size:20px;font-weight:700;color:${text};margin:0;letter-spacing:2px;">${deptName.toUpperCase()}</p>
+        <p style="font-size:8px;color:${accent};letter-spacing:2px;margin:6px 0 0;opacity:0.7;">PROMOTION LIST — ${today}</p>
+      </div>
+      <div style="padding:16px 22px;">${sectionsHtml}</div>
+      <div style="padding:10px 22px;border-top:1px solid ${border};display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:8px;color:${text3};font-family:'JetBrains Mono',monospace;">Signed by <span style="color:${accent};">${currentUser?.name||deptName}</span></span>
+        <span style="font-size:8px;color:${text3};opacity:0.5;font-family:'JetBrains Mono',monospace;">ROSTERCORE.SPACE</span>
+      </div>
     </div>`;
 
   document.getElementById('promoCard').innerHTML=cardHtml;
@@ -2499,8 +2507,10 @@ async function downloadPromoImage(){
       await new Promise(r=>script.onload=r);
     }
     showToast('Generating image…');
+    const theme = builtinThemes.find(t=>t.id===activeTheme);
+    const bgColor = customThemes[activeTheme==='custom-1'?0:1]?.bg || theme?.vars['--bg'] || '#07090d';
     const canvas=await html2canvas(card,{
-      backgroundColor:'#0a0c10',
+      backgroundColor:bgColor,
       scale:2,
       useCORS:true,
       logging:false
