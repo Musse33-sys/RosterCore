@@ -1004,11 +1004,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
       <div class="form-group"><label class="form-label">ID</label><input class="form-input" id="mmDiscord" placeholder="123456789…"></div>
       <div class="form-group"><label class="form-label">Date of Hire</label><input class="form-input" type="date" id="mmDOH"></div>
     </div>
-    <div class="form-group"><label class="form-label">Subdivision 1</label><select class="form-select" id="mmS1"><option value="">— None —</option></select></div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">Subdivision 2</label><select class="form-select" id="mmS2"><option value="">— None —</option></select></div>
-      <div class="form-group"><label class="form-label">Subdivision 3</label><select class="form-select" id="mmS3"><option value="">— None —</option></select></div>
-    </div>
+    <div class="form-group"><label class="form-label">Subdivisions</label><div id="mmSubdivsWrap" style="display:flex;flex-wrap:wrap;gap:12px;margin-top:4px;"></div></div>
     <div class="form-row">
       <div class="form-group"><label class="form-label">Status</label>
         <select class="form-select" id="mmStatus"><option>Active</option><option>Inactive</option><option>LOA</option><option>Part Time</option></select>
@@ -3011,9 +3007,7 @@ function openAddMember(){
   editingMemberId=null;
   populateSel('mmGroup', rankGroups.map(g=>g.name), false);
   populateSel('mmPosition', positions.map(p=>typeof p==='string'?p:p.name), true);
-  populateSel('mmS1', subdivisions.map(s=>s.name), true);
-  populateSel('mmS2', subdivisions.map(s=>s.name), true);
-  populateSel('mmS3', subdivisions.map(s=>s.name), true);
+  populateSubdivCheckboxes([]);
   document.getElementById('mmTitle').textContent='Add Member';
   document.getElementById('mmSub').textContent='Callsign auto-assigned from rank group format.';
   document.getElementById('mmName').value='';
@@ -3023,7 +3017,6 @@ function openAddMember(){
   document.getElementById('mmDiscord').value='';
   document.getElementById('mmDOH').value=new Date().toISOString().split('T')[0];
   document.getElementById('mmPosition').value='';
-  document.getElementById('mmS1').value='';document.getElementById('mmS2').value='';document.getElementById('mmS3').value='';
   document.getElementById('mmStatus').value='Active';
   document.getElementById('mmStrikes').value='0';
   document.getElementById('mmNotes').value='';
@@ -3076,9 +3069,6 @@ function openEditMember(id){
   editingMemberId=id;
   populateSel('mmGroup', rankGroups.map(g=>g.name), false);
   populateSel('mmPosition', positions.map(p=>typeof p==='string'?p:p.name), true);
-  populateSel('mmS1', subdivisions.map(s=>s.name), true);
-  populateSel('mmS2', subdivisions.map(s=>s.name), true);
-  populateSel('mmS3', subdivisions.map(s=>s.name), true);
   document.getElementById('mmTitle').textContent='Edit Member';
   document.getElementById('mmSub').textContent='Update personnel details.';
   document.getElementById('mmName').value=m.name;
@@ -3087,12 +3077,10 @@ function openEditMember(id){
   document.getElementById('mmDiscord').value=m.discord||'';
   document.getElementById('mmDOH').value=m.doh||'';
   document.getElementById('mmPosition').value=m.position||'';
-  document.getElementById('mmS1').value=(m.subdivs&&m.subdivs[0])||'';
-  document.getElementById('mmS2').value=(m.subdivs&&m.subdivs[1])||'';
-  document.getElementById('mmS3').value=(m.subdivs&&m.subdivs[2])||'';
   document.getElementById('mmStatus').value=m.status||'Active';
   document.getElementById('mmStrikes').value=m.strikes||0;
   document.getElementById('mmNotes').value=m.notes||'';
+  populateSubdivCheckboxes(m.subdivs||[]);
   populateTagCheckboxes(m.tags||[]);
   document.getElementById('memberModal').classList.remove('hidden');
 }
@@ -3106,7 +3094,7 @@ function saveMember(){
     discord:document.getElementById('mmDiscord').value.trim(),
     doh:document.getElementById('mmDOH').value,
     position:document.getElementById('mmPosition').value,
-    subdivs:[document.getElementById('mmS1').value,document.getElementById('mmS2').value,document.getElementById('mmS3').value].filter(Boolean),
+    subdivs:getSelectedSubdivs(),
     status:document.getElementById('mmStatus').value,
     strikes:parseInt(document.getElementById('mmStrikes').value)||0,
     notes:document.getElementById('mmNotes').value.trim(),
@@ -3578,6 +3566,21 @@ function populateTagCheckboxes(selectedTags){
       <input type="checkbox" name="mmTag" value="${t.name}" ${(selectedTags||[]).includes(t.name)?'checked':''} style="accent-color:${t.color||'var(--accent)'};">
       <span style="color:${t.color||'var(--text2)'};">${t.name}</span>
     </label>`).join('');
+}
+
+function populateSubdivCheckboxes(selectedSubdivs){
+  const wrap=document.getElementById('mmSubdivsWrap');
+  if(!wrap) return;
+  if(!subdivisions.length){ wrap.innerHTML='<span style="font-size:11px;color:var(--text3);">No subdivisions set up yet.</span>'; return; }
+  wrap.innerHTML=subdivisions.map(s=>`
+    <label class="form-check">
+      <input type="checkbox" name="mmSubdiv" value="${s.name}" ${(selectedSubdivs||[]).includes(s.name)?'checked':''} style="accent-color:${s.color||'var(--accent)'};">
+      <span style="color:${s.color||'var(--text2)'};">${s.name}</span>
+    </label>`).join('');
+}
+
+function getSelectedSubdivs(){
+  return [...document.querySelectorAll('input[name="mmSubdiv"]:checked')].map(cb=>cb.value);
 }
 
 function getSelectedTags(){
