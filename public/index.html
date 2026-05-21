@@ -2438,7 +2438,7 @@ function generatePromoAnnouncement(){
   if(!promotions.length){showToast('⚠ No promotions to announce.',true);return;}
 
   // Get current theme colors
-  const theme = builtinThemes.find(t=>t.id===activeTheme);
+  const theme = themes.find(t=>t.id===activeTheme);
   const customTheme = activeTheme==='custom-1'?customThemes[0]:activeTheme==='custom-2'?customThemes[1]:null;
   const accent = customTheme?.accent || theme?.vars['--accent'] || '#4ade80';
   const accentDim = accent+'55';
@@ -2507,7 +2507,7 @@ async function downloadPromoImage(){
       await new Promise(r=>script.onload=r);
     }
     showToast('Generating image…');
-    const theme = builtinThemes.find(t=>t.id===activeTheme);
+    const theme = themes.find(t=>t.id===activeTheme);
     const bgColor = customThemes[activeTheme==='custom-1'?0:1]?.bg || theme?.vars['--bg'] || '#07090d';
     const canvas=await html2canvas(card,{
       backgroundColor:bgColor,
