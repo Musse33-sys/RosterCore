@@ -411,14 +411,17 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   /* fix landing page on mobile */
   #landingPage{overflow-x:hidden;width:100%;}
   #landingPage > div{max-width:100%;box-sizing:border-box;}
-  #landingNav{padding:10px 16px!important;}
-  #landingNav svg{height:36px!important;}
-  #landingNav > div:nth-child(2){display:none;}
-  #landingNav > div:last-child{gap:6px!important;}
-  #landingNav a,#landingNav button{font-size:10px!important;padding:6px 10px!important;}
-  .landing-title{font-size:36px!important;}
-  .landing-sub{font-size:13px!important;padding:0 16px;}
-  #features > div:last-child{grid-template-columns:1fr 1fr!important;}
+  #landingNav{padding:10px 14px!important;}
+  #landingNav > div:first-child svg{height:32px!important;}
+  #landingNavLinks{display:none!important;}
+  #landingNav > div:last-child{gap:6px;}
+  #landingNav > div:last-child button{font-size:9px!important;padding:6px 10px!important;letter-spacing:.5px!important;}
+  .landing-title{font-size:34px!important;line-height:1.15!important;}
+  .landing-sub{font-size:13px!important;padding:0 8px;}
+  .landing-stats-bar{overflow-x:auto;-webkit-overflow-scrolling:touch;flex-wrap:nowrap!important;width:100%;}
+  #landingPage .landing-stats-bar > div{min-width:80px;padding:12px 10px!important;}
+  #landingPage .landing-stats-bar > div div:first-child{font-size:20px!important;}
+  #landingPage [style*="padding:90px"]{padding:40px 16px 40px!important;}
 }
 </style>
 <!-- v2.1 -->
@@ -429,7 +432,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 <div id="landingPage" style="display:none;">
 
   <!-- NAV -->
-  <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 40px;border-bottom:1px solid #1e1e1e;width:100%;background:var(--bg);box-sizing:border-box;flex-wrap:wrap;gap:8px;" id="landingNav">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 40px;border-bottom:1px solid #1e1e1e;width:100%;background:var(--bg);box-sizing:border-box;" id="landingNav">
     <div style="display:flex;align-items:center;">
       <svg viewBox="0 0 480 120" xmlns="http://www.w3.org/2000/svg" style="height:52px;width:auto;">
         <circle cx="60" cy="60" r="45" fill="none" stroke="var(--accent)" stroke-width="3"></circle>
@@ -439,7 +442,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
         <text x="138" y="78" font-family="'Arial',sans-serif" font-size="58" font-weight="700" fill="var(--text)" letter-spacing="-1">Roster<tspan fill="var(--accent)">Core</tspan></text>
       </svg>
     </div>
-    <div style="display:flex;gap:24px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;color:var(--text3);">
+    <div id="landingNavLinks" style="display:flex;gap:24px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;color:var(--text3);">
       <a href="#features" style="color:var(--text3);text-decoration:none;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text3)'">FEATURES</a>
       <a href="#howitworks" style="color:var(--text3);text-decoration:none;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text3)'">HOW IT WORKS</a>
       <a href="#faq" style="color:var(--text3);text-decoration:none;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text3)'">FAQ</a>
@@ -464,7 +467,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
       <button class="btn btn-ghost" style="font-size:12px;padding:14px 36px;" onclick="document.getElementById('howitworks').scrollIntoView({behavior:'smooth'})">HOW IT WORKS</button>
       <button class="btn" style="font-size:12px;padding:14px 36px;background:rgba(167,139,250,.1);color:var(--purple);border:1px solid rgba(167,139,250,.3);" onmouseover="this.style.background='rgba(167,139,250,.2)'" onmouseout="this.style.background='rgba(167,139,250,.1)'" onclick="loadDemo()">&#x25B6; TRY DEMO</button>
     </div>
-    <div style="display:flex;border:1px solid #1e1e1e;width:100%;max-width:640px;position:relative;z-index:1;">
+    <div class="landing-stats-bar" style="display:flex;border:1px solid #1e1e1e;width:100%;max-width:640px;position:relative;z-index:1;overflow-x:auto;-webkit-overflow-scrolling:touch;">
       <div style="flex:1;padding:18px;text-align:center;border-right:1px solid #1e1e1e;">
         <div style="font-family:'Inter',sans-serif;font-size:26px;font-weight:800;color:var(--accent);" id="statDepts">—</div>
         <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--text3);margin-top:3px;">DEPARTMENTS</div>
