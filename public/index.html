@@ -2470,7 +2470,7 @@ function generatePromoAnnouncement(){
           <span style="color:${accent};font-size:12px;font-weight:700;min-width:52px;font-family:'JetBrains Mono',monospace;">${p.toCS||'—'}</span>
           <span style="color:${text};font-size:12px;font-family:'JetBrains Mono',monospace;">${p.name}</span>
         </div>
-        ${p.toGroup?`<span style="color:${accent};font-size:8px;letter-spacing:1px;font-family:'JetBrains Mono',monospace;opacity:0.8;">${(rankGroups.find(g=>g.name===p.toGroup)?.position||'').toUpperCase()}</span>`:''}
+        ${(() => { const m=members.find(mb=>mb.name===p.name); const pos=m?.position||(rankGroups.find(g=>g.name===p.toGroup)?.position||''); return pos?`<span style="color:${accent};font-size:8px;letter-spacing:1px;font-family:'JetBrains Mono',monospace;opacity:0.8;">${pos.toUpperCase()}</span>`:''; })()}
       </div>`).join('');
     sectionsHtml+=`
       <div style="margin-bottom:14px;">
