@@ -252,102 +252,112 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .confirm-modal .modal-title{color:var(--red);}
 
 @media(max-width:768px){
-  .header-inner{padding:10px 14px;gap:8px;}
-  .header-center{padding:0 8px;}
-  .header-name{font-size:18px;letter-spacing:2px;}
+  /* ── HEADER ── */
+  .header-inner{padding:8px 12px;gap:6px;flex-wrap:nowrap;}
+  .header-seal svg{height:36px;}
+  .header-center{padding:0 6px;flex:1;min-width:0;}
+  .header-name{font-size:13px;letter-spacing:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .header-sub{display:none;}
-  .header-right{gap:6px;}
+  .header-right{gap:4px;flex-shrink:0;}
   .header-right span{display:none;}
-  .admin-pill{font-size:8px;padding:3px 7px;}
-  .logout-btn{font-size:8px;padding:5px 8px;}
-  .app-nav{padding:0 8px;overflow-x:auto;-webkit-overflow-scrolling:touch;}
-  .nav-tab{font-size:9px;letter-spacing:1px;padding:10px 10px;}
+  .admin-pill{display:none!important;}
+  #shareBtn{font-size:8px;padding:4px 7px;}
+  #saveRosterPdfBtn{display:none!important;}
+  .logout-btn{font-size:8px;padding:4px 7px;}
+
+  /* ── NAV ── */
+  .app-nav{padding:0 6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+  .app-nav::-webkit-scrollbar{display:none;}
+  .nav-tab{font-size:9px;letter-spacing:1px;padding:9px 9px;white-space:nowrap;}
+
+  /* ── MAIN ── */
   .app-main{padding:10px 8px;}
 
-  .stats-bar{gap:6px;}
-  .stat{min-width:calc(33.33% - 4px);padding:10px 10px;}
-  .stat-val{font-size:28px;}
-  .stat-label{font-size:8px;letter-spacing:1px;}
+  /* ── STATS ── */
+  .stats-bar{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;}
+  .stat{min-width:unset;padding:8px 8px;}
+  .stat-val{font-size:22px;}
+  .stat-label{font-size:7px;letter-spacing:1px;}
 
-  .filter-bar{gap:6px;}
+  /* ── FILTER BAR ── */
+  .filter-bar{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+  #searchInput{grid-column:1/-1;}
   .filter-input{width:100%;font-size:11px;}
-  .filter-select{font-size:10px;padding:7px 8px;}
+  .filter-select{font-size:10px;padding:6px 8px;width:100%;}
+
+  /* ── BUTTONS ── */
   .btn{font-size:10px;padding:7px 12px;letter-spacing:1px;}
   .btn-sm{font-size:9px;padding:5px 9px;}
-  .btn-xs{font-size:9px;padding:3px 7px;}
+  .btn-xs{font-size:8px;padding:3px 6px;}
 
-  /* ── MOBILE ROSTER CARDS ── */
-  .rank-group+.rank-group{margin-top:10px;}
+  /* ── RANK GROUP ── */
+  .rank-group+.rank-group{margin-top:8px;}
   .rg-wrap{flex-direction:column;}
   .rg-label{writing-mode:horizontal-tb;transform:none;min-width:unset;padding:7px 12px;font-size:8px;letter-spacing:2.5px;border-right:none;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
   .rg-label::after{content:attr(data-count);font-size:8px;color:var(--text3);letter-spacing:1px;}
   .rg-table-wrap{overflow-x:visible;}
 
-  /* hide table structure, render as cards */
-  .roster-table{display:block;}
+  /* ── ROSTER TABLE → CARDS ── */
+  .roster-table{display:block;width:100%;}
   .roster-table thead{display:none;}
-  .roster-table tbody{display:block;}
+  .roster-table tbody{display:block;width:100%;}
 
-  /* filled row → flex card */
   .roster-table tbody tr.row-filled{
-    display:flex;align-items:center;gap:8px;
-    padding:9px 12px;border-bottom:1px solid var(--border);
-    background:var(--bg2);
+    display:flex;align-items:center;gap:7px;
+    padding:8px 10px;border-bottom:1px solid var(--border);
+    background:var(--bg2);width:100%;box-sizing:border-box;overflow:hidden;
   }
-  .roster-table tbody tr.row-filled:hover{background:var(--bg3);}
-
-  /* vacant row */
   .roster-table tbody tr.row-empty{
-    display:flex;align-items:center;gap:8px;
-    padding:7px 12px;border-bottom:1px solid rgba(42,47,61,.4);
-    background:var(--bg);opacity:.5;
+    display:flex;align-items:center;gap:7px;
+    padding:6px 10px;border-bottom:1px solid rgba(42,47,61,.4);
+    background:var(--bg);opacity:.45;width:100%;box-sizing:border-box;
   }
 
-  /* hide all td by default, show only what we want */
-  .roster-table td{display:none;padding:0;}
+  /* hide all td, then selectively show */
+  .roster-table td{display:none;padding:0;border:none;}
 
-  /* callsign cell */
-  .roster-table td.cs-cell{display:flex;align-items:center;min-width:48px;padding:0;}
-  .roster-table td.cs-cell .cs-filled{font-size:12px;}
+  /* callsign */
+  .roster-table td.cs-cell{display:flex;align-items:center;width:46px;min-width:46px;flex-shrink:0;padding:0;}
+  .cs-filled{font-size:11px!important;}
 
-  /* insignia cell */
-  .roster-table td.ins-cell{display:flex;align-items:center;justify-content:center;width:28px;max-width:28px;padding:0;}
+  /* insignia */
+  .roster-table td.ins-cell{display:flex;align-items:center;justify-content:center;width:26px;min-width:26px;max-width:26px;flex-shrink:0;padding:0;}
 
-  /* name cell */
-  .roster-table td.name-td{display:flex;flex-direction:column;flex:1;min-width:0;padding:0;}
-  .roster-table td.name-td .member-name{font-size:12px;flex-wrap:nowrap;overflow:hidden;}
-  .roster-table td.name-td .member-pos{font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  /* name + position */
+  .roster-table td.name-td{display:flex;flex-direction:column;flex:1;min-width:0;padding:0;overflow:hidden;}
+  .roster-table td.name-td .member-name{font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
+  .roster-table td.name-td .member-name span[style]{display:none;}
+  .roster-table td.name-td .member-pos{font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 
-  /* status cell */
-  .roster-table td:nth-child(5){display:flex;align-items:center;flex-shrink:0;padding:0;}
-  .status-pill{font-size:7px;padding:2px 6px;letter-spacing:.5px;}
-  .s-dot{width:4px;height:4px;}
+  /* status — 5th td */
+  .roster-table tr.row-filled td:nth-child(5){display:flex;align-items:center;flex-shrink:0;padding:0;}
+  .status-pill{font-size:7px!important;padding:2px 5px!important;letter-spacing:.3px!important;}
+  .s-dot{width:4px!important;height:4px!important;}
 
-  /* actions cell */
-  .roster-table td:last-child{display:flex;align-items:center;flex-shrink:0;padding:0;}
-  .row-acts{display:flex!important;opacity:1!important;gap:3px;}
-  .btn-promote,.btn-demote{font-size:9px;padding:3px 6px;}
-  .btn.btn-ghost.btn-xs{font-size:8px;padding:3px 6px;}
-  .btn.btn-danger{font-size:8px;padding:3px 6px;}
+  /* actions — last td */
+  .roster-table tr.row-filled td:last-child{display:flex;align-items:center;flex-shrink:0;padding:0;}
+  .row-acts{display:flex!important;gap:3px;}
+  .btn-promote,.btn-demote{font-size:9px!important;padding:3px 5px!important;}
+  .btn.btn-ghost.btn-xs{font-size:8px!important;padding:3px 5px!important;}
+  .btn.btn-danger{font-size:8px!important;padding:3px 5px!important;}
 
-  /* vacant slot — show cs and label */
-  .roster-table tbody tr.row-empty td:first-child{display:flex;align-items:center;min-width:48px;padding:0;}
-  .roster-table tbody tr.row-empty td:nth-child(2){display:flex;flex:1;align-items:center;padding:0;font-size:9px;letter-spacing:1px;color:var(--border2);}
-  .roster-table tbody tr.row-empty td.ins-cell{display:flex;}
+  /* vacant: show cs + label */
+  .roster-table tbody tr.row-empty td:first-child{display:flex;align-items:center;width:46px;min-width:46px;flex-shrink:0;padding:0;}
+  .roster-table tbody tr.row-empty .ins-cell{display:flex;width:26px;min-width:26px;flex-shrink:0;}
+  .roster-table tbody tr.row-empty td:nth-child(3){display:flex;flex:1;align-items:center;padding:0;font-size:9px;letter-spacing:1px;color:var(--border2);}
 
-  /* hide extra cols */
+  /* hide columns not needed */
+  .roster-table td:nth-child(4),
   .roster-table .col-doh,
   .roster-table .col-discord,
   .roster-table .col-notes,
   .roster-table .col-strikes{display:none!important;}
 
-  /* subdivision hidden on mobile */
-  .roster-table td:nth-child(4){display:none;}
-
   .members-table .col-doh,
   .members-table .col-discord,
   .members-table .col-notes{display:none;}
 
+  /* ── MODALS ── */
   .modal{padding:20px;width:96vw;}
   .modal-title{font-size:20px;}
   .auth-modal{padding:24px;width:96vw;}
@@ -356,20 +366,25 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   .form-input{font-size:16px;}
   .form-select{font-size:16px;}
 
+  /* ── EDITOR ── */
   .editor-wrap{max-width:100%;}
   .edit-row{gap:4px;}
   .add-form{flex-wrap:wrap;}
   .add-input{min-width:0;flex:1;}
   .themes-grid{gap:6px;}
   .theme-btn{min-width:calc(50% - 3px);font-size:9px;padding:8px 10px;}
-
   .section-hdr{flex-direction:column;align-items:flex-start;gap:10px;}
+
+  /* ── LANDING ── */
   .landing-sub{font-size:14px;}
   .landing-features{grid-template-columns:1fr 1fr;gap:10px;}
   .feat{padding:16px;}
+
+  /* ── MISC ── */
   .dept-table{font-size:12px;}
   .dept-table th,.dept-table td{padding:8px 10px;}
   .action-menu{right:auto;left:0;}
+  .col-labels{display:none;}
 }
 
 @media(max-width:480px){
