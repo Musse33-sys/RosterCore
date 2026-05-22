@@ -3266,6 +3266,7 @@ async function sheetsFetch(action, body=null){
 
 async function connectGoogleSheets(){
   const data = await sheetsFetch('auth-url');
+  console.log('[sheets] Auth URL:', data.url);
   if(data.url) window.location.href = data.url;
 }
 
@@ -3339,12 +3340,17 @@ function updateSheetsUI(){
 }
 
 // Check for OAuth callback code on page load
-window.addEventListener('load', function checkSheetsCallback(){
+window.addEventListener('load', function(){
+  // Check URL params
   const params = new URLSearchParams(window.location.search);
   const code = params.get('code');
+  const error = params.get('error');
+  if(error){ showToast('⚠ Google auth cancelled.', true); history.replaceState(null,'',window.location.pathname); return; }
   if(code){
+    console.log('[sheets] Got OAuth code, exchanging...');
     history.replaceState(null,'',window.location.pathname);
-    handleSheetsCallback(code);
+    // Wait for app to fully initialize before handling
+    setTimeout(()=>handleSheetsCallback(code), 1500);
   }
 });
 
