@@ -2097,7 +2097,7 @@ async function doStaffLogin(){
   if(error||!profile){errEl.textContent='⚠ Invalid username or password.';errEl.classList.remove('hidden');return;}
 
   // Check if first login — force password change
-  if(profile.must_change_password){
+  if(profile.must_change_password === true){
     _pendingProfile = profile;
     document.getElementById('staffLoginForm').style.display='none';
     document.getElementById('staffChangePasswordForm').style.display='block';
@@ -2108,6 +2108,7 @@ async function doStaffLogin(){
 }
 
 async function doChangePassword(){
+  console.log('[changePassword] called, pendingProfile:', _pendingProfile?.username);
   const newPass = document.getElementById('newPassword').value;
   const confirmPass = document.getElementById('confirmPassword').value;
   const errEl = document.getElementById('changePasswordError');
