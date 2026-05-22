@@ -810,7 +810,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
     <div class="form-group"><label class="form-label">Confirm Password</label><input class="form-input" type="password" id="changePwConfirm" placeholder="Repeat password"></div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="document.getElementById('changePwModal').classList.add('hidden')">Cancel</button>
-      <button class="btn btn-primary" onclick="doChangePassword()">Update Password</button>
+      <button class="btn btn-primary" onclick="doChangeDeptPassword()">Update Password</button>
     </div>
   </div>
 </div>
@@ -3958,15 +3958,13 @@ function openChangePw(userId, name){
   document.getElementById('changePwModal').classList.remove('hidden');
 }
 
-async function doChangePassword(){
+async function doChangeDeptPassword(){
   const pwd=document.getElementById('changePwInput').value;
   const confirm=document.getElementById('changePwConfirm').value;
   const errEl=document.getElementById('changePwError');
   errEl.classList.add('hidden');
   if(pwd.length<6){errEl.textContent='⚠ Password must be at least 6 characters.';errEl.classList.remove('hidden');return;}
   if(pwd!==confirm){errEl.textContent='⚠ Passwords do not match.';errEl.classList.remove('hidden');return;}
-
-  
   await sb.from('departments').update({password_hint:pwd}).eq('user_id',changePwUserId);
   document.getElementById('changePwModal').classList.add('hidden');
   showToast('✓ New password saved. Share it with the department manually.');
