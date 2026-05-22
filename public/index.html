@@ -1225,7 +1225,17 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
         <div class="form-group" style="margin-bottom:8px;"><label class="form-label">Name</label><input class="form-input" id="cpName" placeholder="e.g. John Smith"></div>
         <div class="form-group" style="margin-bottom:8px;"><label class="form-label">Username</label><input class="form-input" id="cpUsername" placeholder="e.g. john.smith"></div>
       </div>
-      <div class="form-group" style="margin-bottom:10px;"><label class="form-label">Password</label><input class="form-input" type="password" id="cpPassword" placeholder="Min 4 characters"></div>
+      <div class="form-group" style="margin-bottom:10px;"><label class="form-label">Password (temporary)</label><input class="form-input" type="password" id="cpPassword" placeholder="Min 4 characters"></div>
+      <div style="margin-bottom:12px;">
+        <label class="form-label" style="margin-bottom:8px;display:block;">Permissions</label>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <label class="form-check"><input type="checkbox" id="cpPermEdit" checked style="accent-color:var(--accent);"> <span style="font-size:11px;color:var(--text2);">Edit Members — add, edit, delete</span></label>
+          <label class="form-check"><input type="checkbox" id="cpPermPromote" checked style="accent-color:var(--accent);"> <span style="font-size:11px;color:var(--text2);">Promote / Demote</span></label>
+          <label class="form-check"><input type="checkbox" id="cpPermTrainees" checked style="accent-color:var(--accent);"> <span style="font-size:11px;color:var(--text2);">Manage Trainees</span></label>
+          <label class="form-check"><input type="checkbox" id="cpPermPromotions" checked style="accent-color:var(--accent);"> <span style="font-size:11px;color:var(--text2);">Promotions Log</span></label>
+          <label class="form-check"><input type="checkbox" id="cpPermStrikes" checked style="accent-color:var(--accent);"> <span style="font-size:11px;color:var(--text2);">Edit Strikes</span></label>
+        </div>
+      </div>
       <div class="form-error hidden" id="cpError"></div>
       <div style="display:flex;gap:8px;">
         <button class="btn btn-primary btn-sm" onclick="createProfile()">Create</button>
@@ -1238,6 +1248,25 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 
     <div style="margin-top:16px;">
       <button class="btn btn-ghost btn-sm" onclick="document.getElementById('shareModal').classList.add('hidden')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT PERMISSIONS MODAL -->
+<div class="modal-overlay hidden" id="editPermsModal" onclick="if(event.target===this)this.classList.add('hidden')">
+  <div class="modal" style="max-width:380px;">
+    <div class="modal-title">Edit Permissions</div>
+    <div class="modal-sub" id="editPermsName"></div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin:16px 0;">
+      <label class="form-check"><input type="checkbox" id="epPermEdit" style="accent-color:var(--accent);"> <span style="font-size:12px;color:var(--text2);">Edit Members — add, edit, delete</span></label>
+      <label class="form-check"><input type="checkbox" id="epPermPromote" style="accent-color:var(--accent);"> <span style="font-size:12px;color:var(--text2);">Promote / Demote</span></label>
+      <label class="form-check"><input type="checkbox" id="epPermTrainees" style="accent-color:var(--accent);"> <span style="font-size:12px;color:var(--text2);">Manage Trainees</span></label>
+      <label class="form-check"><input type="checkbox" id="epPermPromotions" style="accent-color:var(--accent);"> <span style="font-size:12px;color:var(--text2);">Promotions Log</span></label>
+      <label class="form-check"><input type="checkbox" id="epPermStrikes" style="accent-color:var(--accent);"> <span style="font-size:12px;color:var(--text2);">Edit Strikes</span></label>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="document.getElementById('editPermsModal').classList.add('hidden')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveProfilePerms()">Save</button>
     </div>
   </div>
 </div>
@@ -1482,10 +1511,10 @@ function buildMemberRow(m, gi){
     <td>${strikeBadge(m.strikes||0)}</td>
     <td class="col-notes" style="font-size:11px;color:var(--text2);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${m.notes||''}">${m.notes||'—'}</td>
     ${currentUser?`<td><div class="row-acts">
-      ${gi>0?`<button class="btn-promote btn" onclick="promote(${m.id})">▲</button>`:''}
-      ${gi<rankGroups.length-1?`<button class="btn-demote btn" onclick="demote(${m.id})">▼</button>`:''}
-      <button class="btn btn-ghost btn-xs" onclick="openEditMember(${m.id})">Edit</button>
-      <button class="btn btn-danger" onclick="openConfirmDelete(${m.id},'member')">✕</button>
+      ${gi>0&&hasPerm('promote')?`<button class="btn-promote btn" onclick="promote(${m.id})">▲</button>`:''}
+      ${gi<rankGroups.length-1&&hasPerm('promote')?`<button class="btn-demote btn" onclick="demote(${m.id})">▼</button>`:''}
+      ${hasPerm('editMembers')?`<button class="btn btn-ghost btn-xs" onclick="openEditMember(${m.id})">Edit</button>`:''}
+      ${hasPerm('editMembers')?`<button class="btn btn-danger" onclick="openConfirmDelete(${m.id},'member')">✕</button>`:''}
     </div></td>`:''}
   </tr>`;
 }
@@ -2033,7 +2062,12 @@ async function createProfile(){
     dept_id: deptId,
     name, username,
     password_hash: hash,
-    must_change_password: true
+    must_change_password: true,
+    perm_edit_members: document.getElementById('cpPermEdit').checked,
+    perm_promote: document.getElementById('cpPermPromote').checked,
+    perm_trainees: document.getElementById('cpPermTrainees').checked,
+    perm_promotions: document.getElementById('cpPermPromotions').checked,
+    perm_strikes: document.getElementById('cpPermStrikes').checked,
   });
   if(error){
     errEl.textContent=error.message.includes('unique')?'⚠ Username already taken.':'⚠ '+error.message;
@@ -2052,14 +2086,62 @@ async function loadProfileList(){
     el.innerHTML=`<p style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);padding:8px 0;">No staff accounts yet. Create one above.</p>`;
     return;
   }
-  el.innerHTML=profiles.map(p=>`
-    <div style="display:flex;align-items:center;justify-content:space-between;background:var(--bg3);border:1px solid var(--border);padding:10px 14px;border-radius:var(--radius);">
-      <div>
-        <div style="font-weight:600;color:var(--text);font-size:13px;">👤 ${p.name}</div>
-        <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);margin-top:2px;">@${p.username} · ${new Date(p.created_at).toLocaleDateString()}</div>
+  el.innerHTML=profiles.map(p=>{
+    const perms = [
+      p.perm_edit_members!==false ? 'Edit Members' : null,
+      p.perm_promote!==false ? 'Promote/Demote' : null,
+      p.perm_trainees!==false ? 'Trainees' : null,
+      p.perm_promotions!==false ? 'Promotions' : null,
+      p.perm_strikes!==false ? 'Strikes' : null,
+    ].filter(Boolean);
+    return `
+    <div style="background:var(--bg3);border:1px solid var(--border);padding:10px 14px;border-radius:var(--radius);margin-bottom:4px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+        <div>
+          <div style="font-weight:600;color:var(--text);font-size:13px;">👤 ${p.name}</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);margin-top:2px;">@${p.username} · ${new Date(p.created_at).toLocaleDateString()}${p.must_change_password?` · <span style="color:var(--yellow);">Awaiting first login</span>`:''}</div>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-ghost btn-sm" onclick="editProfilePerms('${p.id}')">Perms</button>
+          <button class="btn btn-danger" onclick="removeProfile('${p.id}','${p.name}')">Remove</button>
+        </div>
       </div>
-      <button class="btn btn-danger" onclick="removeProfile('${p.id}','${p.name}')">Remove</button>
-    </div>`).join('');
+      <div style="display:flex;flex-wrap:wrap;gap:4px;">
+        ${perms.map(pm=>`<span style="font-size:9px;letter-spacing:1px;background:var(--accent)18;border:1px solid var(--accent)44;color:var(--accent);padding:1px 7px;border-radius:3px;">${pm}</span>`).join('')}
+        ${perms.length===0?`<span style="font-size:9px;color:var(--text3);">No permissions</span>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+let _editingProfileId = null;
+
+async function editProfilePerms(id){
+  const {data:p} = await sb.from('roster_profiles').select('*').eq('id',id).single();
+  if(!p) return;
+  _editingProfileId = id;
+  document.getElementById('editPermsName').textContent = p.name + ' (@' + p.username + ')';
+  document.getElementById('epPermEdit').checked = p.perm_edit_members!==false;
+  document.getElementById('epPermPromote').checked = p.perm_promote!==false;
+  document.getElementById('epPermTrainees').checked = p.perm_trainees!==false;
+  document.getElementById('epPermPromotions').checked = p.perm_promotions!==false;
+  document.getElementById('epPermStrikes').checked = p.perm_strikes!==false;
+  document.getElementById('editPermsModal').classList.remove('hidden');
+}
+
+async function saveProfilePerms(){
+  if(!_editingProfileId) return;
+  await sb.from('roster_profiles').update({
+    perm_edit_members: document.getElementById('epPermEdit').checked,
+    perm_promote: document.getElementById('epPermPromote').checked,
+    perm_trainees: document.getElementById('epPermTrainees').checked,
+    perm_promotions: document.getElementById('epPermPromotions').checked,
+    perm_strikes: document.getElementById('epPermStrikes').checked,
+  }).eq('id', _editingProfileId);
+  document.getElementById('editPermsModal').classList.add('hidden');
+  await loadProfileList();
+  showToast('✓ Permissions updated.');
+  _editingProfileId = null;
 }
 
 async function removeProfile(id, name){
@@ -2160,7 +2242,18 @@ async function completeStaffLogin(profile){
   nextTraineeId=trainees.length>0?Math.max(...trainees.map(t=>t.id||0))+1:1;
 
   applyTheme(activeTheme);
-  currentUser={email:'staff', name:profile.name, username:profile.username};
+  currentUser={
+    email:'staff',
+    name:profile.name,
+    username:profile.username,
+    perms:{
+      editMembers: profile.perm_edit_members!==false,
+      promote: profile.perm_promote!==false,
+      trainees: profile.perm_trainees!==false,
+      promotions: profile.perm_promotions!==false,
+      strikes: profile.perm_strikes!==false,
+    }
+  };
 
   document.getElementById('staffLoginModal').classList.add('hidden');
   document.getElementById('landingPage').style.display='none';
@@ -2168,12 +2261,13 @@ async function completeStaffLogin(profile){
   window.scrollTo(0,0);
   document.getElementById('headerName').textContent=deptName;
   setAvatar(profile.name);
-  document.getElementById('addMemberBtn').classList.remove('hidden');
-  document.getElementById('addTraineeBtn').classList.remove('hidden');
+  if(hasPerm('editMembers')) document.getElementById('addMemberBtn').classList.remove('hidden');
+  if(hasPerm('trainees')) document.getElementById('addTraineeBtn').classList.remove('hidden');
   document.getElementById('rosterTab').classList.remove('hidden');
-  document.getElementById('traineesTab').classList.remove('hidden');
+  if(hasPerm('trainees')) document.getElementById('traineesTab').classList.remove('hidden');
   document.getElementById('membersTab').classList.remove('hidden');
   document.getElementById('inactiveTab').classList.remove('hidden');
+  if(hasPerm('promotions')) document.getElementById('promoTab').classList.remove('hidden');
 
   renderAll();
   showToast('Welcome, '+profile.name+'!');
@@ -2756,10 +2850,10 @@ function renderRoster(){
               <td>${strikeBadge(m.strikes||0)}</td>
               <td class="col-notes" style="font-size:11px;color:var(--text2);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${m.notes||''}">${m.notes||'—'}</td>
               ${currentUser?`<td><div class="row-acts">
-                ${gi>0?`<button class="btn-promote btn" onclick="promote(${m.id})">▲</button>`:''}
-                ${gi<rankGroups.length-1?`<button class="btn-demote btn" onclick="demote(${m.id})">▼</button>`:''}
-                <button class="btn btn-ghost btn-xs" onclick="openEditMember(${m.id})">Edit</button>
-                <button class="btn btn-danger" onclick="openConfirmDelete(${m.id},'member')">✕</button>
+                ${gi>0&&hasPerm('promote')?`<button class="btn-promote btn" onclick="promote(${m.id})">▲</button>`:''}
+                ${gi<rankGroups.length-1&&hasPerm('promote')?`<button class="btn-demote btn" onclick="demote(${m.id})">▼</button>`:''}
+                ${hasPerm('editMembers')?`<button class="btn btn-ghost btn-xs" onclick="openEditMember(${m.id})">Edit</button>`:''}
+                ${hasPerm('editMembers')?`<button class="btn btn-danger" onclick="openConfirmDelete(${m.id},'member')">✕</button>`:''}
               </div></td>`:''}
             </tr>`;
           } else {
@@ -3306,6 +3400,12 @@ function confirmDelete(){
   showToast('✓ Removed.');
 }
 
+
+function hasPerm(perm){
+  if(!currentUser) return false;
+  if(currentUser.email !== 'staff') return true; // dept head has all perms
+  return currentUser.perms?.[perm] === true;
+}
 
 function renderEditor(){
   document.getElementById('deptNameInput').value=deptName;
