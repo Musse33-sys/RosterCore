@@ -683,13 +683,26 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 
     <!-- FORM PANEL -->
     <div style="flex:1;padding:36px 28px;margin-top:2px;">
-      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--accent);margin-bottom:6px;" id="authSub">DEPT HEAD ACCESS</div>
-      <div style="font-family:'Inter',sans-serif;font-size:22px;font-weight:700;color:var(--text);margin-bottom:24px;" id="authTitle">Sign In</div>
-      <div class="form-error hidden" id="authError"></div>
-      <div class="form-group"><label class="form-label">Email</label><input class="form-input" type="email" id="authEmail" placeholder="you@example.com" autocomplete="off"></div>
-      <div class="form-group"><label class="form-label">Password</label><input class="form-input" type="password" id="authPassword" placeholder="••••••••"></div>
-      <button class="btn btn-primary" style="width:100%;padding:14px;font-size:11px;letter-spacing:3px;margin-top:8px;" onclick="doLogin()" id="authSubmitBtn">SIGN IN →</button>
-      <div style="text-align:center;margin-top:16px;font-family:'JetBrains Mono',monospace;font-size:9px;color:#404040;letter-spacing:1px;">Member? <span style="color:var(--accent);cursor:pointer;" onclick="closeAuthModal();showStaffLoginModal()">Login here →</span></div>
+      <!-- LOGIN FORM -->
+      <div id="authLoginForm">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--accent);margin-bottom:6px;" id="authSub">DEPT HEAD ACCESS</div>
+        <div style="font-family:'Inter',sans-serif;font-size:22px;font-weight:700;color:var(--text);margin-bottom:24px;" id="authTitle">Sign In</div>
+        <div class="form-error hidden" id="authError"></div>
+        <div class="form-group"><label class="form-label">Email</label><input class="form-input" type="email" id="authEmail" placeholder="you@example.com" autocomplete="off"></div>
+        <div class="form-group"><label class="form-label">Password</label><input class="form-input" type="password" id="authPassword" placeholder="••••••••"></div>
+        <button class="btn btn-primary" style="width:100%;padding:14px;font-size:11px;letter-spacing:3px;margin-top:8px;" onclick="doLogin()" id="authSubmitBtn">SIGN IN →</button>
+        <div style="text-align:center;margin-top:16px;font-family:'JetBrains Mono',monospace;font-size:9px;color:#404040;letter-spacing:1px;">Member? <span style="color:var(--accent);cursor:pointer;" onclick="closeAuthModal();showStaffLoginModal()">Login here →</span></div>
+      </div>
+      <!-- FORCE PASSWORD CHANGE -->
+      <div id="authChangePasswordForm" style="display:none;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--accent);margin-bottom:6px;">FIRST LOGIN</div>
+        <div style="font-family:'Inter',sans-serif;font-size:22px;font-weight:700;color:var(--text);margin-bottom:8px;">Set Your Password</div>
+        <p style="font-size:12px;color:var(--text3);margin-bottom:20px;line-height:1.6;">Welcome! Please set a new password to continue.</p>
+        <div class="form-error hidden" id="authChangePwError"></div>
+        <div class="form-group"><label class="form-label">New Password</label><input class="form-input" type="password" id="authNewPassword" placeholder="Min 6 characters"></div>
+        <div class="form-group"><label class="form-label">Confirm Password</label><input class="form-input" type="password" id="authConfirmPassword" placeholder="Repeat password"></div>
+        <button class="btn btn-primary" style="width:100%;padding:14px;font-size:11px;letter-spacing:3px;margin-top:8px;" onclick="doDeptChangePassword()">SET PASSWORD →</button>
+      </div>
     </div>
   </div>
 </div>
@@ -1095,7 +1108,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
     <div class="form-group"><label class="form-label">Department Name</label><input class="form-input" id="cdName" placeholder="e.g. San Andreas Game Warden"></div>
     <div class="form-group"><label class="form-label">Server</label><select class="form-select" id="cdServer"><option value="">— No Server —</option></select></div>
     <div class="form-group"><label class="form-label">Email</label><input class="form-input" type="email" id="cdEmail" placeholder="dept@example.com"></div>
-    <div class="form-group"><label class="form-label">Password</label><input class="form-input" type="password" id="cdPassword" placeholder="Min 6 characters" autocomplete="new-password"></div>
+    <p style="font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-top:4px;">A temporary password will be auto-generated and shown after creation.</p>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="document.getElementById('createDeptModal').classList.add('hidden')">Cancel</button>
       <button class="btn btn-primary" onclick="createDepartment()">Create Account</button>
@@ -1248,6 +1261,22 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 
     <div style="margin-top:16px;">
       <button class="btn btn-ghost btn-sm" onclick="document.getElementById('shareModal').classList.add('hidden')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- TEMP PASSWORD MODAL -->
+<div class="modal-overlay hidden" id="tempPwModal">
+  <div class="modal" style="max-width:400px;">
+    <div class="modal-title">Account Created ✓</div>
+    <div class="modal-sub" id="tempPwDeptName"></div>
+    <p style="font-size:13px;color:var(--text2);margin:16px 0 8px;line-height:1.6;">Share this temporary password with the department head. They will be asked to set their own password on first login.</p>
+    <div style="background:var(--bg3);border:1px solid var(--accent);border-radius:var(--radius);padding:14px;text-align:center;margin-bottom:16px;">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:var(--accent);letter-spacing:4px;" id="tempPwValue"></div>
+    </div>
+    <button class="btn btn-ghost btn-sm" onclick="navigator.clipboard.writeText(document.getElementById('tempPwValue').textContent);showToast('✓ Copied!');" style="width:100%;margin-bottom:8px;">📋 Copy Password</button>
+    <div class="modal-footer">
+      <button class="btn btn-primary" onclick="document.getElementById('tempPwModal').classList.add('hidden')">Done</button>
     </div>
   </div>
 </div>
@@ -1905,6 +1934,8 @@ function closeAuthModal(){
   document.getElementById('authModal').classList.add('hidden');
 }
 
+let _pendingDeptUser = null;
+
 async function doLogin(){
   const email = document.getElementById('authEmail').value.trim();
   const pwd = document.getElementById('authPassword').value;
@@ -1912,9 +1943,42 @@ async function doLogin(){
   errEl.classList.add('hidden');
   document.getElementById('authSubmitBtn').textContent='Signing in…';
   const {data,error} = await sb.auth.signInWithPassword({email,password:pwd});
-  document.getElementById('authSubmitBtn').textContent='Sign In';
+  document.getElementById('authSubmitBtn').textContent='SIGN IN →';
   if(error){ errEl.textContent='⚠ '+error.message; errEl.classList.remove('hidden'); return; }
+
+  // Check if dept must change password
+  const {data:dept} = await sb.from('departments').select('must_change_password').eq('user_id',data.user.id).single();
+  if(dept?.must_change_password === true){
+    _pendingDeptUser = data.user;
+    document.getElementById('authLoginForm').style.display='none';
+    document.getElementById('authChangePasswordForm').style.display='block';
+    return;
+  }
+
   await onLoginSuccess(data.user);
+}
+
+async function doDeptChangePassword(){
+  const newPwd = document.getElementById('authNewPassword').value;
+  const confirmPwd = document.getElementById('authConfirmPassword').value;
+  const errEl = document.getElementById('authChangePwError');
+  errEl.classList.add('hidden');
+  if(!newPwd||!confirmPwd){errEl.textContent='⚠ Both fields required.';errEl.classList.remove('hidden');return;}
+  if(newPwd.length<6){errEl.textContent='⚠ Password must be at least 6 characters.';errEl.classList.remove('hidden');return;}
+  if(newPwd!==confirmPwd){errEl.textContent='⚠ Passwords do not match.';errEl.classList.remove('hidden');return;}
+
+  const {error} = await sb.auth.updateUser({password: newPwd});
+  if(error){errEl.textContent='⚠ '+error.message;errEl.classList.remove('hidden');return;}
+
+  // Update must_change_password and password_hint
+  await sb.from('departments').update({must_change_password:false}).eq('user_id',_pendingDeptUser.id);
+
+  showToast('✓ Password set successfully!');
+  document.getElementById('authChangePasswordForm').style.display='none';
+  document.getElementById('authLoginForm').style.display='block';
+  const user = _pendingDeptUser;
+  _pendingDeptUser = null;
+  await onLoginSuccess(user);
 }
 
 async function onLoginSuccess(user){
@@ -3783,19 +3847,25 @@ function openCreateDept(){
   document.getElementById('createDeptError').classList.add('hidden');
   document.getElementById('cdName').value='';
   document.getElementById('cdEmail').value='';
-  document.getElementById('cdPassword').value='';
   const cdServer=document.getElementById('cdServer');
   if(cdServer) cdServer.value='';
+}
+
+function generateTempPassword(){
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+  let pwd = '';
+  for(let i=0;i<10;i++) pwd += chars[Math.floor(Math.random()*chars.length)];
+  return pwd;
 }
 
 async function createDepartment(){
   const name=document.getElementById('cdName').value.trim();
   const email=document.getElementById('cdEmail').value.trim();
-  const password=document.getElementById('cdPassword').value;
   const errEl=document.getElementById('createDeptError');
   errEl.classList.add('hidden');
-  if(!name||!email||!password){errEl.textContent='⚠ All fields required.';errEl.classList.remove('hidden');return;}
-  if(password.length<6){errEl.textContent='⚠ Password must be at least 6 characters.';errEl.classList.remove('hidden');return;}
+  if(!name||!email){errEl.textContent='⚠ All fields required.';errEl.classList.remove('hidden');return;}
+
+  const password = generateTempPassword();
 
   // Save current super admin session before signUp overwrites it
   const {data:{session:adminSession}} = await sb.auth.getSession();
@@ -3806,7 +3876,7 @@ async function createDepartment(){
 
   // Insert department record
   const serverId=document.getElementById('cdServer')?.value||null;
-  const {error:dErr}=await sb.from('departments').insert({user_id:data.user.id, name, email, password_hint:password, server_id:serverId||null});
+  const {error:dErr}=await sb.from('departments').insert({user_id:data.user.id, name, email, server_id:serverId||null, must_change_password:true});
   if(dErr){errEl.textContent='⚠ '+dErr.message;errEl.classList.remove('hidden');return;}
 
   // Insert empty roster data
@@ -3823,7 +3893,11 @@ async function createDepartment(){
 
   document.getElementById('createDeptModal').classList.add('hidden');
   await loadSuperAdminDepts();
-  showToast(`✓ "${name}" created! Email: ${email}`);
+
+  // Show temp password
+  document.getElementById('tempPwDeptName').textContent = name + ' — ' + email;
+  document.getElementById('tempPwValue').textContent = password;
+  document.getElementById('tempPwModal').classList.remove('hidden');
 }
 
 function toggleHamburger(e){
@@ -4020,14 +4094,12 @@ async function loadSuperAdminDepts(){
       </div>
       <div id="serverSection_${gi}" style="display:none;">
         <table class="dept-table">
-          <thead><tr><th>Department</th><th>Email</th><th>Password</th><th>Server</th><th>Created</th><th>Actions</th></tr></thead>
+          <thead><tr><th>Department</th><th>Email</th><th>Status</th><th>Server</th><th>Created</th><th>Actions</th></tr></thead>
           <tbody>${g.depts.map(d=>`
             <tr>
               <td><div class="dept-name-cell">${d.name}</div></td>
               <td><div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);">${d.email||'—'}</div></td>
-              <td>
-                <span id="pw_${d.id}" data-hidden="1" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text2);cursor:pointer;filter:blur(4px);" onclick="togglePw('${d.id}')" title="Click to reveal">${d.password_hint||'—'}</span>
-              </td>
+              <td><span style="font-size:9px;letter-spacing:1px;padding:2px 7px;border-radius:3px;${d.must_change_password?'background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.3);color:#fbbf24;':'background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.3);color:#4ade80;'}">${d.must_change_password?'TEMP PW':'ACTIVE'}</span></td>
               <td>
                 <select class="form-select" style="font-size:10px;padding:4px 8px;" onchange="assignDeptServer('${d.id}',this.value)">
                   <option value="">— None —</option>
@@ -4037,7 +4109,7 @@ async function loadSuperAdminDepts(){
               <td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);">${new Date(d.created_at).toLocaleDateString()}</td>
               <td style="display:flex;gap:6px;align-items:center;">
                 <button title="Version History" onclick="openDeptHistory('${d.id}','${d.name}')" style="width:28px;height:28px;border-radius:50%;background:rgba(96,165,250,.1);border:1px solid rgba(96,165,250,.3);color:var(--blue);cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;transition:all .15s;" onmouseover="this.style.background='rgba(96,165,250,.25)'" onmouseout="this.style.background='rgba(96,165,250,.1)'">⟳</button>
-                <button class="btn btn-outline btn-sm" onclick="openChangePw('${d.user_id}','${d.name}')">Change PW</button>
+                <button class="btn btn-outline btn-sm" onclick="resetDeptPassword('${d.user_id}','${d.name}')">Reset PW</button>
                 <button class="btn btn-danger" onclick="deleteDept('${d.id}','${d.name}')">Delete</button>
               </td>
             </tr>`).join('')}
@@ -4045,6 +4117,21 @@ async function loadSuperAdminDepts(){
         </table>
       </div>
     </div>`).join('');
+}
+
+async function resetDeptPassword(userId, name){
+  if(!confirm(`Reset password for ${name}? A new temporary password will be generated.`)) return;
+  const tempPwd = generateTempPassword();
+  // Update Supabase Auth password via admin (we use the user's own session trick)
+  // Store temp password and flag must_change_password
+  await sb.from('departments').update({
+    must_change_password: true
+  }).eq('user_id', userId);
+  // Show the new temp password
+  document.getElementById('tempPwDeptName').textContent = name + ' — Password Reset';
+  document.getElementById('tempPwValue').textContent = tempPwd;
+  document.getElementById('tempPwModal').classList.remove('hidden');
+  showToast(`✓ Password reset for ${name}.`);
 }
 
 let changePwUserId = null;
