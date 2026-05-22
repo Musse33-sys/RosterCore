@@ -3281,7 +3281,7 @@ async function handleSheetsCallback(code){
   console.log('[sheets] Creating spreadsheet...');
   const sheet = await sheetsFetch('create-sheet', { access_token: tokens.access_token, dept_name: deptName });
   console.log('[sheets] Sheet response:', JSON.stringify(sheet));
-  if(!sheet.spreadsheetId){ showToast('⚠ Could not create sheet: ' + (sheet.error||'unknown'), true); return; }
+  if(!sheet.spreadsheetId){ showToast('⚠ Could not create sheet: ' + (sheet.error?.message||sheet.error||'unknown'), true); console.error('[sheets] Sheet error:', sheet); return; }
   sheetsSpreadsheetId = sheet.spreadsheetId;
   sheetsSpreadsheetUrl = sheet.spreadsheetUrl;
   localStorage.setItem('rc_sheets_id', sheetsSpreadsheetId);
