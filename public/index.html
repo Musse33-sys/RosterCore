@@ -3272,12 +3272,16 @@ async function connectGoogleSheets(){
 
 async function handleSheetsCallback(code){
   showToast('Connecting to Google Sheets...');
+  console.log('[sheets] Exchanging code for tokens...');
   const tokens = await sheetsFetch('exchange-code', { code });
-  if(!tokens.access_token){ showToast('⚠ Google auth failed.', true); return; }
+  console.log('[sheets] Token response:', JSON.stringify(tokens));
+  if(!tokens.access_token){ showToast('⚠ Google auth failed: ' + (tokens.error||'unknown'), true); return; }
   sheetsTokens = tokens;
   localStorage.setItem('rc_sheets_tokens', JSON.stringify(tokens));
+  console.log('[sheets] Creating spreadsheet...');
   const sheet = await sheetsFetch('create-sheet', { access_token: tokens.access_token, dept_name: deptName });
-  if(!sheet.spreadsheetId){ showToast('⚠ Could not create sheet.', true); return; }
+  console.log('[sheets] Sheet response:', JSON.stringify(sheet));
+  if(!sheet.spreadsheetId){ showToast('⚠ Could not create sheet: ' + (sheet.error||'unknown'), true); return; }
   sheetsSpreadsheetId = sheet.spreadsheetId;
   sheetsSpreadsheetUrl = sheet.spreadsheetUrl;
   localStorage.setItem('rc_sheets_id', sheetsSpreadsheetId);
