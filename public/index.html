@@ -948,31 +948,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
           </div>
         </div>
 
-        <div class="editor-divider"></div>
-
-        <!-- GOOGLE SHEETS SYNC -->
-        <div class="editor-section">
-          <div class="editor-h3">Google Sheets Sync</div>
-          <p style="font-size:13px;color:var(--text2);margin-bottom:14px;line-height:1.6;">Connect your roster to a Google Sheet. Every change you make syncs automatically.</p>
-          <div id="sheetsDisconnected">
-            <button class="btn btn-primary" onclick="connectGoogleSheets()" style="display:flex;align-items:center;gap:8px;">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 2h8l6 6v14a2 2 0 01-2 2H6a2 2 0 01-2-2V4a2 2 0 012-2z" stroke="currentColor" stroke-width="1.5"/><path d="M14 2v6h6" stroke="currentColor" stroke-width="1.5"/></svg>
-              Connect Google Sheets
-            </button>
-          </div>
-          <div id="sheetsConnected" style="display:none;">
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-              <div style="width:8px;height:8px;border-radius:50%;background:#4ade80;box-shadow:0 0 6px #4ade80;"></div>
-              <span style="font-size:12px;color:var(--text2);">Connected — <a id="sheetsLink" href="#" target="_blank" style="color:var(--accent);">Open Spreadsheet</a></span>
-            </div>
-            <div style="display:flex;gap:8px;">
-              <button class="btn btn-primary btn-sm" onclick="syncToSheets()">⟳ Sync Now</button>
-              <button class="btn btn-ghost btn-sm" onclick="disconnectSheets()">Disconnect</button>
-            </div>
-            <div id="syncStatus" style="font-size:11px;color:var(--text3);margin-top:8px;"></div>
-          </div>
-        </div>
-
       </div>
     </div>
     <div class="tab-panel" id="tab-superadmin" style="display:none;">
@@ -1784,7 +1759,7 @@ async function saveRoster(){
     await sb.from('departments').update({name: deptName}).eq('id', deptId);
   }
   if(e1){ console.error('Save error:', e1); showToast('⚠ Save failed: '+e1.message,true); }
-  else { showToast('✓ Saved.'); saveSnapshot(); syncToSheets(); }
+  else { showToast('✓ Saved.'); saveSnapshot(); }
   setTimeout(()=>{ isSyncing = false; }, 3000);
 }
 
@@ -3250,114 +3225,6 @@ function confirmDelete(){
   showToast('✓ Removed.');
 }
 
-const SHEETS_FN = 'https://lzxsltdwbuyzxbmkpuny.supabase.co/functions/v1/google-sheets-sync';
-const SHEETS_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx6eHNsdGR3YnV5enhibWtwdW55Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2MDM3NDksImV4cCI6MjA5NDE3OTc0OX0._Pr9Na_5u3AHweM2F-_W9R4EmXbsvpGsoBFYPC1I914';
-let sheetsTokens = JSON.parse(localStorage.getItem('rc_sheets_tokens')||'null');
-let sheetsSpreadsheetId = localStorage.getItem('rc_sheets_id')||'';
-let sheetsSpreadsheetUrl = localStorage.getItem('rc_sheets_url')||'';
-
-async function sheetsFetch(action, body=null){
-  const url = SHEETS_FN + '?action=' + action;
-  const opts = { method: body?'POST':'GET', headers: { 'Authorization': 'Bearer ' + SHEETS_ANON, 'Content-Type': 'application/json' } };
-  if(body) opts.body = JSON.stringify(body);
-  const res = await fetch(url, opts);
-  return res.json();
-}
-
-async function connectGoogleSheets(){
-  const data = await sheetsFetch('auth-url');
-  console.log('[sheets] Auth URL:', data.url);
-  if(data.url) window.location.href = data.url;
-}
-
-async function handleSheetsCallback(code){
-  showToast('Connecting to Google Sheets...');
-  console.log('[sheets] Exchanging code for tokens...');
-  const tokens = await sheetsFetch('exchange-code', { code });
-  console.log('[sheets] Token response:', JSON.stringify(tokens));
-  if(!tokens.access_token){ showToast('⚠ Google auth failed: ' + (tokens.error||'unknown'), true); return; }
-  sheetsTokens = tokens;
-  localStorage.setItem('rc_sheets_tokens', JSON.stringify(tokens));
-  console.log('[sheets] Creating spreadsheet...');
-  const sheet = await sheetsFetch('create-sheet', { access_token: tokens.access_token, dept_name: deptName });
-  console.log('[sheets] Sheet response:', JSON.stringify(sheet));
-  console.log('[sheets] Full sheet response:', JSON.stringify(sheet));
-  if(!sheet.spreadsheetId){ showToast('⚠ Could not create sheet: ' + (sheet.error?.message||sheet.error||JSON.stringify(sheet)), true); console.error('[sheets] Sheet error:', sheet); return; }
-  sheetsSpreadsheetId = sheet.spreadsheetId;
-  sheetsSpreadsheetUrl = sheet.spreadsheetUrl;
-  localStorage.setItem('rc_sheets_id', sheetsSpreadsheetId);
-  localStorage.setItem('rc_sheets_url', sheetsSpreadsheetUrl);
-  updateSheetsUI();
-  await syncToSheets();
-  showToast('✓ Google Sheets connected!');
-}
-
-async function getValidAccessToken(){
-  if(!sheetsTokens) return null;
-  // Refresh if needed
-  const refreshed = await sheetsFetch('refresh-token', { refresh_token: sheetsTokens.refresh_token });
-  if(refreshed.access_token){
-    sheetsTokens.access_token = refreshed.access_token;
-    localStorage.setItem('rc_sheets_tokens', JSON.stringify(sheetsTokens));
-    return refreshed.access_token;
-  }
-  return sheetsTokens.access_token;
-}
-
-async function syncToSheets(){
-  if(!sheetsTokens || !sheetsSpreadsheetId) return;
-  const el = document.getElementById('syncStatus');
-  if(el) el.textContent = 'Syncing...';
-  try {
-    const access_token = await getValidAccessToken();
-    const result = await sheetsFetch('sync', {
-      access_token, spreadsheet_id: sheetsSpreadsheetId,
-      members, trainees, promotions, rank_groups: rankGroups
-    });
-    if(result.success){
-      const now = new Date().toLocaleTimeString();
-      if(el) el.textContent = '✓ Last synced at ' + now;
-    } else {
-      if(el) el.textContent = '⚠ Sync failed';
-    }
-  } catch(e) {
-    if(el) el.textContent = '⚠ Sync error';
-  }
-}
-
-function disconnectSheets(){
-  sheetsTokens = null; sheetsSpreadsheetId = ''; sheetsSpreadsheetUrl = '';
-  localStorage.removeItem('rc_sheets_tokens');
-  localStorage.removeItem('rc_sheets_id');
-  localStorage.removeItem('rc_sheets_url');
-  updateSheetsUI();
-  showToast('Google Sheets disconnected.');
-}
-
-function updateSheetsUI(){
-  const connected = !!(sheetsTokens && sheetsSpreadsheetId);
-  const dc = document.getElementById('sheetsDisconnected');
-  const cc = document.getElementById('sheetsConnected');
-  if(dc) dc.style.display = connected ? 'none' : 'block';
-  if(cc) cc.style.display = connected ? 'block' : 'none';
-  const link = document.getElementById('sheetsLink');
-  if(link && sheetsSpreadsheetUrl) link.href = sheetsSpreadsheetUrl;
-}
-
-// Check for OAuth callback code on page load
-window.addEventListener('load', function(){
-  // Check URL params
-  const params = new URLSearchParams(window.location.search);
-  const code = params.get('code');
-  const error = params.get('error');
-  if(error){ showToast('⚠ Google auth cancelled.', true); history.replaceState(null,'',window.location.pathname); return; }
-  if(code){
-    console.log('[sheets] Got OAuth code, exchanging...');
-    history.replaceState(null,'',window.location.pathname);
-    // Wait for app to fully initialize before handling
-    setTimeout(()=>handleSheetsCallback(code), 1500);
-  }
-});
 
 function renderEditor(){
   document.getElementById('deptNameInput').value=deptName;
@@ -3387,7 +3254,6 @@ function renderEditor(){
   const alwaysNoLabel=document.getElementById('alwaysInsigniaNoLabel');
   if(alwaysYesLabel) alwaysYesLabel.style.borderColor=alwaysShowInsignia?'var(--accent)':'var(--border)';
   if(alwaysNoLabel) alwaysNoLabel.style.borderColor=!alwaysShowInsignia?'var(--accent)':'var(--border)';
-  updateSheetsUI();
 }
 
 function renderThemesGrid(){
