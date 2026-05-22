@@ -3339,14 +3339,14 @@ function updateSheetsUI(){
 }
 
 // Check for OAuth callback code on page load
-(function checkSheetsCallback(){
+window.addEventListener('load', function checkSheetsCallback(){
   const params = new URLSearchParams(window.location.search);
   const code = params.get('code');
   if(code){
     history.replaceState(null,'',window.location.pathname);
     handleSheetsCallback(code);
   }
-})();
+});
 
 function renderEditor(){
   document.getElementById('deptNameInput').value=deptName;
