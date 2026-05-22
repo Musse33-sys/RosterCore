@@ -948,6 +948,31 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
           </div>
         </div>
 
+        <div class="editor-divider" id="sheetsSyncDivider" style="display:none;"></div>
+
+        <!-- GOOGLE SHEETS SYNC — sagw@staticred.com only -->
+        <div class="editor-section" id="sheetsSyncSection" style="display:none;">
+          <div class="editor-h3">Google Sheets Sync</div>
+          <p style="font-size:13px;color:var(--text2);margin-bottom:14px;line-height:1.6;">Connect your roster to a Google Sheet. Every change you make syncs automatically.</p>
+          <div id="sheetsDisconnected">
+            <button class="btn btn-primary" onclick="connectGoogleSheets()" style="display:flex;align-items:center;gap:8px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 2h8l6 6v14a2 2 0 01-2 2H6a2 2 0 01-2-2V4a2 2 0 012-2z" stroke="currentColor" stroke-width="1.5"/><path d="M14 2v6h6" stroke="currentColor" stroke-width="1.5"/></svg>
+              Connect Google Sheets
+            </button>
+          </div>
+          <div id="sheetsConnected" style="display:none;">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+              <div style="width:8px;height:8px;border-radius:50%;background:#4ade80;box-shadow:0 0 6px #4ade80;"></div>
+              <span style="font-size:12px;color:var(--text2);">Connected — <a id="sheetsLink" href="#" target="_blank" style="color:var(--accent);">Open Spreadsheet</a></span>
+            </div>
+            <div style="display:flex;gap:8px;">
+              <button class="btn btn-primary btn-sm" onclick="syncToSheets()">⟳ Sync Now</button>
+              <button class="btn btn-ghost btn-sm" onclick="disconnectSheets()">Disconnect</button>
+            </div>
+            <div id="syncStatus" style="font-size:11px;color:var(--text3);margin-top:8px;"></div>
+          </div>
+        </div>
+
       </div>
     </div>
     <div class="tab-panel" id="tab-superadmin" style="display:none;">
@@ -1240,13 +1265,26 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 
     <!-- FORM PANEL -->
     <div style="flex:1;padding:36px 28px;margin-top:2px;">
-      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--purple);margin-bottom:6px;" id="staffLoginSub">MEMBER ACCESS</div>
-      <div style="font-family:'Inter',sans-serif;font-size:22px;font-weight:700;color:var(--text);margin-bottom:24px;" id="staffLoginTitle">Sign In</div>
-      <div class="form-error hidden" id="staffLoginError"></div>
-      <div class="form-group"><label class="form-label" style="color:var(--purple);">Username</label><input class="form-input" id="staffUsername" placeholder="your.username" autocomplete="off"></div>
-      <div class="form-group"><label class="form-label" style="color:var(--purple);">Password</label><input class="form-input" type="password" id="staffPassword" placeholder="••••••••"></div>
-      <button class="btn" style="width:100%;padding:14px;font-size:11px;letter-spacing:3px;margin-top:8px;background:var(--purple);color:#080808;font-weight:700;font-family:'JetBrains Mono',monospace;" onclick="doStaffLogin()">SIGN IN →</button>
-      <div style="text-align:center;margin-top:16px;font-family:'JetBrains Mono',monospace;font-size:9px;color:#404040;letter-spacing:1px;">Dept head? <span style="color:var(--purple);cursor:pointer;" onclick="switchToOwnerLogin()">Login here →</span></div>
+      <!-- LOGIN FORM -->
+      <div id="staffLoginForm">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--purple);margin-bottom:6px;" id="staffLoginSub">MEMBER ACCESS</div>
+        <div style="font-family:'Inter',sans-serif;font-size:22px;font-weight:700;color:var(--text);margin-bottom:24px;" id="staffLoginTitle">Sign In</div>
+        <div class="form-error hidden" id="staffLoginError"></div>
+        <div class="form-group"><label class="form-label" style="color:var(--purple);">Username</label><input class="form-input" id="staffUsername" placeholder="your.username" autocomplete="off"></div>
+        <div class="form-group"><label class="form-label" style="color:var(--purple);">Password</label><input class="form-input" type="password" id="staffPassword" placeholder="••••••••"></div>
+        <button class="btn" style="width:100%;padding:14px;font-size:11px;letter-spacing:3px;margin-top:8px;background:var(--purple);color:#080808;font-weight:700;font-family:'JetBrains Mono',monospace;" onclick="doStaffLogin()">SIGN IN →</button>
+        <div style="text-align:center;margin-top:16px;font-family:'JetBrains Mono',monospace;font-size:9px;color:#404040;letter-spacing:1px;">Dept head? <span style="color:var(--purple);cursor:pointer;" onclick="switchToOwnerLogin()">Login here →</span></div>
+      </div>
+      <!-- FORCE PASSWORD CHANGE FORM -->
+      <div id="staffChangePasswordForm" style="display:none;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--purple);margin-bottom:6px;">FIRST LOGIN</div>
+        <div style="font-family:'Inter',sans-serif;font-size:22px;font-weight:700;color:var(--text);margin-bottom:8px;">Set Your Password</div>
+        <p style="font-size:12px;color:var(--text3);margin-bottom:20px;line-height:1.6;">This is your first time logging in. Please set a new password to continue.</p>
+        <div class="form-error hidden" id="changePasswordError"></div>
+        <div class="form-group"><label class="form-label" style="color:var(--purple);">New Password</label><input class="form-input" type="password" id="newPassword" placeholder="Min 4 characters"></div>
+        <div class="form-group"><label class="form-label" style="color:var(--purple);">Confirm Password</label><input class="form-input" type="password" id="confirmPassword" placeholder="Repeat password"></div>
+        <button class="btn" style="width:100%;padding:14px;font-size:11px;letter-spacing:3px;margin-top:8px;background:var(--purple);color:#080808;font-weight:700;font-family:'JetBrains Mono',monospace;" onclick="doChangePassword()">SET PASSWORD →</button>
+      </div>
     </div>
   </div>
 </div>
@@ -1994,7 +2032,8 @@ async function createProfile(){
     roster_id: rosterDataId,
     dept_id: deptId,
     name, username,
-    password_hash: hash
+    password_hash: hash,
+    must_change_password: true
   });
   if(error){
     errEl.textContent=error.message.includes('unique')?'⚠ Username already taken.':'⚠ '+error.message;
@@ -2043,6 +2082,8 @@ function switchToOwnerLogin(){
   showAuthModal();
 }
 
+let _pendingProfile = null;
+
 async function doStaffLogin(){
   const username=document.getElementById('staffUsername').value.trim().toLowerCase();
   const password=document.getElementById('staffPassword').value;
@@ -2055,9 +2096,48 @@ async function doStaffLogin(){
 
   if(error||!profile){errEl.textContent='⚠ Invalid username or password.';errEl.classList.remove('hidden');return;}
 
-  
+  // Check if first login — force password change
+  if(profile.must_change_password){
+    _pendingProfile = profile;
+    document.getElementById('staffLoginForm').style.display='none';
+    document.getElementById('staffChangePasswordForm').style.display='block';
+    return;
+  }
+
+  await completeStaffLogin(profile);
+}
+
+async function doChangePassword(){
+  const newPass = document.getElementById('newPassword').value;
+  const confirmPass = document.getElementById('confirmPassword').value;
+  const errEl = document.getElementById('changePasswordError');
+  errEl.classList.add('hidden');
+  if(!newPass||!confirmPass){errEl.textContent='⚠ Both fields required.';errEl.classList.remove('hidden');return;}
+  if(newPass.length<4){errEl.textContent='⚠ Password must be at least 4 characters.';errEl.classList.remove('hidden');return;}
+  if(newPass!==confirmPass){errEl.textContent='⚠ Passwords do not match.';errEl.classList.remove('hidden');return;}
+
+  const username = _pendingProfile.username;
+  const newHash = btoa(unescape(encodeURIComponent(newPass+'_rc_salt_'+username)));
+
+  const {error} = await sb.from('roster_profiles').update({
+    password_hash: newHash,
+    must_change_password: false
+  }).eq('id', _pendingProfile.id);
+
+  if(error){errEl.textContent='⚠ '+error.message;errEl.classList.remove('hidden');return;}
+
+  _pendingProfile.password_hash = newHash;
+  _pendingProfile.must_change_password = false;
+  showToast('✓ Password set successfully!');
+  document.getElementById('staffChangePasswordForm').style.display='none';
+  document.getElementById('staffLoginForm').style.display='block';
+  await completeStaffLogin(_pendingProfile);
+  _pendingProfile = null;
+}
+
+async function completeStaffLogin(profile){
   const {data:rd}=await sb.from('roster_data').select('*').eq('id',profile.roster_id).single();
-  if(!rd){errEl.textContent='⚠ Roster not found.';errEl.classList.remove('hidden');return;}
+  if(!rd){ showToast('⚠ Roster not found.', true); return; }
 
   const {data:dept}=await sb.from('departments').select('*').eq('id',rd.dept_id).single();
 
