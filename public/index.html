@@ -4142,9 +4142,21 @@ async function doChangeDeptPassword(){
   errEl.classList.add('hidden');
   if(pwd.length<6){errEl.textContent='⚠ Password must be at least 6 characters.';errEl.classList.remove('hidden');return;}
   if(pwd!==confirm){errEl.textContent='⚠ Passwords do not match.';errEl.classList.remove('hidden');return;}
+
+  // Update password in Supabase Auth via Edge Function
+  const res = await fetch('https://lzxsltdwbuyzxbmkpuny.supabase.co/functions/v1/reset-password', {
+    method: 'POST',
+    headers: { 'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx6eHNsdGR3YnV5enhibWtwdW55Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2MDM3NDksImV4cCI6MjA5NDE3OTc0OX0._Pr9Na_5u3AHweM2F-_W9R4EmXbsvpGsoBFYPC1I914', 'Content-Type': 'application/json' },
+    body: JSON.stringify({ user_id: changePwUserId, password: pwd })
+  });
+  const result = await res.json();
+  if(result.error){ errEl.textContent='⚠ '+result.error; errEl.classList.remove('hidden'); return; }
+
+  // Update password_hint and must_change_password in departments table
   await sb.from('departments').update({password_hint:pwd, must_change_password:true}).eq('user_id',changePwUserId);
   document.getElementById('changePwModal').classList.add('hidden');
-  showToast('✓ Password saved. Share it with the department head — they will be asked to set their own on next login.');
+  await loadSuperAdminDepts();
+  showToast('✓ Password updated. Share it with the department head.');
 }
 
 function openChangePw(userId, name){
