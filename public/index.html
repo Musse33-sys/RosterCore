@@ -4128,7 +4128,8 @@ let changePwUserId = null;
 
 function openChangePw(userId, name){
   changePwUserId = userId;
-  document.getElementById('changePwTitle').textContent = 'Reset Password — ' + name;
+  const sub = document.getElementById('changePwSub');
+  if(sub) sub.textContent = 'Set a new password for ' + name + '.';
   document.getElementById('changePwInput').value = '';
   document.getElementById('changePwConfirm').value = '';
   document.getElementById('changePwError').classList.add('hidden');
