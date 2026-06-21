@@ -1498,6 +1498,7 @@ let currentUser = null;
 let isSuperAdmin = false;
 let deptId = null;
 let rosterDataId = null;
+let lastKnownUpdatedAt = null;
 let saveTimer = null;
 
 let onlineUsers = new Set();
@@ -1649,6 +1650,7 @@ function startRealtimeSync(){
       if(rd.show_insignia !== undefined) showInsignia = rd.show_insignia; if(rd.always_show_insignia !== undefined) alwaysShowInsignia = rd.always_show_insignia;
       nextMemberId = members.length>0?Math.max(...members.map(m=>m.id||0))+1:1;
       nextTraineeId = trainees.length>0?Math.max(...trainees.map(t=>t.id||0))+1:1;
+      lastKnownUpdatedAt = rd.updated_at;
 
       smartSyncUpdate(oldMembers, members, oldTrainees, trainees, structureChanged);
     })
@@ -1832,6 +1834,7 @@ async function loadDepartment(userId){
     rd = nrd;
   }
   rosterDataId = rd.id;
+  lastKnownUpdatedAt = rd.updated_at;
   rankGroups = rd.rank_groups||[];
   subdivisions = rd.subdivisions||[];
   positions = migratePositions(rd.positions);
@@ -1873,18 +1876,61 @@ async function saveRoster(){
   if(currentUser?.email === 'demo'){ showToast('▶ Demo mode — changes are not saved.'); return; }
   if(!rosterDataId){ showToast('⚠ No roster ID — try logging out and back in.',true); return; }
   isSyncing = true;
-  const {error:e1} = await sb.from('roster_data').update({
+  const newTimestamp = new Date().toISOString();
+
+  let updateQuery = sb.from('roster_data').update({
     rank_groups: rankGroups, subdivisions: subdivisions,
     positions: positions, trainee_format: traineeFormat, trainee_format_to: traineeFormatTo, custom_tags: customTags, promotions: promotions, custom_themes: customThemes, show_insignia: showInsignia, always_show_insignia: alwaysShowInsignia,
     theme: activeTheme, members: members, trainees: trainees,
-    updated_at: new Date().toISOString()
+    updated_at: newTimestamp
   }).eq('id', rosterDataId);
+
+  // Optimistic lock: only write if no one else has saved since we last loaded
+  if(lastKnownUpdatedAt) updateQuery = updateQuery.eq('updated_at', lastKnownUpdatedAt);
+
+  const {data: writtenRows, error:e1} = await updateQuery.select('id');
+
   if(currentUser && currentUser.email !== 'shared' && currentUser.email !== 'staff' && deptId){
     await sb.from('departments').update({name: deptName}).eq('id', deptId);
   }
-  if(e1){ console.error('Save error:', e1); showToast('⚠ Save failed: '+e1.message,true); }
-  else { showToast('✓ Saved.'); saveSnapshot(); }
+
+  if(e1){
+    console.error('Save error:', e1);
+    showToast('⚠ Save failed: '+e1.message,true);
+  } else if(lastKnownUpdatedAt && (!writtenRows || writtenRows.length===0)){
+    // Conflict detected — someone else saved in between. Do NOT overwrite. Reload fresh data instead.
+    showToast('⚠ Someone else just updated this roster — reloading the latest version to avoid overwriting their changes.', true);
+    logEdit('save_conflict_detected', { note: 'Local save blocked because roster changed elsewhere; reloaded fresh data instead of overwriting.' });
+    await reloadRosterFromServer();
+  } else {
+    lastKnownUpdatedAt = newTimestamp;
+    showToast('✓ Saved.');
+    saveSnapshot();
+  }
   setTimeout(()=>{ isSyncing = false; }, 3000);
+}
+
+async function reloadRosterFromServer(){
+  if(!rosterDataId) return;
+  const {data:rd} = await sb.from('roster_data').select('*').eq('id', rosterDataId).single();
+  if(!rd) return;
+  members = rd.members||[];
+  trainees = rd.trainees||[];
+  rankGroups = rd.rank_groups||[];
+  subdivisions = rd.subdivisions||[];
+  positions = migratePositions(rd.positions);
+  traineeFormat = rd.trainee_format||'';
+  traineeFormatTo = rd.trainee_format_to||'';
+  customTags = rd.custom_tags||[];
+  promotions = rd.promotions||[];
+  if(rd.custom_themes&&rd.custom_themes.length) customThemes = rd.custom_themes;
+  if(rd.theme && rd.theme !== activeTheme) applyTheme(rd.theme);
+  if(rd.show_insignia !== undefined) showInsignia = rd.show_insignia;
+  if(rd.always_show_insignia !== undefined) alwaysShowInsignia = rd.always_show_insignia;
+  nextMemberId = members.length>0?Math.max(...members.map(m=>m.id||0))+1:1;
+  nextTraineeId = trainees.length>0?Math.max(...trainees.map(t=>t.id||0))+1:1;
+  lastKnownUpdatedAt = rd.updated_at;
+  renderAll();
 }
 
 async function saveSnapshot(){
@@ -2317,6 +2363,7 @@ async function completeStaffLogin(profile){
   const {data:dept}=await sb.from('departments').select('*').eq('id',rd.dept_id).single();
 
   rosterDataId=rd.id;
+  lastKnownUpdatedAt = rd.updated_at;
   deptId=rd.dept_id;
   deptName=dept?.name||'Department';
   rankGroups=rd.rank_groups||[];
@@ -4362,6 +4409,7 @@ document.addEventListener('keydown',e=>{
       const {data:rd}=await sb.from('roster_data').select('*').eq('dept_id',deptRecord.id).single();
       if(rd){
         rosterDataId=rd.id;
+        lastKnownUpdatedAt = rd.updated_at;
         deptId=deptRecord.id; deptName=deptRecord.name||'Department';
         rankGroups=rd.rank_groups||[]; subdivisions=rd.subdivisions||[];
         positions=migratePositions(rd.positions); traineeFormat=rd.trainee_format||''; traineeFormatTo=rd.trainee_format_to||''; showInsignia=rd.show_insignia||false; alwaysShowInsignia=rd.always_show_insignia||false; customTags=rd.custom_tags||[]; promotions=rd.promotions||[]; customThemes=(rd.custom_themes&&rd.custom_themes.length?rd.custom_themes:[{name:'Custom 1',accent:'#c9a84c',bg:'#0a0c10'},{name:'Custom 2',accent:'#60a5fa',bg:'#080c14'}]);
@@ -4388,6 +4436,7 @@ document.addEventListener('keydown',e=>{
     const {data:rd}=await sb.from('roster_data').select('*').eq('share_token',token).eq('share_enabled',true).single();
     if(rd){
       rosterDataId=rd.id;
+      lastKnownUpdatedAt = rd.updated_at;
       const {data:dept}=await sb.from('departments').select('*').eq('id',rd.dept_id).single();
       if(dept){deptId=dept.id;deptName=dept.name||'Department';}
       rankGroups=rd.rank_groups||[]; subdivisions=rd.subdivisions||[];
@@ -4421,7 +4470,7 @@ document.addEventListener('keydown',e=>{
         const {data:rd} = await sb.from('roster_data').select('*').eq('id',profile.roster_id).single();
         const {data:dept} = await sb.from('departments').select('*').eq('id',rd?.dept_id).single();
         if(rd && dept){
-          rosterDataId=rd.id; deptId=rd.dept_id; deptName=dept.name||'Department';
+          rosterDataId=rd.id; lastKnownUpdatedAt = rd.updated_at; deptId=rd.dept_id; deptName=dept.name||'Department';
           rankGroups=rd.rank_groups||[]; subdivisions=rd.subdivisions||[];
           positions=migratePositions(rd.positions); traineeFormat=rd.trainee_format||''; traineeFormatTo=rd.trainee_format_to||''; showInsignia=rd.show_insignia||false; alwaysShowInsignia=rd.always_show_insignia||false;
           customTags=rd.custom_tags||[]; promotions=rd.promotions||[];
