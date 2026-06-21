@@ -961,6 +961,15 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
           </div>
         </div>
 
+        <div class="editor-divider"></div>
+
+        <!-- EDIT LOG -->
+        <div class="editor-section" id="ownEditLogSection">
+          <div class="editor-h3">Edit Log</div>
+          <p style="font-size:13px;color:var(--text2);margin-bottom:14px;line-height:1.6;">A record of every change made to your roster, including who made it.</p>
+          <div id="ownEditLogList" style="display:flex;flex-direction:column;gap:6px;max-height:420px;overflow-y:auto;"></div>
+        </div>
+
         <div class="editor-divider" id="sheetsSyncDivider" style="display:none;"></div>
 
         <!-- GOOGLE SHEETS SYNC — sagw@staticred.com only -->
@@ -3580,6 +3589,7 @@ function renderEditor(){
   const alwaysNoLabel=document.getElementById('alwaysInsigniaNoLabel');
   if(alwaysYesLabel) alwaysYesLabel.style.borderColor=alwaysShowInsignia?'var(--accent)':'var(--border)';
   if(alwaysNoLabel) alwaysNoLabel.style.borderColor=!alwaysShowInsignia?'var(--accent)':'var(--border)';
+  loadOwnEditLog();
 }
 
 function renderThemesGrid(){
@@ -4244,37 +4254,23 @@ async function doChangeDeptPassword(){
   showToast('✓ Password updated. Share it with the department head.');
 }
 
-async function openDeptEditLog(deptId, deptName){
-  document.getElementById('deptEditLogModal').classList.remove('hidden');
-  document.getElementById('deptEditLogSub').textContent=`All recorded edits for ${deptName}`;
-  const list=document.getElementById('deptEditLogList');
-  list.innerHTML=`<p style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);padding:8px;">Loading...</p>`;
-
-  const {data:rd}=await sb.from('roster_data').select('id').eq('dept_id',deptId).single();
-  if(!rd){ list.innerHTML=`<p style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--red);padding:8px;">No roster found for this department.</p>`; return; }
-
-  const {data:logs,error}=await sb.from('roster_edit_log')
-    .select('*')
-    .eq('roster_id',rd.id)
-    .order('created_at',{ascending:false})
-    .limit(200);
-
-  if(error){ list.innerHTML=`<p style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--red);padding:8px;">⚠ ${error.message}</p>`; return; }
+function renderEditLogList(targetEl, logs){
   if(!logs||!logs.length){
-    list.innerHTML=`<p style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);padding:8px;">No edits logged yet.</p>`;
+    targetEl.innerHTML=`<p style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);padding:8px;">No edits logged yet.</p>`;
     return;
   }
-
   const actionColor = {
     member_added: 'var(--green)', member_edited: 'var(--blue)', member_removed: 'var(--red)',
-    trainee_removed: 'var(--red)', promote: 'var(--green)', demote: 'var(--orange,#fb923c)'
+    trainee_removed: 'var(--red)', promote: 'var(--green)', demote: 'var(--orange,#fb923c)',
+    save_conflict_detected: 'var(--yellow,#fbbf24)'
   };
   const actionLabel = {
     member_added: 'ADDED', member_edited: 'EDITED', member_removed: 'REMOVED',
-    trainee_removed: 'TRAINEE REMOVED', promote: 'PROMOTED', demote: 'DEMOTED'
+    trainee_removed: 'TRAINEE REMOVED', promote: 'PROMOTED', demote: 'DEMOTED',
+    save_conflict_detected: 'CONFLICT AVOIDED'
   };
 
-  list.innerHTML = logs.map(l=>{
+  targetEl.innerHTML = logs.map(l=>{
     const d = new Date(l.created_at);
     const color = actionColor[l.action] || 'var(--text3)';
     const label = actionLabel[l.action] || l.action.toUpperCase();
@@ -4284,6 +4280,7 @@ async function openDeptEditLog(deptId, deptName){
     else if(l.action==='member_removed'||l.action==='trainee_removed') detailLine = `${det.name} (${det.callsign||'—'})`;
     else if(l.action==='promote'||l.action==='demote') detailLine = `${det.name}: ${det.fromCS||'—'} → ${det.toCS||'—'} (${det.fromGroup||'—'} → ${det.toGroup||'—'})`;
     else if(l.action==='member_edited') detailLine = `${det.name} — ${JSON.stringify(det.before)} → ${JSON.stringify(det.after)}`;
+    else if(l.action==='save_conflict_detected') detailLine = det.note || 'Save blocked to avoid overwriting a more recent change.';
     else detailLine = JSON.stringify(det);
 
     return `<div style="background:var(--bg3);border:1px solid var(--border);border-left:3px solid ${color};border-radius:var(--radius);padding:10px 14px;">
@@ -4295,6 +4292,38 @@ async function openDeptEditLog(deptId, deptName){
       <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--accent);">by ${l.actor}</div>
     </div>`;
   }).join('');
+}
+
+async function fetchRosterEditLog(rosterId, limit=200){
+  const {data:logs,error}=await sb.from('roster_edit_log')
+    .select('*')
+    .eq('roster_id',rosterId)
+    .order('created_at',{ascending:false})
+    .limit(limit);
+  return {logs, error};
+}
+
+async function loadOwnEditLog(){
+  const el = document.getElementById('ownEditLogList');
+  if(!el || !rosterDataId) return;
+  el.innerHTML=`<p style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);padding:8px;">Loading...</p>`;
+  const {logs, error} = await fetchRosterEditLog(rosterDataId);
+  if(error){ el.innerHTML=`<p style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--red);padding:8px;">⚠ ${error.message}</p>`; return; }
+  renderEditLogList(el, logs);
+}
+
+async function openDeptEditLog(deptId, deptName){
+  document.getElementById('deptEditLogModal').classList.remove('hidden');
+  document.getElementById('deptEditLogSub').textContent=`All recorded edits for ${deptName}`;
+  const list=document.getElementById('deptEditLogList');
+  list.innerHTML=`<p style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);padding:8px;">Loading...</p>`;
+
+  const {data:rd}=await sb.from('roster_data').select('id').eq('dept_id',deptId).single();
+  if(!rd){ list.innerHTML=`<p style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--red);padding:8px;">No roster found for this department.</p>`; return; }
+
+  const {logs, error} = await fetchRosterEditLog(rd.id);
+  if(error){ list.innerHTML=`<p style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--red);padding:8px;">⚠ ${error.message}</p>`; return; }
+  renderEditLogList(list, logs);
 }
 
 async function openDeptHistory(deptId, deptName){
