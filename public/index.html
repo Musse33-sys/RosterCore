@@ -1152,6 +1152,18 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   </div>
 </div>
 
+<!-- EDIT LOG MODAL -->
+<div class="modal-overlay hidden" id="deptEditLogModal" onclick="if(event.target===this)this.classList.add('hidden')">
+  <div class="modal" style="max-width:640px;">
+    <div class="modal-title">📋 Edit Log</div>
+    <div class="modal-sub" id="deptEditLogSub">All recorded edits for this department.</div>
+    <div id="deptEditLogList" style="display:flex;flex-direction:column;gap:6px;max-height:460px;overflow-y:auto;margin-top:10px;"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="document.getElementById('deptEditLogModal').classList.add('hidden')">Close</button>
+    </div>
+  </div>
+</div>
+
 <!-- VERSION HISTORY MODAL -->
 <div class="modal-overlay hidden" id="historyModal" onclick="if(event.target===this)this.classList.add('hidden')">
   <div class="modal" style="max-width:580px;">
@@ -1839,6 +1851,22 @@ async function loadDepartment(userId){
 function scheduleSave(){
   clearTimeout(saveTimer);
   saveTimer = setTimeout(saveRoster, 600);
+}
+
+async function logEdit(action, details){
+  if(!rosterDataId) return;
+  const actor = currentUser?.email==='staff' ? (currentUser.name+' (@'+currentUser.username+')')
+              : currentUser?.email ? currentUser.email
+              : 'unknown';
+  try {
+    await sb.from('roster_edit_log').insert({
+      roster_id: rosterDataId,
+      dept_id: deptId||null,
+      actor,
+      action,
+      details: details||{}
+    });
+  } catch(e) { /* never block UI on log failure */ }
 }
 
 async function saveRoster(){
@@ -3219,6 +3247,7 @@ function promote(id){
   renderRoster(); renderStats(); renderAllMembers(); scheduleSave();
   window.scrollTo(0, scrollY);
   showToast(`▲ ${m.name} promoted to ${newGroup} → ${newCS}`);
+  logEdit('promote', { name: m.name, fromGroup: oldGroup, toGroup: newGroup, fromCS: oldCS, toCS: newCS });
 }
 function demote(id){
   const m=members.find(mb=>mb.id===id); if(!m)return;
@@ -3238,6 +3267,7 @@ function demote(id){
   renderRoster(); renderStats(); scheduleSave();
   window.scrollTo(0, scrollY);
   showToast(`▼ ${m.name} demoted to ${newGroup} → ${newCS} (was ${old})`);
+  logEdit('demote', { name: m.name, fromGroup: rankGroups[gi-1]?.name, toGroup: newGroup, fromCS: old, toCS: newCS });
 }
 function graduate(id){
   const t=trainees.find(tr=>tr.id===id); if(!t)return;
@@ -3399,9 +3429,11 @@ function saveMember(){
 
     members[i]={...members[i],...data};
     showToast('✓ Member updated.');
+    logEdit('member_edited', { name: data.name, callsign: data.callsign, before: {name:old.name,callsign:old.callsign,rankGroup:old.rankGroup,status:old.status}, after: {name:data.name,callsign:data.callsign,rankGroup:data.rankGroup,status:data.status} });
   } else {
     members.push({id:nextMemberId++,...data});
     showToast(`✓ ${name} added as ${data.callsign||'—'}.`);
+    logEdit('member_added', { name: data.name, callsign: data.callsign, rankGroup: data.rankGroup });
   }
   closeMemberModal(); renderRoster(); renderStats(); scheduleSave();
 }
@@ -3457,11 +3489,13 @@ function openConfirmDelete(id,type){
   document.getElementById('confirmModal').classList.remove('hidden');
 }
 function confirmDelete(){
+  const rec = deletingType==='member' ? members.find(m=>m.id===deletingId) : trainees.find(t=>t.id===deletingId);
   if(deletingType==='member') members=members.filter(m=>m.id!==deletingId);
   else trainees=trainees.filter(t=>t.id!==deletingId);
   document.getElementById('confirmModal').classList.add('hidden');
   renderRoster(); renderTrainees(); renderStats(); scheduleSave();
   showToast('✓ Removed.');
+  if(rec) logEdit(deletingType==='member'?'member_removed':'trainee_removed', { name: rec.name, callsign: rec.callsign });
 }
 
 
@@ -4110,6 +4144,7 @@ async function loadSuperAdminDepts(){
               <td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);">${new Date(d.created_at).toLocaleDateString()}</td>
               <td style="display:flex;gap:6px;align-items:center;">
                 <button title="Version History" onclick="openDeptHistory('${d.id}','${d.name}')" style="width:28px;height:28px;border-radius:50%;background:rgba(96,165,250,.1);border:1px solid rgba(96,165,250,.3);color:var(--blue);cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;transition:all .15s;" onmouseover="this.style.background='rgba(96,165,250,.25)'" onmouseout="this.style.background='rgba(96,165,250,.1)'">⟳</button>
+                <button title="Edit Log" onclick="openDeptEditLog('${d.id}','${d.name}')" style="width:28px;height:28px;border-radius:50%;background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.3);color:var(--purple);cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;transition:all .15s;" onmouseover="this.style.background='rgba(167,139,250,.25)'" onmouseout="this.style.background='rgba(167,139,250,.1)'">📋</button>
                 <button class="btn btn-outline btn-sm" onclick="resetDeptPassword('${d.user_id}','${d.name}')">Reset PW</button>
                 <button class="btn btn-danger" onclick="deleteDept('${d.id}','${d.name}')">Delete</button>
               </td>
@@ -4160,6 +4195,59 @@ async function doChangeDeptPassword(){
   document.getElementById('changePwModal').classList.add('hidden');
   await loadSuperAdminDepts();
   showToast('✓ Password updated. Share it with the department head.');
+}
+
+async function openDeptEditLog(deptId, deptName){
+  document.getElementById('deptEditLogModal').classList.remove('hidden');
+  document.getElementById('deptEditLogSub').textContent=`All recorded edits for ${deptName}`;
+  const list=document.getElementById('deptEditLogList');
+  list.innerHTML=`<p style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);padding:8px;">Loading...</p>`;
+
+  const {data:rd}=await sb.from('roster_data').select('id').eq('dept_id',deptId).single();
+  if(!rd){ list.innerHTML=`<p style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--red);padding:8px;">No roster found for this department.</p>`; return; }
+
+  const {data:logs,error}=await sb.from('roster_edit_log')
+    .select('*')
+    .eq('roster_id',rd.id)
+    .order('created_at',{ascending:false})
+    .limit(200);
+
+  if(error){ list.innerHTML=`<p style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--red);padding:8px;">⚠ ${error.message}</p>`; return; }
+  if(!logs||!logs.length){
+    list.innerHTML=`<p style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);padding:8px;">No edits logged yet.</p>`;
+    return;
+  }
+
+  const actionColor = {
+    member_added: 'var(--green)', member_edited: 'var(--blue)', member_removed: 'var(--red)',
+    trainee_removed: 'var(--red)', promote: 'var(--green)', demote: 'var(--orange,#fb923c)'
+  };
+  const actionLabel = {
+    member_added: 'ADDED', member_edited: 'EDITED', member_removed: 'REMOVED',
+    trainee_removed: 'TRAINEE REMOVED', promote: 'PROMOTED', demote: 'DEMOTED'
+  };
+
+  list.innerHTML = logs.map(l=>{
+    const d = new Date(l.created_at);
+    const color = actionColor[l.action] || 'var(--text3)';
+    const label = actionLabel[l.action] || l.action.toUpperCase();
+    const det = l.details||{};
+    let detailLine = '';
+    if(l.action==='member_added') detailLine = `${det.name} → ${det.callsign||'—'} (${det.rankGroup||'—'})`;
+    else if(l.action==='member_removed'||l.action==='trainee_removed') detailLine = `${det.name} (${det.callsign||'—'})`;
+    else if(l.action==='promote'||l.action==='demote') detailLine = `${det.name}: ${det.fromCS||'—'} → ${det.toCS||'—'} (${det.fromGroup||'—'} → ${det.toGroup||'—'})`;
+    else if(l.action==='member_edited') detailLine = `${det.name} — ${JSON.stringify(det.before)} → ${JSON.stringify(det.after)}`;
+    else detailLine = JSON.stringify(det);
+
+    return `<div style="background:var(--bg3);border:1px solid var(--border);border-left:3px solid ${color};border-radius:var(--radius);padding:10px 14px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;color:${color};letter-spacing:1px;">${label}</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);">${d.toLocaleString()}</span>
+      </div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text2);margin-bottom:3px;word-break:break-word;">${detailLine}</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--accent);">by ${l.actor}</div>
+    </div>`;
+  }).join('');
 }
 
 async function openDeptHistory(deptId, deptName){
