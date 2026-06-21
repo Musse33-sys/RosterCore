@@ -1862,16 +1862,14 @@ async function logEdit(action, details){
               : currentUser?.email ? currentUser.email
               : 'unknown';
   try {
-    const {error} = await sb.from('roster_edit_log').insert({
+    await sb.from('roster_edit_log').insert({
       roster_id: rosterDataId,
       dept_id: deptId||null,
       actor,
       action,
       details: details||{}
     });
-    if(error) console.error('[logEdit] insert failed:', error);
-    else console.log('[logEdit] logged:', action, details);
-  } catch(e) { console.error('[logEdit] exception:', e); }
+  } catch(e) { /* never block UI on log failure */ }
 }
 
 async function saveRoster(){
