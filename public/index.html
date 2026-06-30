@@ -3046,6 +3046,16 @@ function syncAutoPopulatedRosters(){
 
 function renderSecondaryRoster(id){
   const sr=getSR(id); if(!sr) return;
+  try {
+    _renderSecondaryRosterInner(id, sr);
+  } catch(e) {
+    console.error('[renderSecondaryRoster] failed:', e);
+    const wrap=document.getElementById('srWrap_'+id);
+    if(wrap) wrap.innerHTML=`<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-text">Something went wrong rendering this roster.<br><span style="font-size:10px;color:var(--text3);">${(e&&e.message)||e}</span></div></div>`;
+  }
+}
+
+function _renderSecondaryRosterInner(id, sr){
   const rankGroupsLocal = sr.rank_groups||[];
   const membersLocal = sr.members||[];
 
