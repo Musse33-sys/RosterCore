@@ -1664,6 +1664,7 @@ function startRealtimeSync(){
       if(rd.custom_themes&&rd.custom_themes.length) customThemes = rd.custom_themes;
       if(rd.theme && rd.theme !== activeTheme) applyTheme(rd.theme);
       if(rd.show_insignia !== undefined) showInsignia = rd.show_insignia; if(rd.always_show_insignia !== undefined) alwaysShowInsignia = rd.always_show_insignia;
+      if(rd.use_roster_callsign !== undefined) useRosterCallsign = rd.use_roster_callsign;
       nextMemberId = members.length>0?Math.max(...members.map(m=>m.id||0))+1:1;
       nextTraineeId = trainees.length>0?Math.max(...trainees.map(t=>t.id||0))+1:1;
       lastKnownUpdatedAt = rd.updated_at;
@@ -1946,6 +1947,7 @@ async function reloadRosterFromServer(){
   if(rd.theme && rd.theme !== activeTheme) applyTheme(rd.theme);
   if(rd.show_insignia !== undefined) showInsignia = rd.show_insignia;
   if(rd.always_show_insignia !== undefined) alwaysShowInsignia = rd.always_show_insignia;
+  if(rd.use_roster_callsign !== undefined) useRosterCallsign = rd.use_roster_callsign;
   nextMemberId = members.length>0?Math.max(...members.map(m=>m.id||0))+1:1;
   nextTraineeId = trainees.length>0?Math.max(...trainees.map(t=>t.id||0))+1:1;
   lastKnownUpdatedAt = rd.updated_at;
@@ -4238,6 +4240,9 @@ function renderEditor(){
   if(toEl) toEl.value=traineeFormatTo;
   updateTraineeFormatPreview();
   renderThemesGrid();
+  // Sync useRosterCallsign checkbox
+  const rcsToggle = document.getElementById('useRosterCSToggle');
+  if(rcsToggle) rcsToggle.checked = useRosterCallsign;
   renderRGList();
   renderPosList();
   renderSDList();
