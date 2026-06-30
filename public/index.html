@@ -3649,15 +3649,12 @@ function renderRoster(){
 
     const actionsCols = currentUser ? '<th>Actions</th>' : '';
     const filledCallsigns = gMembers.map(m=>m.callsign);
-    const {slots, total, capped} = getSmartSlots(g.from, g.to, filledCallsigns);
+    const { slots, total, capped } = getSmartSlots(g.from, g.to, filledCallsigns);
 
-    const rows = slots.length
-      ? slots.map(slot=>{
-          const m = gMembers.find(mb=>mb.callsign===slot);
-          if(m){
-            const pd = getPosData(m.position);
-            const displayCS = (pd && pd.callsign) ? pd.callsign : (m.callsign||'—');
-            return `<tr class="row-filled" data-member-id="${m.id}">
+    const buildFilledRow = (m) => {
+      const pd = getPosData(m.position);
+      const displayCS = (pd && pd.callsign) ? pd.callsign : (m.callsign||'—');
+      return `<tr class="row-filled" data-member-id="${m.id}">
               <td class="cs-cell"><span class="cs-filled">${displayCS}</span></td>
               ${showInsignia?`<td class="ins-cell" style="text-align:center;vertical-align:middle;">${getRankInsignia(gi,m.position,m.callsign)}</td>`:''}
               <td class="name-td">
@@ -3680,6 +3677,14 @@ function renderRoster(){
                 ${hasPerm('editMembers')?`<button class="btn btn-danger" onclick="openConfirmDelete(${m.id},'member')">✕</button>`:''}
               </div></td>`:''}
             </tr>`;
+    };
+
+    const matchedIds = new Set();
+    const rowsFromSlots = slots.map(slot=>{
+          const m = gMembers.find(mb=>mb.callsign===slot);
+          if(m){
+            matchedIds.add(m.id);
+            return buildFilledRow(m);
           } else {
             return `<tr class="row-empty">
               <td><span class="cs-empty">${slot}</span></td>
@@ -3687,32 +3692,14 @@ function renderRoster(){
               <td colspan="${currentUser?(showInsignia?8:8):(showInsignia?7:7)}" style="color:var(--border2);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;padding:10px 12px;">— VACANT —</td>
             </tr>`;
           }
-        }).join('')
-      : gMembers.map(m=>{
-        const pd=getPosData(m.position);
-        const displayCS=(pd&&pd.callsign)?pd.callsign:(m.callsign||'—');
-        return `<tr class="row-filled">
-          <td><span class="cs-filled">${displayCS}</span></td>
-          <td class="name-td">
-            <div class="member-name">${m.name}${onlineUsers.has(m.name)?'<span class="online-dot" title="Online now"></span>':''}
-              ${(m.tags||[]).map(tag=>{const t=customTags.find(ct=>ct.name===tag);const c=t?t.color:'#7ec8e3';return`<span style="font-family:'JetBrains Mono',monospace;font-size:9px;background:${c}18;border:1px solid ${c}55;color:${c};padding:1px 6px;border-radius:2px;">${tag}</span>`;}).join('')}
-            </div>
-            ${(m.position||g.position)?`<div class="member-pos">${m.position||g.position}</div>`:''}
-          </td>
-          <td>${sdBadges(m.subdivs)}</td>
-          <td>${statusPill(m.status)}</td>
-          <td class="col-doh" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);">${fmtDate(m.doh)}</td>
-          <td class="col-discord" style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);">${m.discord||'—'}</td>
-          <td>${strikeBadge(m.strikes||0)}</td>
-          <td style="font-size:11px;color:var(--text2);">${m.notes||'—'}</td>
-          ${currentUser?`<td><div class="row-acts">
-            ${gi>0?`<button class="btn-promote btn" onclick="promote(${m.id})">▲</button>`:''}
-            ${gi<rankGroups.length-1?`<button class="btn-demote btn" onclick="demote(${m.id})">▼</button>`:''}
-            <button class="btn btn-ghost btn-xs" onclick="openEditMember(${m.id})">Edit</button>
-            <button class="btn btn-danger" onclick="openConfirmDelete(${m.id},'member')">✕</button>
-          </div></td>`:''}
-        </tr>`;
-      }).join('') || `<tr class="row-empty"><td colspan="${currentUser?(showInsignia?10:9):(showInsignia?9:8)}" style="text-align:center;padding:16px;font-family:'JetBrains Mono',monospace;font-size:11px;">— NO MEMBERS —</td></tr>`;
+        });
+    // Members whose callsign doesn't match any generated slot (e.g. a stale range was just
+    // changed) still render here instead of silently vanishing.
+    const unmatchedRows = gMembers.filter(m=>!matchedIds.has(m.id)).map(buildFilledRow);
+
+    const rows = (rowsFromSlots.length || unmatchedRows.length)
+      ? rowsFromSlots.join('') + unmatchedRows.join('')
+      : `<tr class="row-empty"><td colspan="${currentUser?(showInsignia?10:9):(showInsignia?9:8)}" style="text-align:center;padding:16px;font-family:'JetBrains Mono',monospace;font-size:11px;">— NO MEMBERS —</td></tr>`;
 
     html+=`
     <div class="rank-group fade-up">
@@ -4445,8 +4432,8 @@ function renderRGList(){
   document.getElementById('rgList').innerHTML=rankGroups.map((g,i)=>`
     <div class="edit-row" style="grid-template-columns:1fr 100px 100px 140px 44px 28px 28px 28px;">
       <input class="edit-input" value="${g.name}" oninput="updateRGName(${i},this.value)" placeholder="Group name">
-      <input class="edit-input" value="${g.from||''}" oninput="updateRGFrom(${i},this.value)" placeholder="e.g. 1W-01">
-      <input class="edit-input" value="${g.to||''}" oninput="updateRGTo(${i},this.value)" placeholder="e.g. 1W-06">
+      <input class="edit-input" value="${g.from||''}" oninput="updateRGFrom(${i},this.value)" onfocus="this.dataset.orig=this.value" onblur="rg_checkRangeChanged(${i},'from',this)" placeholder="e.g. 1W-01">
+      <input class="edit-input" value="${g.to||''}" oninput="updateRGTo(${i},this.value)" onfocus="this.dataset.orig=this.value" onblur="rg_checkRangeChanged(${i},'to',this)" placeholder="e.g. 1W-06">
       <input class="edit-input" value="${g.position||''}" oninput="updateRGPos(${i},this.value)" placeholder="Position title">
       <div style="display:flex;align-items:center;justify-content:center;">
         ${g.insignia
@@ -4469,6 +4456,33 @@ function removeRGInsignia(i){ rankGroups[i].insignia=''; renderRGList(); renderR
 function updateRGName(i,v){ rankGroups[i].name=v; renderRoster(); scheduleSave(); }
 function updateRGFrom(i,v){ rankGroups[i].from=v; scheduleSave(); }
 function updateRGTo(i,v){ rankGroups[i].to=v; scheduleSave(); }
+
+function rg_checkRangeChanged(i, field, inputEl){
+  const orig = inputEl.dataset.orig||'';
+  const now = inputEl.value;
+  if(orig===now) return; // nothing actually changed
+  const g = rankGroups[i]; if(!g) return;
+  const affected = members.filter(m=>m.rankGroup===g.name);
+  if(!affected.length) return;
+
+  const proceed = confirm(`You changed the ${field==='from'?'"From"':'"To"'} callsign for "${g.name}". ${affected.length} member(s) currently in this group will be reassigned new callsigns to match the updated range.\n\nContinue?`);
+  if(!proceed){
+    // revert the field back to what it was
+    inputEl.value = orig;
+    if(field==='from') rankGroups[i].from = orig; else rankGroups[i].to = orig;
+    renderRGList(); renderRoster(); scheduleSave();
+    return;
+  }
+
+  let reassignedCount=0;
+  affected.forEach(m=>{
+    const cs = nextMemberCallsign(g.name, m.id);
+    if(cs){ m.callsign = cs; reassignedCount++; }
+  });
+  renderRGList(); renderRoster(); scheduleSave();
+  showToast(reassignedCount ? `✓ ${reassignedCount} member(s) reassigned to new callsigns in "${g.name}".` : `✓ Range updated.`);
+  logEdit('rank_group_range_changed', {group:g.name, field, from:orig, to:now, reassignedCount});
+}
 function updateRGPos(i,v){ rankGroups[i].position=v; renderRoster(); scheduleSave(); }
 function moveRG(i,d){ const j=i+d; if(j<0||j>=rankGroups.length)return; [rankGroups[i],rankGroups[j]]=[rankGroups[j],rankGroups[i]]; renderRGList(); renderRoster(); }
 function deleteRG(i){
