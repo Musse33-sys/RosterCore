@@ -855,6 +855,15 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
         <!-- RANK GROUPS -->
         <div class="editor-section">
           <div class="editor-h3">Rank Groups</div>
+          <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;margin-bottom:12px;">
+            <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+              <input type="checkbox" id="useRosterCSToggle" ${useRosterCallsign?'checked':''} onchange="toggleUseRosterCS(this.checked)" style="accent-color:var(--accent);width:15px;height:15px;">
+              <div>
+                <div style="font-size:11px;font-weight:700;color:var(--text);letter-spacing:1px;">Use existing callsigns</div>
+                <div style="font-size:10px;color:var(--text3);margin-top:2px;">Members keep their current callsign. No vacant slots shown. From/To ranges are ignored.</div>
+              </div>
+            </label>
+          </div>
           <div class="col-labels" style="grid-template-columns:1fr 100px 100px 140px 28px 28px 28px;"><span>Group Name</span><span>From</span><span>To</span><span>Position</span><span></span><span></span><span></span></div>
           <div class="edit-list" id="rgList"></div>
           <div class="add-form">
@@ -1519,6 +1528,13 @@ let isSuperAdmin = false;
 let deptId = null;
 let rosterDataId = null;
 let lastKnownUpdatedAt = null;
+let useRosterCallsign = false;
+
+function toggleUseRosterCS(val){
+  useRosterCallsign = val;
+  renderRoster();
+  scheduleSave();
+}
 let saveTimer = null;
 
 let onlineUsers = new Set();
@@ -1836,6 +1852,7 @@ async function loadDepartment(userId){
   activeTheme = rd.theme||'dark-steel';
   showInsignia = rd.show_insignia||false;
   alwaysShowInsignia = rd.always_show_insignia||false;
+  useRosterCallsign = rd.use_roster_callsign||false;
   members = rd.members||[];
   trainees = rd.trainees||[];
   nextMemberId = members.length>0 ? Math.max(...members.map(m=>m.id||0))+1 : 1;
@@ -1871,7 +1888,7 @@ async function saveRoster(){
 
   let updateQuery = sb.from('roster_data').update({
     rank_groups: rankGroups, subdivisions: subdivisions,
-    positions: positions, trainee_format: traineeFormat, trainee_format_to: traineeFormatTo, custom_tags: customTags, promotions: promotions, custom_themes: customThemes, show_insignia: showInsignia, always_show_insignia: alwaysShowInsignia,
+    positions: positions, trainee_format: traineeFormat, trainee_format_to: traineeFormatTo, custom_tags: customTags, promotions: promotions, custom_themes: customThemes, show_insignia: showInsignia, always_show_insignia: alwaysShowInsignia, use_roster_callsign: useRosterCallsign,
     theme: activeTheme, members: members, trainees: trainees,
     updated_at: newTimestamp
   }).eq('id', rosterDataId);
@@ -3063,7 +3080,7 @@ function _renderSecondaryRosterInner(id, sr){
     }).sort((a,b)=>(a.callsign||'').localeCompare(b.callsign||''));
 
     const filledCallsigns=gMembers.map(m=>m.callsign);
-    const isRosterMode = g.callsignMode === 'roster';
+    const isRosterMode = sr.use_roster_callsign === true;
     const matchedCount = isRosterMode ? 0 : filledCallsigns.filter(cs=>getRangeSlots(g.from,g.to).includes(cs)).length;
     const rangeLooksValid = !isRosterMode && (gMembers.length===0 || matchedCount>0);
     const {slots, total, capped} = rangeLooksValid
@@ -3169,15 +3186,20 @@ function openEditSecondaryRoster(id){
         ${subdivisions.map(s=>`<option value="${s.name}" ${sr.source_subdivision===s.name?'selected':''}>${s.name}</option>`).join('')}
       </select>
     </div>
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;margin-bottom:4px;">
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+        <input type="checkbox" id="srEditUseRosterCS" ${sr.use_roster_callsign?'checked':''} style="accent-color:var(--accent);width:15px;height:15px;">
+        <div>
+          <div style="font-size:11px;font-weight:700;color:var(--text);letter-spacing:1px;">Use Main Roster callsign</div>
+          <div style="font-size:10px;color:var(--text3);margin-top:2px;">Members will keep their callsign from the Main Roster. No vacant slots will be shown.</div>
+        </div>
+      </label>
+    </div>
     <div class="editor-divider"></div>
     <div class="editor-h3" style="margin-bottom:10px;">Rank Groups</div>
     <div id="srRankGroupList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;"></div>
     <div class="add-form">
       <input class="add-input" id="srNewGroupName" placeholder="Group name">
-      <label style="display:flex;align-items:center;gap:6px;font-size:10px;color:var(--text2);white-space:nowrap;cursor:pointer;">
-        <input type="checkbox" id="srNewGroupMode" onchange="var c=!this.checked;document.getElementById('srNewGroupFrom').style.display=c?'':'none';document.getElementById('srNewGroupTo').style.display=c?'':'none';" style="accent-color:var(--accent);">
-        Use Main Roster callsign
-      </label>
       <input class="add-input" id="srNewGroupFrom" placeholder="From (e.g. K9-01)" style="max-width:110px;">
       <input class="add-input" id="srNewGroupTo" placeholder="To (e.g. K9-10)" style="max-width:110px;">
       <button class="btn btn-primary btn-sm" onclick="addSecondaryRankGroup('${id}')">+ Add</button>
@@ -3200,24 +3222,15 @@ function renderSecondaryRankGroupList(id){
   const sr=getSR(id); if(!sr) return;
   const el=document.getElementById('srRankGroupList');
   if(!el) return;
-  el.innerHTML=(sr.rank_groups||[]).map((g,i)=>{
-    const custom = g.callsignMode !== 'roster';
-    return `
+  el.innerHTML=(sr.rank_groups||[]).map((g,i)=>`
     <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:8px 10px;margin-bottom:6px;">
-      <div class="edit-row" style="grid-template-columns:1fr 140px 28px;margin-bottom:${custom?'6px':'0'};">
+      <div class="edit-row" style="grid-template-columns:1fr 90px 90px 28px;">
         <input class="edit-input" value="${g.name}" oninput="sr_updateGroupField('${id}',${i},'name',this.value)">
-        <label style="display:flex;align-items:center;gap:6px;font-size:10px;color:var(--text2);white-space:nowrap;cursor:pointer;">
-          <input type="checkbox" ${!custom?'checked':''} onchange="sr_updateGroupField('${id}',${i},'callsignMode',this.checked?'roster':'custom');renderSecondaryRankGroupList('${id}')" style="accent-color:var(--accent);">
-          Use Main Roster callsign
-        </label>
+        <input class="edit-input" value="${g.from||''}" oninput="sr_updateGroupField('${id}',${i},'from',this.value)" placeholder="From">
+        <input class="edit-input" value="${g.to||''}" oninput="sr_updateGroupField('${id}',${i},'to',this.value)" placeholder="To">
         <button class="del-btn" onclick="sr_removeGroup('${id}',${i})">×</button>
       </div>
-      ${custom ? `<div class="edit-row" style="grid-template-columns:1fr 1fr;">
-        <input class="edit-input" value="${g.from||''}" oninput="sr_updateGroupField('${id}',${i},'from',this.value)" placeholder="From e.g. K9-01">
-        <input class="edit-input" value="${g.to||''}" oninput="sr_updateGroupField('${id}',${i},'to',this.value)" placeholder="To e.g. K9-10">
-      </div>` : ''}
-    </div>`;
-  }).join('');
+    </div>`).join('');
 }
 
 function sr_updateGroupField(id,i,field,val){
@@ -3233,13 +3246,12 @@ function sr_removeGroup(id,i){
 function addSecondaryRankGroup(id){
   const sr=getSR(id); if(!sr) return;
   const name=document.getElementById('srNewGroupName').value.trim();
-  const mode=document.getElementById('srNewGroupMode').checked ? 'roster' : 'custom';
   const from=document.getElementById('srNewGroupFrom').value.trim();
   const to=document.getElementById('srNewGroupTo').value.trim();
   if(!name){ showToast('⚠ Group name required.', true); return; }
-  if(mode==='custom' && (!from||!to)){ showToast('⚠ Fill in From and To for custom callsigns.', true); return; }
+  if(!sr.use_roster_callsign && (!from||!to)){ showToast('⚠ Fill in From and To callsigns.', true); return; }
   if(!sr.rank_groups) sr.rank_groups=[];
-  sr.rank_groups.push({name, from:from||'', to:to||'', position:'', callsignMode:mode});
+  sr.rank_groups.push({name, from:from||'', to:to||'', position:''});
   document.getElementById('srNewGroupName').value='';
   document.getElementById('srNewGroupFrom').value='';
   document.getElementById('srNewGroupTo').value='';
@@ -3250,6 +3262,7 @@ async function saveSecondaryRosterEdits(id){
   const sr=getSR(id); if(!sr) return;
   sr.name=document.getElementById('srEditName').value.trim()||sr.name;
   sr.source_subdivision=document.getElementById('srEditSubdiv').value||null;
+  sr.use_roster_callsign=document.getElementById('srEditUseRosterCS').checked;
 
   // Detect any rank groups whose from/to changed since the modal opened, and
   // reassign every member currently in that group to a fresh callsign in the new range.
@@ -3607,7 +3620,7 @@ function renderRoster(){
     }).sort((a,b)=>(a.callsign||'').localeCompare(b.callsign||''));
 
     const actionsCols = currentUser ? '<th>Actions</th>' : '';
-    const isRosterMode = g.callsignMode === 'roster';
+    const isRosterMode = useRosterCallsign === true;
     const filledCallsigns = gMembers.map(m=>m.callsign);
     const { slots, total, capped } = isRosterMode
       ? { slots: [], total: gMembers.length, capped: false }
@@ -4391,43 +4404,31 @@ function updateTraineeFormatPreview(){
 }
 
 function renderRGList(){
-  document.getElementById('rgList').innerHTML=rankGroups.map((g,i)=>{
-    const custom = g.callsignMode !== 'roster';
-    return `
-    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;margin-bottom:6px;">
-      <div class="edit-row" style="grid-template-columns:1fr 140px 44px 28px 28px 28px;margin-bottom:${custom?'8px':'0'};">
-        <input class="edit-input" value="${g.name}" oninput="updateRGName(${i},this.value)" placeholder="Group name">
-        <label style="display:flex;align-items:center;gap:6px;font-size:10px;color:var(--text2);white-space:nowrap;cursor:pointer;">
-          <input type="checkbox" ${!custom?'checked':''} onchange="updateRGCallsignMode(${i},this.checked?'roster':'custom')" style="accent-color:var(--accent);">
-          Use Main Roster callsign
-        </label>
-        <div style="display:flex;align-items:center;justify-content:center;">
-          ${g.insignia
-            ? `<div class="ins-upload" onclick="removeRGInsignia(${i})" title="Click to remove insignia">
-                 <img src="${g.insignia}" style="width:100%;height:100%;object-fit:contain;">
-                 <div class="ins-remove">✕</div>
-               </div>`
-            : `<label class="ins-upload" title="Upload insignia">
-                 <span style="font-size:14px;color:var(--text3);">+</span>
-                 <input type="file" accept="image/*" style="display:none;" onchange="uploadInsignia(${i},this)">
-               </label>`
-          }
-        </div>
-        <button class="icon-btn" onclick="moveRG(${i},-1)" ${i===0?'disabled':''}>↑</button>
-        <button class="icon-btn" onclick="moveRG(${i},1)" ${i===rankGroups.length-1?'disabled':''}>↓</button>
-        <button class="del-btn" onclick="deleteRG(${i})">×</button>
+  document.getElementById('rgList').innerHTML=rankGroups.map((g,i)=>`
+    <div class="edit-row" style="grid-template-columns:1fr 100px 100px 140px 44px 28px 28px 28px;">
+      <input class="edit-input" value="${g.name}" oninput="updateRGName(${i},this.value)" placeholder="Group name">
+      <input class="edit-input" value="${g.from||''}" oninput="updateRGFrom(${i},this.value)" onfocus="this.dataset.orig=this.value" onblur="rg_checkRangeChanged(${i},'from',this)" placeholder="e.g. 1W-01">
+      <input class="edit-input" value="${g.to||''}" oninput="updateRGTo(${i},this.value)" onfocus="this.dataset.orig=this.value" onblur="rg_checkRangeChanged(${i},'to',this)" placeholder="e.g. 1W-06">
+      <input class="edit-input" value="${g.position||''}" oninput="updateRGPos(${i},this.value)" placeholder="Position title">
+      <div style="display:flex;align-items:center;justify-content:center;">
+        ${g.insignia
+          ? `<div class="ins-upload" onclick="removeRGInsignia(${i})" title="Click to remove insignia">
+               <img src="${g.insignia}" style="width:100%;height:100%;object-fit:contain;">
+               <div class="ins-remove">✕</div>
+             </div>`
+          : `<label class="ins-upload" title="Upload insignia">
+               <span style="font-size:14px;color:var(--text3);">+</span>
+               <input type="file" accept="image/*" style="display:none;" onchange="uploadInsignia(${i},this)">
+             </label>`
+        }
       </div>
-      ${custom ? `<div class="edit-row" style="grid-template-columns:100px 100px 1fr;">
-        <input class="edit-input" value="${g.from||''}" oninput="updateRGFrom(${i},this.value)" onfocus="this.dataset.orig=this.value" onblur="rg_checkRangeChanged(${i},'from',this)" placeholder="From e.g. 1W-01">
-        <input class="edit-input" value="${g.to||''}" oninput="updateRGTo(${i},this.value)" onfocus="this.dataset.orig=this.value" onblur="rg_checkRangeChanged(${i},'to',this)" placeholder="To e.g. 1W-10">
-        <input class="edit-input" value="${g.position||''}" oninput="updateRGPos(${i},this.value)" placeholder="Position title">
-      </div>` : `<div style="display:none;"></div>`}
-    </div>`;
-  }).join('');
+      <button class="icon-btn" onclick="moveRG(${i},-1)" ${i===0?'disabled':''}>↑</button>
+      <button class="icon-btn" onclick="moveRG(${i},1)" ${i===rankGroups.length-1?'disabled':''}>↓</button>
+      <button class="del-btn" onclick="deleteRG(${i})">×</button>
+    </div>`).join('');
 }
 function removeRGInsignia(i){ rankGroups[i].insignia=''; renderRGList(); renderRoster(); scheduleSave(); showToast('Insignia removed.'); }
 function updateRGName(i,v){ rankGroups[i].name=v; renderRoster(); scheduleSave(); }
-function updateRGCallsignMode(i,v){ rankGroups[i].callsignMode=v; renderRGList(); renderRoster(); scheduleSave(); }
 function updateRGFrom(i,v){ rankGroups[i].from=v; scheduleSave(); }
 function updateRGTo(i,v){ rankGroups[i].to=v; scheduleSave(); }
 
@@ -4436,9 +4437,8 @@ function rg_checkRangeChanged(i, field, inputEl){
   const now = inputEl.value;
   if(orig===now) return;
   const g = rankGroups[i]; if(!g) return;
-  if(g.callsignMode === 'roster') return; // roster mode — range not used
+  if(useRosterCallsign) return; // roster callsign mode — range not used
   const affected = members.filter(m=>m.rankGroup===g.name);
-  if(!affected.length) return;
 
   const proceed = confirm(`You changed the ${field==='from'?'"From"':'"To"'} callsign for "${g.name}". ${affected.length} member(s) currently in this group will be reassigned new callsigns to match the updated range.\n\nContinue?`);
   if(!proceed){
