@@ -3107,6 +3107,8 @@ function renderSecondaryRoster(id){
           <td>${strikeBadge(m.strikes||0)}</td>
           <td class="col-notes" style="font-size:11px;color:var(--text2);">${m.notes||'—'}</td>
           ${canEdit?`<td><div class="row-acts">
+            ${gi>0?`<button class="btn-promote btn" onclick="promoteSecondaryMember('${id}',${m.id})" title="Promote">▲</button>`:''}
+            ${gi<rankGroupsLocal.length-1?`<button class="btn-demote btn" onclick="demoteSecondaryMember('${id}',${m.id})" title="Demote">▼</button>`:''}
             <button class="btn btn-ghost btn-xs" onclick="openEditSecondaryMember('${id}',${m.id})">Edit</button>
             <button class="btn btn-danger" onclick="removeSecondaryMember('${id}',${m.id})">✕</button>
           </div></td>`:''}
@@ -3340,6 +3342,40 @@ async function removeSecondaryMember(rosterId, memberId){
   await saveSecondaryRoster(sr);
   renderSecondaryRoster(rosterId);
   showToast('✓ Removed.');
+}
+
+async function promoteSecondaryMember(rosterId, memberId){
+  const sr=getSR(rosterId); if(!sr) return;
+  const m=sr.members.find(x=>x.id===memberId); if(!m) return;
+  const groups=sr.rank_groups||[];
+  const gi=groups.findIndex(g=>g.name===m.rankGroup);
+  if(gi<=0){ showToast('⚠ Already at the highest rank in this roster.', true); return; }
+  const newGroup=groups[gi-1].name;
+  const oldCS=m.callsign, oldGroup=m.rankGroup;
+  const newCS=nextSecondaryCallsign(sr, newGroup, m.id);
+  m.rankGroup=newGroup;
+  m.callsign=newCS||oldCS;
+  await saveSecondaryRoster(sr);
+  renderSecondaryRoster(rosterId);
+  showToast(`▲ ${m.name} promoted to ${newGroup} → ${m.callsign}`);
+  logEdit('secondary_promote', { roster:sr.name, name:m.name, fromGroup:oldGroup, toGroup:newGroup, fromCS:oldCS, toCS:m.callsign });
+}
+
+async function demoteSecondaryMember(rosterId, memberId){
+  const sr=getSR(rosterId); if(!sr) return;
+  const m=sr.members.find(x=>x.id===memberId); if(!m) return;
+  const groups=sr.rank_groups||[];
+  const gi=groups.findIndex(g=>g.name===m.rankGroup);
+  if(gi<0||gi>=groups.length-1){ showToast('⚠ Already at the lowest rank in this roster.', true); return; }
+  const newGroup=groups[gi+1].name;
+  const oldCS=m.callsign, oldGroup=m.rankGroup;
+  const newCS=nextSecondaryCallsign(sr, newGroup, m.id);
+  m.rankGroup=newGroup;
+  m.callsign=newCS||oldCS;
+  await saveSecondaryRoster(sr);
+  renderSecondaryRoster(rosterId);
+  showToast(`▼ ${m.name} demoted to ${newGroup} → ${m.callsign}`);
+  logEdit('secondary_demote', { roster:sr.name, name:m.name, fromGroup:oldGroup, toGroup:newGroup, fromCS:oldCS, toCS:m.callsign });
 }
 
 function switchTab(name, btn){
