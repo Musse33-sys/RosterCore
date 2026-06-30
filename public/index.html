@@ -2969,6 +2969,8 @@ function switchToSecondaryRoster(id){
   if(btn) btn.classList.add('active');
   activeSecondaryId=id;
   renderSecondaryRoster(id);
+  // Always run sync on open so members/callsigns stay current
+  if(currentUser && currentUser.email!=='shared') syncAutoPopulatedRosters();
 }
 
 function getSR(id){ return secondaryRosters.find(s=>s.id===id); }
@@ -3160,8 +3162,20 @@ function _renderSecondaryRosterInner(id, sr){
     });
     const unmatchedRows = gMembers.filter(m=>!matchedIds.has(m.id)).map(memberRow);
 
-    const rows = (rowsFromSlots.length || unmatchedRows.length)
-      ? rowsFromSlots.join('') + unmatchedRows.join('')
+    // In roster mode: show blank vacant rows for remaining slots based on numeric range
+    let rosterModeVacant = '';
+    if(isRosterMode && g.from && g.to){
+      const fromNum = parseInt(g.from)||0;
+      const toNum = parseInt(g.to)||0;
+      const totalSlots = toNum - fromNum + 1;
+      const vacantCount = Math.max(0, Math.min(totalSlots - gMembers.length, 50));
+      for(let v=0; v<vacantCount; v++){
+        rosterModeVacant += `<tr class="row-empty"><td></td><td colspan="${colCount-1}" style="color:var(--border2);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;padding:10px 12px;">— VACANT —</td></tr>`;
+      }
+    }
+
+    const rows = (rowsFromSlots.length || unmatchedRows.length || rosterModeVacant)
+      ? unmatchedRows.join('') + rowsFromSlots.join('') + rosterModeVacant
       : `<tr class="row-empty"><td colspan="${colCount}" style="text-align:center;padding:16px;font-family:'JetBrains Mono',monospace;font-size:11px;">— NO MEMBERS —</td></tr>`;
 
     html+=`
