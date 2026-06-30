@@ -3238,20 +3238,17 @@ function renderSecondaryRankGroupList(id){
   const rosterMode = sr.use_roster_callsign===true;
   el.innerHTML=(sr.rank_groups||[]).map((g,i)=>`
     <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:8px 10px;margin-bottom:6px;">
-      <div class="edit-row" style="grid-template-columns:1fr ${rosterMode?'':' 90px 90px '}28px;">
+      <div class="edit-row" style="grid-template-columns:1fr 90px 90px 28px;">
         <input class="edit-input" value="${g.name}" oninput="sr_updateGroupField('${id}',${i},'name',this.value)">
-        ${rosterMode?'':
-          `<input class="edit-input" value="${g.from||''}" oninput="sr_updateGroupField('${id}',${i},'from',this.value)" placeholder="From">
-           <input class="edit-input" value="${g.to||''}" oninput="sr_updateGroupField('${id}',${i},'to',this.value)" placeholder="To">`
-        }
+        <input class="edit-input" value="${g.from||''}" oninput="sr_updateGroupField('${id}',${i},'from',this.value)" placeholder="${rosterMode?'e.g. 1':'e.g. K9-01'}">
+        <input class="edit-input" value="${g.to||''}" oninput="sr_updateGroupField('${id}',${i},'to',this.value)" placeholder="${rosterMode?'e.g. 20':'e.g. K9-10'}">
         <button class="del-btn" onclick="sr_removeGroup('${id}',${i})">×</button>
       </div>
     </div>`).join('');
-  // Also show/hide the From/To in the add-group form
   const srFrom=document.getElementById('srNewGroupFrom');
   const srTo=document.getElementById('srNewGroupTo');
-  if(srFrom) srFrom.style.display=rosterMode?'none':'';
-  if(srTo) srTo.style.display=rosterMode?'none':'';
+  if(srFrom) srFrom.placeholder=rosterMode?'e.g. 1':'e.g. K9-01';
+  if(srTo) srTo.placeholder=rosterMode?'e.g. 20':'e.g. K9-10';
 }
 
 function sr_updateGroupField(id,i,field,val){
