@@ -2979,9 +2979,12 @@ function getSR(id){ return secondaryRosters.find(s=>s.id===id); }
 
 // Auto-populate: scan main roster members, add anyone matching the linked subdivision
 function syncAutoPopulatedRosters(){
+  console.log('[sync] running, secondaryRosters:', secondaryRosters.length, 'mainMembers:', members.length);
   secondaryRosters.forEach(async sr=>{
+    console.log('[sync] checking roster', sr.name, 'source_subdivision:', sr.source_subdivision);
     if(!sr.source_subdivision) return;
     const eligible = members.filter(m=>(m.subdivs||[]).includes(sr.source_subdivision));
+    console.log('[sync] eligible members for', sr.name, ':', eligible.map(m=>m.name));
     const srMembers = sr.members||[];
     let changed=false;
     eligible.forEach(m=>{
