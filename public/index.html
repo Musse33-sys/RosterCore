@@ -3120,7 +3120,13 @@ function _renderSecondaryRosterInner(id, sr){
     }).sort((a,b)=>(a.callsign||'').localeCompare(b.callsign||''));
 
     const filledCallsigns=gMembers.map(m=>m.callsign);
-    const {slots, total, capped}=getSmartSlots(g.from,g.to,filledCallsigns);
+    const matchedCount = filledCallsigns.filter(cs=>getRangeSlots(g.from,g.to).includes(cs)).length;
+    // If this group has real members but the configured range doesn't match any of their actual
+    // callsigns, the range is stale/misconfigured — don't flood the table with irrelevant vacant rows.
+    const rangeLooksValid = gMembers.length===0 || matchedCount>0;
+    const {slots, total, capped} = rangeLooksValid
+      ? getSmartSlots(g.from,g.to,filledCallsigns)
+      : {slots:[], total:0, capped:false};
 
     const canEdit = hasPerm('editMembers');
     const colCount = canEdit ? 9 : 8;
