@@ -2989,9 +2989,10 @@ function syncAutoPopulatedRosters(){
     const eligible = members.filter(m=>(m.subdivs||[]).includes(sr.source_subdivision));
     const srMembers = sr.members||[];
     const defaultGroup = sr.rank_groups?.[sr.rank_groups.length-1]?.name || '';
+    const rosterMode = sr.use_roster_callsign === true;
     let changed=false;
 
-    // Repair any previously auto-added members that got stuck with a blank rankGroup or blank callsign
+    // Repair existing entries with blank rankGroup or callsign
     if(defaultGroup){
       srMembers.forEach(x=>{
         if(x.mainMemberId && !x.rankGroup){
@@ -2999,7 +3000,11 @@ function syncAutoPopulatedRosters(){
           changed = true;
         }
         if(x.mainMemberId && x.rankGroup && !x.callsign){
-          const cs = nextSecondaryCallsign(sr, x.rankGroup, x.id);
+          // In roster mode, pull callsign from Main Roster; otherwise generate one
+          const mainMember = members.find(m=>m.id===x.mainMemberId);
+          const cs = rosterMode
+            ? (mainMember?.callsign||'')
+            : nextSecondaryCallsign(sr, x.rankGroup, x.id);
           if(cs){ x.callsign = cs; changed = true; }
         }
       });
@@ -3007,15 +3012,19 @@ function syncAutoPopulatedRosters(){
 
     eligible.forEach(m=>{
       const exists = srMembers.find(x=>x.mainMemberId===m.id);
-      if(!exists && defaultGroup){
+      // In roster mode, add even without rank groups (use first group or blank)
+      const group = defaultGroup || '';
+      if(!exists && (group || rosterMode)){
         const newId = (srMembers.length>0?Math.max(...srMembers.map(x=>x.id||0)):0)+1;
-        const cs = nextSecondaryCallsign(sr, defaultGroup, newId);
+        const cs = rosterMode
+          ? (m.callsign||'')
+          : nextSecondaryCallsign(sr, group, newId);
         srMembers.push({
           id: newId,
           mainMemberId: m.id,
           name: m.name,
           callsign: cs,
-          rankGroup: defaultGroup,
+          rankGroup: group,
           status: m.status,
           discord: m.discord,
           doh: m.doh,
@@ -3025,6 +3034,19 @@ function syncAutoPopulatedRosters(){
         changed=true;
       }
     });
+
+    // Keep callsigns in sync with Main Roster when in roster mode
+    if(rosterMode){
+      srMembers.forEach(x=>{
+        if(!x.mainMemberId) return;
+        const mainMember = members.find(m=>m.id===x.mainMemberId);
+        if(mainMember && x.callsign !== mainMember.callsign){
+          x.callsign = mainMember.callsign;
+          changed = true;
+        }
+      });
+    }
+
     // Remove members no longer matching the subdivision
     const stillEligibleIds = new Set(eligible.map(m=>m.id));
     const filtered = srMembers.filter(x=>!x.mainMemberId || stillEligibleIds.has(x.mainMemberId));
