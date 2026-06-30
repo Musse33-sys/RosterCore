@@ -3115,7 +3115,7 @@ function _renderSecondaryRosterInner(id, sr){
 
     html+=`
     <div class="rank-group fade-up">
-      <div class="rg-wrap" style="--rg-color:${rankGroupColor(gi)};">
+      <div class="rg-wrap">
         <div class="rg-label" data-count="${gMembers.length}/${total}">${g.name}</div>
         <div class="rg-table-wrap">
           <table class="roster-table">
@@ -3528,9 +3528,6 @@ function sdBadges(arr){
   if(!arr||!arr.filter(Boolean).length) return `<span style="color:var(--border2);font-family:'JetBrains Mono',monospace;font-size:11px;">—</span>`;
   return `<div class="subdiv-wrap">${arr.filter(Boolean).map(s=>{const c=sdColor(s);return`<span class="sdiv-badge" style="color:${c};background:${c}18;border-color:${c}55;">${s}</span>`;}).join('')}</div>`;
 }
-const RG_COLOR_PALETTE = ['#5b8def','#4ade80','#f87171','#fbbf24','#a78bfa','#fb923c','#22d3ee','#f472b6'];
-function rankGroupColor(gi){ return RG_COLOR_PALETTE[gi % RG_COLOR_PALETTE.length]; }
-
 function fmtDate(d){
   if(!d)return'—';
   const [y,m,day]=d.split('-');
@@ -3649,7 +3646,7 @@ function renderRoster(){
 
     html+=`
     <div class="rank-group fade-up">
-      <div class="rg-wrap" style="--rg-color:${rankGroupColor(gi)};">
+      <div class="rg-wrap">
         <div class="rg-label" data-count="${gMembers.length}/${total}">${g.name}</div>
         <div class="rg-table-wrap">
           <table class="roster-table">
