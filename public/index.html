@@ -3092,16 +3092,19 @@ function renderSecondaryRoster(id){
     const {slots, total, capped}=getSmartSlots(g.from,g.to,filledCallsigns);
 
     const canEdit = hasPerm('editMembers');
-    const colCount = canEdit ? 7 : 6;
+    const colCount = canEdit ? 8 : 7;
     const rows=slots.length ? slots.map(slot=>{
       const m=gMembers.find(mb=>mb.callsign===slot);
       if(m){
         return `<tr class="row-filled">
           <td class="cs-cell"><span class="cs-filled">${m.callsign||'—'}</span></td>
           <td class="name-td">
-            <div class="member-name">${m.name}</div>
+            <div class="member-name">${m.name}
+              ${(m.tags||[]).map(tag=>{const t=customTags.find(ct=>ct.name===tag);const c=t?t.color:'#7ec8e3';return`<span style="font-family:'JetBrains Mono',monospace;font-size:9px;background:${c}18;border:1px solid ${c}55;color:${c};padding:1px 6px;border-radius:2px;">${tag}</span>`;}).join('')}
+            </div>
             ${m.position?`<div class="member-pos">${m.position}</div>`:''}
           </td>
+          <td>${sdBadges(m.subdivs)}</td>
           <td>${statusPill(m.status)}</td>
           <td class="col-doh" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);">${fmtDate(m.doh)}</td>
           <td>${strikeBadge(m.strikes||0)}</td>
@@ -3124,7 +3127,7 @@ function renderSecondaryRoster(id){
         <div class="rg-label" data-count="${gMembers.length}/${total}">${g.name}</div>
         <div class="rg-table-wrap">
           <table class="roster-table">
-            <thead><tr><th class="cs-th">Callsign</th><th>Name</th><th>Status</th><th>DOH</th><th>Strikes</th><th>Notes</th>${canEdit?'<th>Actions</th>':''}</tr></thead>
+            <thead><tr><th class="cs-th">Callsign</th><th>Name</th><th>Subdivision</th><th>Status</th><th>DOH</th><th>Strikes</th><th>Notes</th>${canEdit?'<th>Actions</th>':''}</tr></thead>
             <tbody>${rows}${capped?`<tr class="row-empty"><td colspan="${colCount}" style="text-align:center;padding:10px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);">Showing ${filledCallsigns.length} filled + vacant of ${total} total slots</td></tr>`:''}</tbody>
           </table>
         </div>
@@ -3293,21 +3296,31 @@ async function saveSecondaryMember(id){
 function openEditSecondaryMember(rosterId, memberId){
   const sr=getSR(rosterId); if(!sr) return;
   const m=sr.members.find(x=>x.id===memberId); if(!m) return;
-  let html=`<div class="modal" style="max-width:420px;">
-    <div class="modal-title">Edit Member — ${sr.name}</div>
-    <div class="form-group"><label class="form-label">Name</label><input class="form-input" id="srmEditName" value="${m.name}"></div>
+  let html=`<div class="modal" style="max-width:480px;">
+    <div class="modal-title">Edit Member</div>
+    <div class="modal-sub">Update personnel details — ${sr.name}.</div>
     <div class="form-row">
+      <div class="form-group"><label class="form-label">Full Name</label><input class="form-input" id="srmEditName" value="${m.name}"></div>
       <div class="form-group"><label class="form-label">Callsign</label><input class="form-input" id="srmEditCallsign" value="${m.callsign||''}"></div>
-      <div class="form-group"><label class="form-label">Rank Group</label><select class="form-select" id="srmEditGroup">${sr.rank_groups.map(g=>`<option ${g.name===m.rankGroup?'selected':''}>${g.name}</option>`).join('')}</select></div>
     </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Rank Group</label><select class="form-select" id="srmEditGroup">${sr.rank_groups.map(g=>`<option ${g.name===m.rankGroup?'selected':''}>${g.name}</option>`).join('')}</select></div>
+      <div class="form-group"><label class="form-label">Position</label><input class="form-input" id="srmEditPosition" placeholder="e.g. Chief of Police" value="${m.position||''}"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">ID</label><input class="form-input" id="srmEditDiscord" placeholder="123456789…" value="${m.discord||''}"></div>
+      <div class="form-group"><label class="form-label">Date of Hire</label><input class="form-input" type="date" id="srmEditDOH" value="${m.doh||''}"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Subdivisions</label><div id="srmSubdivsWrap" style="display:flex;flex-wrap:wrap;gap:12px;margin-top:4px;"></div></div>
     <div class="form-row">
       <div class="form-group"><label class="form-label">Status</label><select class="form-select" id="srmEditStatus">${['Active','Inactive','LOA','Part Time'].map(s=>`<option ${s===m.status?'selected':''}>${s}</option>`).join('')}</select></div>
       <div class="form-group"><label class="form-label">Strikes</label><input class="form-input" type="number" id="srmEditStrikes" value="${m.strikes||0}"></div>
     </div>
-    <div class="form-group"><label class="form-label">Notes</label><input class="form-input" id="srmEditNotes" value="${m.notes||''}"></div>
+    <div class="form-group"><label class="form-label">Notes</label><input class="form-input" id="srmEditNotes" placeholder="Optional…" value="${m.notes||''}"></div>
+    <div id="srmTagsWrap" style="display:flex;flex-wrap:wrap;gap:12px;margin:6px 0 4px;"></div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="document.getElementById('srmEditModalOverlay').remove()">Cancel</button>
-      <button class="btn btn-primary" onclick="saveEditSecondaryMember('${rosterId}',${memberId})">Save</button>
+      <button class="btn btn-primary" onclick="saveEditSecondaryMember('${rosterId}',${memberId})">Save Member</button>
     </div>
   </div>`;
   const overlay=document.createElement('div');
@@ -3316,18 +3329,48 @@ function openEditSecondaryMember(rosterId, memberId){
   overlay.onclick=(e)=>{ if(e.target===overlay) overlay.remove(); };
   overlay.innerHTML=html;
   document.body.appendChild(overlay);
+
+  // Subdivision checkboxes (reuses department-wide subdivisions list)
+  const subWrap=document.getElementById('srmSubdivsWrap');
+  if(!subdivisions.length){ subWrap.innerHTML='<span style="font-size:11px;color:var(--text3);">No subdivisions set up yet.</span>'; }
+  else {
+    const selectedSubdivs = m.subdivs||[];
+    subWrap.innerHTML=subdivisions.map(s=>`
+      <label class="form-check">
+        <input type="checkbox" name="srmSubdiv" value="${s.name}" ${selectedSubdivs.includes(s.name)?'checked':''} style="accent-color:${s.color||'var(--accent)'};">
+        <span style="color:${s.color||'var(--text2)'};">${s.name}</span>
+      </label>`).join('');
+  }
+
+  // Custom tag checkboxes (reuses department-wide custom tags list)
+  const tagWrap=document.getElementById('srmTagsWrap');
+  if(customTags.length){
+    const selectedTags = m.tags||[];
+    tagWrap.innerHTML=customTags.map(t=>`
+      <label class="form-check">
+        <input type="checkbox" name="srmTag" value="${t.name}" ${selectedTags.includes(t.name)?'checked':''} style="accent-color:${t.color||'var(--accent)'};">
+        <span style="color:${t.color||'var(--text2)'};">${t.name}</span>
+      </label>`).join('');
+  }
 }
 
 async function saveEditSecondaryMember(rosterId, memberId){
   const sr=getSR(rosterId); if(!sr) return;
   const i=sr.members.findIndex(x=>x.id===memberId); if(i<0) return;
+  const selectedSubdivs=[...document.querySelectorAll('input[name="srmSubdiv"]:checked')].map(cb=>cb.value);
+  const selectedTags=[...document.querySelectorAll('input[name="srmTag"]:checked')].map(cb=>cb.value);
   sr.members[i]={...sr.members[i],
     name:document.getElementById('srmEditName').value.trim(),
     callsign:document.getElementById('srmEditCallsign').value.trim(),
     rankGroup:document.getElementById('srmEditGroup').value,
+    position:document.getElementById('srmEditPosition').value.trim(),
+    discord:document.getElementById('srmEditDiscord').value.trim(),
+    doh:document.getElementById('srmEditDOH').value,
+    subdivs:selectedSubdivs,
     status:document.getElementById('srmEditStatus').value,
     strikes:parseInt(document.getElementById('srmEditStrikes').value)||0,
-    notes:document.getElementById('srmEditNotes').value.trim()
+    notes:document.getElementById('srmEditNotes').value.trim(),
+    tags:selectedTags
   };
   await saveSecondaryRoster(sr);
   document.getElementById('srmEditModalOverlay')?.remove();
