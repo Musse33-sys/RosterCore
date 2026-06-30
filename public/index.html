@@ -3264,17 +3264,33 @@ async function saveSecondaryRosterEdits(id){
 function openAddSecondaryMember(id){
   const sr=getSR(id); if(!sr) return;
   if(!sr.rank_groups||!sr.rank_groups.length){ showToast('⚠ Add a rank group first via Edit Roster.', true); return; }
-  let html=`<div class="modal" style="max-width:420px;">
-    <div class="modal-title">+ Add Member — ${sr.name}</div>
-    <div class="form-group"><label class="form-label">Name</label><input class="form-input" id="srmName"></div>
+  const defGroup=sr.rank_groups[sr.rank_groups.length-1].name;
+  const autoCS=nextSecondaryCallsign(sr, defGroup);
+  let html=`<div class="modal" style="max-width:480px;">
+    <div class="modal-title">Add Member</div>
+    <div class="modal-sub">Callsign auto-assigned from rank group format — ${sr.name}.</div>
     <div class="form-row">
-      <div class="form-group"><label class="form-label">Callsign</label><input class="form-input" id="srmCallsign"></div>
-      <div class="form-group"><label class="form-label">Rank Group</label><select class="form-select" id="srmGroup">${sr.rank_groups.map(g=>`<option>${g.name}</option>`).join('')}</select></div>
+      <div class="form-group"><label class="form-label">Full Name</label><input class="form-input" id="srmName" placeholder="John Smith"></div>
+      <div class="form-group"><label class="form-label">Callsign</label><input class="form-input" id="srmCallsign" value="${autoCS}"></div>
     </div>
-    <div class="form-group"><label class="form-label">Status</label><select class="form-select" id="srmStatus"><option>Active</option><option>Inactive</option><option>LOA</option><option>Part Time</option></select></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Rank Group</label><select class="form-select" id="srmGroup" onchange="onSrmGroupChange('${id}')">${sr.rank_groups.map(g=>`<option ${g.name===defGroup?'selected':''}>${g.name}</option>`).join('')}</select></div>
+      <div class="form-group"><label class="form-label">Position</label><input class="form-input" id="srmPosition" placeholder="— None —"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">ID</label><input class="form-input" id="srmDiscord" placeholder="123456789…"></div>
+      <div class="form-group"><label class="form-label">Date of Hire</label><input class="form-input" type="date" id="srmDOH" value="${new Date().toISOString().split('T')[0]}"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Subdivisions</label><div id="srmSubdivsWrap" style="display:flex;flex-wrap:wrap;gap:12px;margin-top:4px;"></div></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Status</label><select class="form-select" id="srmStatus"><option>Active</option><option>Inactive</option><option>LOA</option><option>Part Time</option></select></div>
+      <div class="form-group"><label class="form-label">Strikes</label><input class="form-input" type="number" id="srmStrikes" value="0"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Notes</label><input class="form-input" id="srmNotes" placeholder="Optional…"></div>
+    <div id="srmTagsWrap" style="display:flex;flex-wrap:wrap;gap:12px;margin:6px 0 4px;"></div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="document.getElementById('srmModalOverlay').remove()">Cancel</button>
-      <button class="btn btn-primary" onclick="saveSecondaryMember('${id}')">Add</button>
+      <button class="btn btn-primary" onclick="saveSecondaryMember('${id}')">Save Member</button>
     </div>
   </div>`;
   const overlay=document.createElement('div');
@@ -3283,6 +3299,32 @@ function openAddSecondaryMember(id){
   overlay.onclick=(e)=>{ if(e.target===overlay) overlay.remove(); };
   overlay.innerHTML=html;
   document.body.appendChild(overlay);
+
+  const subWrap=document.getElementById('srmSubdivsWrap');
+  if(!subdivisions.length){ subWrap.innerHTML='<span style="font-size:11px;color:var(--text3);">No subdivisions set up yet.</span>'; }
+  else {
+    subWrap.innerHTML=subdivisions.map(s=>`
+      <label class="form-check">
+        <input type="checkbox" name="srmSubdivNew" value="${s.name}" style="accent-color:${s.color||'var(--accent)'};">
+        <span style="color:${s.color||'var(--text2)'};">${s.name}</span>
+      </label>`).join('');
+  }
+
+  const tagWrap=document.getElementById('srmTagsWrap');
+  if(customTags.length){
+    tagWrap.innerHTML=customTags.map(t=>`
+      <label class="form-check">
+        <input type="checkbox" name="srmTagNew" value="${t.name}" style="accent-color:${t.color||'var(--accent)'};">
+        <span style="color:${t.color||'var(--text2)'};">${t.name}</span>
+      </label>`).join('');
+  }
+}
+
+function onSrmGroupChange(id){
+  const sr=getSR(id); if(!sr) return;
+  const group=document.getElementById('srmGroup').value;
+  const csInput=document.getElementById('srmCallsign');
+  if(csInput) csInput.value=nextSecondaryCallsign(sr, group);
 }
 
 async function saveSecondaryMember(id){
@@ -3290,13 +3332,21 @@ async function saveSecondaryMember(id){
   const name=document.getElementById('srmName').value.trim();
   if(!name){ showToast('⚠ Name required.', true); return; }
   if(!sr.members) sr.members=[];
+  const selectedSubdivs=[...document.querySelectorAll('input[name="srmSubdivNew"]:checked')].map(cb=>cb.value);
+  const selectedTags=[...document.querySelectorAll('input[name="srmTagNew"]:checked')].map(cb=>cb.value);
   sr.members.push({
     id:(sr.members.length>0?Math.max(...sr.members.map(m=>m.id||0)):0)+1,
     name,
     callsign:document.getElementById('srmCallsign').value.trim(),
     rankGroup:document.getElementById('srmGroup').value,
+    position:document.getElementById('srmPosition').value.trim(),
+    discord:document.getElementById('srmDiscord').value.trim(),
+    doh:document.getElementById('srmDOH').value,
+    subdivs:selectedSubdivs,
     status:document.getElementById('srmStatus').value,
-    strikes:0, notes:''
+    strikes:parseInt(document.getElementById('srmStrikes').value)||0,
+    notes:document.getElementById('srmNotes').value.trim(),
+    tags:selectedTags
   });
   await saveSecondaryRoster(sr);
   document.getElementById('srmModalOverlay')?.remove();
