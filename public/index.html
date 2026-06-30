@@ -2549,47 +2549,52 @@ function generateInactiveCard(){
     .sort((a,b)=>rgIndex(a.rankGroup)-rgIndex(b.rankGroup));
   const inactiveTrainees=trainees.filter(t=>t.status==='Inactive');
   const total=[...inactiveMembers,...inactiveTrainees];
-
   if(!total.length){showToast('⚠ No inactive members or trainees.',true);return;}
 
   const today=new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}).toUpperCase();
+  const COLS=3, PER_ROW=15, PER_COL=Math.ceil(PER_ROW/COLS);
 
-  const memberRows=inactiveMembers.map((m,i)=>{
-    const g=rankGroups.find(rg=>rg.name===m.rankGroup);
-    const position=m.position||g?.position||m.rankGroup;
-    return`<div style="display:flex;align-items:center;gap:14px;padding:11px 18px;border-bottom:1px solid #2d1515;">
-      <div style="width:3px;height:36px;background:#f87171;border-radius:2px;opacity:.7;flex-shrink:0;"></div>
-      <div style="flex:1;">
-        <div style="color:#e8e4da;font-size:13px;font-weight:700;font-family:'JetBrains Mono',monospace;">${m.name}</div>
-        <div style="color:#f87171;font-size:10px;letter-spacing:1px;text-transform:uppercase;margin-top:2px;font-family:'JetBrains Mono',monospace;">${position}</div>
+  function buildEntry(name, position, callsign, color){
+    return `<div style="display:flex;align-items:center;justify-content:space-between;border-left:2px solid ${color};padding:7px 8px 7px 10px;border-bottom:1px solid #2d1515;">
+      <div style="flex:1;min-width:0;">
+        <div style="color:#e8e4da;font-size:12px;font-weight:700;font-family:'JetBrains Mono',monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${name}</div>
+        <div style="color:${color};font-size:9px;letter-spacing:1px;text-transform:uppercase;margin-top:1px;font-family:'JetBrains Mono',monospace;">${position}</div>
       </div>
-      <div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#686460;">${m.callsign||'—'}</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#686460;flex-shrink:0;margin-left:6px;">${callsign||'—'}</div>
     </div>`;
-  }).join('');
+  }
 
-  const traineeRows=inactiveTrainees.map((t,i)=>`
-    <div style="display:flex;align-items:center;gap:14px;padding:11px 18px;${i<inactiveTrainees.length-1?'border-bottom:1px solid #2d1515;':''}">
-      <div style="width:3px;height:36px;background:#a78bfa;border-radius:2px;opacity:.7;flex-shrink:0;"></div>
-      <div style="flex:1;">
-        <div style="color:#e8e4da;font-size:13px;font-weight:700;font-family:'JetBrains Mono',monospace;">${t.name}</div>
-        <div style="color:#a78bfa;font-size:10px;letter-spacing:1px;text-transform:uppercase;margin-top:2px;font-family:'JetBrains Mono',monospace;">Trainee</div>
-      </div>
-      <div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#686460;">${t.callsign||'—'}</div>
-    </div>`).join('');
+  const allEntries=[
+    ...inactiveMembers.map(m=>{
+      const g=rankGroups.find(rg=>rg.name===m.rankGroup);
+      return buildEntry(m.name, m.position||g?.position||m.rankGroup, m.callsign, '#f87171');
+    }),
+    ...inactiveTrainees.map(t=>buildEntry(t.name,'Trainee',t.callsign,'#a78bfa'))
+  ];
 
-  const traineeSection = inactiveTrainees.length ? `
-    <div style="padding:6px 18px 4px;background:#12101a;border-top:1px solid #2d1535;">
-      <span style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;color:#a78bfa;text-transform:uppercase;">Trainees</span>
-    </div>
-    ${traineeRows}` : '';
+  // Split into rows of PER_ROW, each row into COLS columns
+  let rowsHtml='';
+  for(let r=0;r<allEntries.length;r+=PER_ROW){
+    const chunk=allEntries.slice(r,r+PER_ROW);
+    const startNum=r+1, endNum=Math.min(r+PER_ROW,allEntries.length);
+    let colsHtml='';
+    for(let c=0;c<COLS;c++){
+      const col=chunk.slice(c*PER_COL,(c+1)*PER_COL);
+      colsHtml+=`<div style="flex:1;min-width:0;">${col.join('')}</div>`;
+    }
+    if(r>0) rowsHtml+=`<div style="border-top:1px dashed #3d1a1a;margin:8px 0;"></div>`;
+    rowsHtml+=`
+      <div style="font-size:8px;letter-spacing:2px;color:#4a2020;font-family:'JetBrains Mono',monospace;margin-bottom:6px;">${startNum} — ${endNum}</div>
+      <div style="display:flex;gap:12px;">${colsHtml}</div>`;
+  }
 
   const cardHtml=`
     <div style="background:#180f0f;border-bottom:3px solid #f87171;padding:20px 22px 14px;">
       <div style="font-size:9px;letter-spacing:4px;color:#7f1d1d;margin-bottom:3px;font-family:'JetBrains Mono',monospace;">OFFICIAL NOTICE</div>
-      <div style="font-size:22px;font-weight:700;color:#e8e4da;letter-spacing:2px;font-family:sans-serif;">${deptName}</div>
+      <div style="font-size:22px;font-weight:700;color:#e8e4da;letter-spacing:1px;font-family:sans-serif;">${deptName}</div>
       <div style="font-size:10px;letter-spacing:3px;color:#f87171;margin-top:3px;font-family:'JetBrains Mono',monospace;">INACTIVE LIST — ${today}</div>
     </div>
-    <div style="background:#0e0808;">${memberRows}${traineeSection}</div>
+    <div style="background:#0e0808;padding:14px 18px;">${rowsHtml}</div>
     <div style="padding:10px 22px;border-top:1px solid #2d1515;background:#0e0808;display:flex;align-items:center;justify-content:space-between;">
       <span style="font-size:10px;color:#686460;font-family:'JetBrains Mono',monospace;">${inactiveMembers.length} member${inactiveMembers.length!==1?'s':''} · ${inactiveTrainees.length} trainee${inactiveTrainees.length!==1?'s':''} inactive</span>
       <span style="font-size:9px;color:#3d2222;letter-spacing:2px;font-family:'JetBrains Mono',monospace;">ROSTERCORE.SPACE</span>
@@ -2777,12 +2782,9 @@ async function downloadRosterPDF(){
 function generatePromoAnnouncement(){
   if(!promotions.length){showToast('⚠ No promotions to announce.',true);return;}
 
-  // Get current theme colors
   const theme = themes.find(t=>t.id===activeTheme);
   const customTheme = activeTheme==='custom-1'?customThemes[0]:activeTheme==='custom-2'?customThemes[1]:null;
   const accent = customTheme?.accent || theme?.vars['--accent'] || '#4ade80';
-  const accentDim = accent+'55';
-  const accentFaint = accent+'18';
   const bg = customTheme?.bg || theme?.vars['--bg'] || '#07090d';
   const bg2 = theme?.vars['--bg2'] || '#0e1812';
   const border = theme?.vars['--border'] || '#1e3a28';
@@ -2794,40 +2796,46 @@ function generatePromoAnnouncement(){
     return new Date(b.date)-new Date(a.date);
   });
 
-  const grouped={};
-  sorted.forEach(p=>{
-    if(!grouped[p.toGroup]) grouped[p.toGroup]=[];
-    grouped[p.toGroup].push(p);
-  });
-
   const today=new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}).toUpperCase();
+  const COLS=3, PER_ROW=15, PER_COL=Math.ceil(PER_ROW/COLS);
 
-  let sectionsHtml='';
-  Object.entries(grouped).forEach(([group,promos])=>{
-    const rows=promos.map((p,i)=>`
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;${i<promos.length-1?`border-bottom:1px solid ${border};`:''}">
-        <div style="display:flex;align-items:center;gap:12px;">
-          <span style="color:${accent};font-size:12px;font-weight:700;min-width:52px;font-family:'JetBrains Mono',monospace;">${p.toCS||'—'}</span>
-          <span style="color:${text};font-size:12px;font-family:'JetBrains Mono',monospace;">${p.name}</span>
-        </div>
-        ${(() => { const m=members.find(mb=>mb.name===p.name); const pos=m?.position||(rankGroups.find(g=>g.name===p.toGroup)?.position||''); return pos?`<span style="color:${accent};font-size:8px;letter-spacing:1px;font-family:'JetBrains Mono',monospace;opacity:0.8;">${pos.toUpperCase()}</span>`:''; })()}
-      </div>`).join('');
-    sectionsHtml+=`
-      <div style="margin-bottom:14px;">
-        <p style="font-size:8px;color:${accent};letter-spacing:2px;margin:0 0 8px;font-family:'JetBrains Mono',monospace;">— ${group.toUpperCase()} —</p>
-        <div>${rows}</div>
-      </div>`;
-  });
+  function buildEntry(p){
+    const m=members.find(mb=>mb.name===p.name);
+    const pos=m?.position||(rankGroups.find(g=>g.name===p.toGroup)?.position||'');
+    return `<div style="display:flex;align-items:center;justify-content:space-between;border-left:2px solid ${accent};padding:7px 8px 7px 10px;border-bottom:1px solid ${border};">
+      <div style="flex:1;min-width:0;">
+        <div style="color:${text};font-size:12px;font-weight:700;font-family:'JetBrains Mono',monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name}</div>
+        <div style="color:${accent};font-size:9px;letter-spacing:1px;font-family:'JetBrains Mono',monospace;margin-top:1px;">→ ${p.toGroup.toUpperCase()}</div>
+        <div style="color:${text3};font-size:8px;font-family:'JetBrains Mono',monospace;margin-top:1px;">Was: ${p.fromGroup||'—'}</div>
+      </div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:${text3};flex-shrink:0;margin-left:6px;">${p.toCS||'—'}</div>
+    </div>`;
+  }
+
+  let rowsHtml='';
+  for(let r=0;r<sorted.length;r+=PER_ROW){
+    const chunk=sorted.slice(r,r+PER_ROW);
+    const startNum=r+1, endNum=Math.min(r+PER_ROW,sorted.length);
+    let colsHtml='';
+    for(let c=0;c<COLS;c++){
+      const col=chunk.slice(c*PER_COL,(c+1)*PER_COL);
+      colsHtml+=`<div style="flex:1;min-width:0;">${col.map(buildEntry).join('')}</div>`;
+    }
+    if(r>0) rowsHtml+=`<div style="border-top:1px dashed ${border};margin:8px 0;"></div>`;
+    rowsHtml+=`
+      <div style="font-size:8px;letter-spacing:2px;color:${text3};font-family:'JetBrains Mono',monospace;margin-bottom:6px;">${startNum} — ${endNum}</div>
+      <div style="display:flex;gap:12px;">${colsHtml}</div>`;
+  }
 
   const cardHtml=`
     <div style="background:${bg};border:1px solid ${border};border-radius:10px;overflow:hidden;font-family:'JetBrains Mono',monospace;">
       <div style="padding:18px 22px;border-bottom:1px solid ${border};">
         <p style="font-size:8px;color:${accent};letter-spacing:3px;margin:0 0 6px;">✦ OFFICIAL ANNOUNCEMENT ✦</p>
-        <p style="font-size:20px;font-weight:700;color:${text};margin:0;letter-spacing:2px;">${deptName.toUpperCase()}</p>
+        <p style="font-size:20px;font-weight:700;color:${text};margin:0;letter-spacing:1px;">${deptName}</p>
         <p style="font-size:8px;color:${accent};letter-spacing:2px;margin:6px 0 0;opacity:0.7;">PROMOTION LIST — ${today}</p>
       </div>
-      <div style="padding:16px 22px;">${sectionsHtml}</div>
-      <div style="padding:10px 22px;border-top:1px solid ${border};display:flex;justify-content:space-between;align-items:center;">
+      <div style="padding:14px 18px;background:${bg2};">${rowsHtml}</div>
+      <div style="padding:10px 22px;border-top:1px solid ${border};background:${bg};display:flex;justify-content:space-between;align-items:center;">
         <span style="font-size:8px;color:${text3};font-family:'JetBrains Mono',monospace;">Signed by <span style="color:${accent};">${currentUser?.name||deptName}</span></span>
         <span style="font-size:8px;color:${text3};opacity:0.5;font-family:'JetBrains Mono',monospace;">ROSTERCORE.SPACE</span>
       </div>
