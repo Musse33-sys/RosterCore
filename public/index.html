@@ -744,6 +744,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
     </div>
       <button class="nav-tab hidden" id="rosterTab" onclick="switchTab('roster',this)">Main Roster</button>
       <button class="nav-tab hidden" id="traineesTab" onclick="switchTab('trainees',this)">Trainee Roster</button>
+      <span id="secondaryRosterTabs"></span>
+      <button class="nav-tab hidden" id="addRosterTab" onclick="openCreateSecondaryRoster()" style="color:var(--accent);font-weight:700;" title="Create a new roster">+ Roster</button>
       <button class="nav-tab hidden" id="membersTab" onclick="switchTab('members',this)">All Members</button>
       <button class="nav-tab hidden" id="editorTab" onclick="switchTab('editor',this)">Editor</button>
       <button class="nav-tab hidden" id="promoTab" onclick="switchTab('promotions',this)">Promotions</button>
@@ -1161,6 +1163,29 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
     <div id="deptEditLogList" style="display:flex;flex-direction:column;gap:6px;max-height:460px;overflow-y:auto;margin-top:10px;"></div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="document.getElementById('deptEditLogModal').classList.add('hidden')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- VERSION HISTORY MODAL -->
+
+<!-- CREATE SECONDARY ROSTER MODAL -->
+<div class="modal-overlay hidden" id="createSecRosterModal" onclick="if(event.target===this)this.classList.add('hidden')">
+  <div class="modal" style="max-width:440px;">
+    <div class="modal-title">+ Create Roster</div>
+    <div class="modal-sub">Build a new roster — fully separate from Main Roster, with its own rank groups and callsigns.</div>
+    <div class="form-group"><label class="form-label">Roster Name</label><input class="form-input" id="srName" placeholder="e.g. K9 Roster"></div>
+    <div class="form-group">
+      <label class="form-label">Auto-Populate Members</label>
+      <select class="form-select" id="srSourceSubdiv">
+        <option value="">— Manual (add members yourself) —</option>
+      </select>
+      <p style="font-size:11px;color:var(--text3);margin-top:6px;line-height:1.5;">If you pick a subdivision, any member with that subdivision assigned will automatically be added to this roster.</p>
+    </div>
+    <div class="form-error hidden" id="srCreateError"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="document.getElementById('createSecRosterModal').classList.add('hidden')">Cancel</button>
+      <button class="btn btn-primary" onclick="createSecondaryRoster()">Create</button>
     </div>
   </div>
 </div>
@@ -1725,6 +1750,8 @@ let customThemes = [{name:'Custom 1',accent:'#c9a84c',bg:'#0a0c10'},{name:'Custo
 let activeTheme = 'dark-steel';
 let members = [];
 let trainees = [];
+let secondaryRosters = [];
+let activeSecondaryId = null;
 let nextMemberId = 1;
 let nextTraineeId = 1;
 
@@ -2092,6 +2119,7 @@ async function onLoginSuccess(user){
   setAvatar(deptName);
   document.getElementById('rosterTab').classList.remove('hidden');
   document.getElementById('traineesTab').classList.remove('hidden');
+  document.getElementById('addRosterTab').classList.remove('hidden');
   document.getElementById('membersTab').classList.remove('hidden');
   document.getElementById('editorTab').classList.remove('hidden');
   document.getElementById('promoTab').classList.remove('hidden');
@@ -2108,6 +2136,7 @@ async function onLoginSuccess(user){
   if(token) await loadByShareToken(token);
 
   renderAll();
+  await loadSecondaryRosters();
   showToast('Welcome back, '+deptName+'!');
   history.replaceState(null,'','#main-roster'); document.title='RosterCore — Main Roster';
   switchTab('roster', document.getElementById('rosterTab'));
@@ -2124,6 +2153,9 @@ async function doLogout(){
   traineeFormat=''; traineeFormatTo=''; deptName=''; activeTheme='dark-steel';
   customTags=[]; promotions=[]; customThemes=[{name:'Custom 1',accent:'#c9a84c',bg:'#0a0c10'},{name:'Custom 2',accent:'#60a5fa',bg:'#080c14'}];
   nextMemberId=1; nextTraineeId=1;
+  secondaryRosters=[]; activeSecondaryId=null;
+  document.getElementById('secondaryRosterTabs').innerHTML='';
+  document.querySelectorAll('.secondary-roster-panel').forEach(el=>el.remove());
 
   // Clear all rendered content
   ['rosterWrap','traineeWrap','allMembersWrap','promoWrap','statsBar','deptTableBody','historyList'].forEach(id=>{
@@ -2857,6 +2889,427 @@ function copyPromoAnnouncement(){
   navigator.clipboard.writeText(text).then(()=>showToast('✓ Copied to clipboard!'));
 }
 
+// ── SECONDARY ROSTERS ──
+
+function openCreateSecondaryRoster(){
+  document.getElementById('srName').value='';
+  document.getElementById('srCreateError').classList.add('hidden');
+  const sel=document.getElementById('srSourceSubdiv');
+  sel.innerHTML='<option value="">— Manual (add members yourself) —</option>'+subdivisions.map(s=>`<option value="${s.name}">${s.name}</option>`).join('');
+  document.getElementById('createSecRosterModal').classList.remove('hidden');
+}
+
+async function createSecondaryRoster(){
+  const name=document.getElementById('srName').value.trim();
+  const sourceSubdiv=document.getElementById('srSourceSubdiv').value;
+  const errEl=document.getElementById('srCreateError');
+  errEl.classList.add('hidden');
+  if(!name){errEl.textContent='⚠ Roster name is required.';errEl.classList.remove('hidden');return;}
+
+  const {data,error}=await sb.from('secondary_rosters').insert({
+    dept_id: deptId,
+    parent_roster_id: rosterDataId,
+    name,
+    source_subdivision: sourceSubdiv||null,
+    rank_groups: [],
+    members: []
+  }).select().single();
+
+  if(error){errEl.textContent='⚠ '+error.message;errEl.classList.remove('hidden');return;}
+
+  document.getElementById('createSecRosterModal').classList.add('hidden');
+  await loadSecondaryRosters();
+  switchToSecondaryRoster(data.id);
+  showToast(`✓ "${name}" roster created.`);
+  logEdit('secondary_roster_created', {name, sourceSubdiv});
+}
+
+async function loadSecondaryRosters(){
+  if(!rosterDataId || currentUser?.email==='demo') return;
+  const {data,error}=await sb.from('secondary_rosters').select('*').eq('parent_roster_id',rosterDataId).order('created_at');
+  if(error||!data) return;
+  secondaryRosters = data;
+  renderSecondaryRosterTabs();
+  syncAutoPopulatedRosters();
+}
+
+function renderSecondaryRosterTabs(){
+  const wrap=document.getElementById('secondaryRosterTabs');
+  // Remove old panels
+  document.querySelectorAll('.secondary-roster-panel').forEach(el=>el.remove());
+
+  wrap.innerHTML = secondaryRosters.map(sr=>
+    `<button class="nav-tab" id="srTab_${sr.id}" onclick="switchToSecondaryRoster('${sr.id}')">${sr.name}</button>`
+  ).join('');
+
+  // Build a tab-panel for each, inserted right after tab-trainees
+  const anchor = document.getElementById('tab-trainees');
+  secondaryRosters.forEach(sr=>{
+    const panel = document.createElement('div');
+    panel.className='tab-panel secondary-roster-panel';
+    panel.style.display='none';
+    panel.id='tab-sr-'+sr.id;
+    panel.innerHTML=`
+      <div class="stats-bar" id="srStats_${sr.id}"></div>
+      <div class="filter-bar">
+        <input class="filter-input" id="srSearch_${sr.id}" placeholder="Search name or callsign…" oninput="renderSecondaryRoster('${sr.id}')">
+        <select class="filter-select" id="srFilterGroup_${sr.id}" onchange="renderSecondaryRoster('${sr.id}')"><option value="">All Groups</option></select>
+        <button class="btn btn-primary btn-sm" onclick="openAddSecondaryMember('${sr.id}')">+ Add Member</button>
+        <button class="btn btn-ghost btn-sm" onclick="openEditSecondaryRoster('${sr.id}')">⚙ Edit Roster</button>
+        <button class="btn btn-danger" onclick="confirmDeleteSecondaryRoster('${sr.id}')">✕</button>
+      </div>
+      <div id="srWrap_${sr.id}"></div>
+    `;
+    anchor.after(panel);
+  });
+}
+
+function switchToSecondaryRoster(id){
+  document.querySelectorAll('.tab-panel').forEach(p=>{p.style.display='none';p.classList.remove('active');});
+  document.querySelectorAll('.nav-tab').forEach(b=>b.classList.remove('active'));
+  const panel=document.getElementById('tab-sr-'+id);
+  if(panel){panel.style.display='block';panel.classList.add('active');}
+  const btn=document.getElementById('srTab_'+id);
+  if(btn) btn.classList.add('active');
+  activeSecondaryId=id;
+  renderSecondaryRoster(id);
+}
+
+function getSR(id){ return secondaryRosters.find(s=>s.id===id); }
+
+// Auto-populate: scan main roster members, add anyone matching the linked subdivision
+function syncAutoPopulatedRosters(){
+  secondaryRosters.forEach(async sr=>{
+    if(!sr.source_subdivision) return;
+    const eligible = members.filter(m=>(m.subdivs||[]).includes(sr.source_subdivision));
+    const srMembers = sr.members||[];
+    let changed=false;
+    eligible.forEach(m=>{
+      const exists = srMembers.find(x=>x.mainMemberId===m.id);
+      if(!exists){
+        srMembers.push({
+          id: (srMembers.length>0?Math.max(...srMembers.map(x=>x.id||0)):0)+1,
+          mainMemberId: m.id,
+          name: m.name,
+          callsign: '',
+          rankGroup: sr.rank_groups?.[sr.rank_groups.length-1]?.name || '',
+          status: m.status,
+          discord: m.discord,
+          doh: m.doh,
+          notes: '',
+          strikes: 0
+        });
+        changed=true;
+      }
+    });
+    // Remove members no longer matching the subdivision
+    const stillEligibleIds = new Set(eligible.map(m=>m.id));
+    const filtered = srMembers.filter(x=>!x.mainMemberId || stillEligibleIds.has(x.mainMemberId));
+    if(filtered.length!==srMembers.length) changed=true;
+
+    if(changed){
+      sr.members=filtered;
+      await sb.from('secondary_rosters').update({members:filtered, updated_at:new Date().toISOString()}).eq('id',sr.id);
+      if(activeSecondaryId===sr.id) renderSecondaryRoster(sr.id);
+    }
+  });
+}
+
+function renderSecondaryRoster(id){
+  const sr=getSR(id); if(!sr) return;
+  const rankGroupsLocal = sr.rank_groups||[];
+  const membersLocal = sr.members||[];
+
+  // Filters
+  const searchEl=document.getElementById('srSearch_'+id);
+  const fgEl=document.getElementById('srFilterGroup_'+id);
+  const search=(searchEl?.value||'').toLowerCase();
+  const fg=fgEl?.value||'';
+  if(fgEl){
+    const cur=fgEl.value;
+    fgEl.innerHTML='<option value="">All Groups</option>'+rankGroupsLocal.map(g=>`<option value="${g.name}">${g.name}</option>`).join('');
+    fgEl.value=cur;
+  }
+
+  // Stats
+  const statsEl=document.getElementById('srStats_'+id);
+  if(statsEl){
+    const total=membersLocal.length;
+    const active=membersLocal.filter(m=>m.status==='Active').length;
+    statsEl.innerHTML=`
+      <div class="stat"><div class="stat-label">Total</div><div class="stat-val">${total}</div></div>
+      <div class="stat"><div class="stat-label">Active</div><div class="stat-val" style="color:var(--green);">${active}</div></div>
+    `;
+  }
+
+  const wrap=document.getElementById('srWrap_'+id);
+  if(!wrap) return;
+
+  if(!rankGroupsLocal.length){
+    wrap.innerHTML=`<div class="empty-state"><div class="empty-icon">⚙️</div><div class="empty-text">No rank groups set up yet.<br>Click <span>Edit Roster</span> to build this roster's structure.</div></div>`;
+    return;
+  }
+
+  let html='';
+  rankGroupsLocal.forEach((g,gi)=>{
+    if(fg&&fg!==g.name) return;
+    const gMembers=membersLocal.filter(m=>{
+      if(m.rankGroup!==g.name) return false;
+      if(search&&!m.name.toLowerCase().includes(search)&&!(m.callsign||'').toLowerCase().includes(search)) return false;
+      return true;
+    }).sort((a,b)=>(a.callsign||'').localeCompare(b.callsign||''));
+
+    const filledCallsigns=gMembers.map(m=>m.callsign);
+    const {slots, total, capped}=getSmartSlots(g.from,g.to,filledCallsigns);
+
+    const rows=slots.length ? slots.map(slot=>{
+      const m=gMembers.find(mb=>mb.callsign===slot);
+      if(m){
+        return `<tr class="row-filled">
+          <td class="cs-cell"><span class="cs-filled">${m.callsign||'—'}</span></td>
+          <td class="name-td">
+            <div class="member-name">${m.name}</div>
+            ${m.position?`<div class="member-pos">${m.position}</div>`:''}
+          </td>
+          <td>${statusPill(m.status)}</td>
+          <td class="col-doh" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);">${fmtDate(m.doh)}</td>
+          <td>${strikeBadge(m.strikes||0)}</td>
+          <td class="col-notes" style="font-size:11px;color:var(--text2);">${m.notes||'—'}</td>
+          <td><div class="row-acts">
+            <button class="btn btn-ghost btn-xs" onclick="openEditSecondaryMember('${id}',${m.id})">Edit</button>
+            <button class="btn btn-danger" onclick="removeSecondaryMember('${id}',${m.id})">✕</button>
+          </div></td>
+        </tr>`;
+      } else {
+        return `<tr class="row-empty"><td><span class="cs-empty">${slot}</span></td><td colspan="6" style="color:var(--border2);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;padding:10px 12px;">— VACANT —</td></tr>`;
+      }
+    }).join('') : `<tr class="row-empty"><td colspan="7" style="text-align:center;padding:16px;font-family:'JetBrains Mono',monospace;font-size:11px;">— NO MEMBERS —</td></tr>`;
+
+    html+=`
+    <div class="rank-group fade-up">
+      <div class="rg-wrap">
+        <div class="rg-label" data-count="${gMembers.length}/${total}">${g.name}</div>
+        <div class="rg-table-wrap">
+          <table class="roster-table">
+            <thead><tr><th class="cs-th">Callsign</th><th>Name</th><th>Status</th><th>DOH</th><th>Strikes</th><th>Notes</th><th>Actions</th></tr></thead>
+            <tbody>${rows}${capped?`<tr class="row-empty"><td colspan="7" style="text-align:center;padding:10px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);">Showing ${filledCallsigns.length} filled + vacant of ${total} total slots</td></tr>`:''}</tbody>
+          </table>
+        </div>
+      </div>
+    </div>`;
+  });
+
+  wrap.innerHTML = html || `<div class="empty-state"><div class="empty-text">No matches.</div></div>`;
+}
+
+async function saveSecondaryRoster(sr){
+  await sb.from('secondary_rosters').update({
+    name: sr.name,
+    source_subdivision: sr.source_subdivision,
+    rank_groups: sr.rank_groups,
+    members: sr.members,
+    updated_at: new Date().toISOString()
+  }).eq('id', sr.id);
+}
+
+function confirmDeleteSecondaryRoster(id){
+  const sr=getSR(id); if(!sr) return;
+  if(!confirm(`Delete the "${sr.name}" roster? This cannot be undone.`)) return;
+  deleteSecondaryRoster(id);
+}
+
+async function deleteSecondaryRoster(id){
+  await sb.from('secondary_rosters').delete().eq('id',id);
+  document.getElementById('tab-sr-'+id)?.remove();
+  document.getElementById('srTab_'+id)?.remove();
+  secondaryRosters=secondaryRosters.filter(s=>s.id!==id);
+  switchTab('roster', document.getElementById('rosterTab'));
+  showToast('✓ Roster deleted.');
+}
+
+// ── Edit Roster (rank groups / callsigns) ──
+function openEditSecondaryRoster(id){
+  const sr=getSR(id); if(!sr) return;
+  let html=`<div class="modal" style="max-width:520px;">
+    <div class="modal-title">⚙ Edit "${sr.name}"</div>
+    <div class="form-group"><label class="form-label">Roster Name</label><input class="form-input" id="srEditName" value="${sr.name}"></div>
+    <div class="form-group">
+      <label class="form-label">Auto-Populate From</label>
+      <select class="form-select" id="srEditSubdiv">
+        <option value="">— Manual —</option>
+        ${subdivisions.map(s=>`<option value="${s.name}" ${sr.source_subdivision===s.name?'selected':''}>${s.name}</option>`).join('')}
+      </select>
+    </div>
+    <div class="editor-divider"></div>
+    <div class="editor-h3" style="margin-bottom:10px;">Rank Groups</div>
+    <div id="srRankGroupList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;"></div>
+    <div class="add-form">
+      <input class="add-input" id="srNewGroupName" placeholder="Group name">
+      <input class="add-input" id="srNewGroupFrom" placeholder="From (e.g. K9-01)" style="max-width:110px;">
+      <input class="add-input" id="srNewGroupTo" placeholder="To (e.g. K9-10)" style="max-width:110px;">
+      <button class="btn btn-primary btn-sm" onclick="addSecondaryRankGroup('${id}')">+ Add</button>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="document.getElementById('srEditModalOverlay').remove()">Close</button>
+      <button class="btn btn-primary" onclick="saveSecondaryRosterEdits('${id}')">Save</button>
+    </div>
+  </div>`;
+  const overlay=document.createElement('div');
+  overlay.className='modal-overlay';
+  overlay.id='srEditModalOverlay';
+  overlay.onclick=(e)=>{ if(e.target===overlay) overlay.remove(); };
+  overlay.innerHTML=html;
+  document.body.appendChild(overlay);
+  renderSecondaryRankGroupList(id);
+}
+
+function renderSecondaryRankGroupList(id){
+  const sr=getSR(id); if(!sr) return;
+  const el=document.getElementById('srRankGroupList');
+  if(!el) return;
+  el.innerHTML=(sr.rank_groups||[]).map((g,i)=>`
+    <div class="edit-row" style="grid-template-columns:1fr 90px 90px 28px;">
+      <input class="edit-input" value="${g.name}" oninput="sr_updateGroupField('${id}',${i},'name',this.value)">
+      <input class="edit-input" value="${g.from}" oninput="sr_updateGroupField('${id}',${i},'from',this.value)">
+      <input class="edit-input" value="${g.to}" oninput="sr_updateGroupField('${id}',${i},'to',this.value)">
+      <button class="del-btn" onclick="sr_removeGroup('${id}',${i})">×</button>
+    </div>`).join('');
+}
+
+function sr_updateGroupField(id,i,field,val){
+  const sr=getSR(id); if(!sr) return;
+  sr.rank_groups[i][field]=val;
+}
+function sr_removeGroup(id,i){
+  const sr=getSR(id); if(!sr) return;
+  sr.rank_groups.splice(i,1);
+  renderSecondaryRankGroupList(id);
+}
+
+function addSecondaryRankGroup(id){
+  const sr=getSR(id); if(!sr) return;
+  const name=document.getElementById('srNewGroupName').value.trim();
+  const from=document.getElementById('srNewGroupFrom').value.trim();
+  const to=document.getElementById('srNewGroupTo').value.trim();
+  if(!name||!from||!to){ showToast('⚠ Fill in all rank group fields.', true); return; }
+  if(!sr.rank_groups) sr.rank_groups=[];
+  sr.rank_groups.push({name, from, to, position:''});
+  document.getElementById('srNewGroupName').value='';
+  document.getElementById('srNewGroupFrom').value='';
+  document.getElementById('srNewGroupTo').value='';
+  renderSecondaryRankGroupList(id);
+}
+
+async function saveSecondaryRosterEdits(id){
+  const sr=getSR(id); if(!sr) return;
+  sr.name=document.getElementById('srEditName').value.trim()||sr.name;
+  sr.source_subdivision=document.getElementById('srEditSubdiv').value||null;
+  await saveSecondaryRoster(sr);
+  document.getElementById('srEditModalOverlay')?.remove();
+  renderSecondaryRosterTabs();
+  switchToSecondaryRoster(id);
+  showToast('✓ Roster updated.');
+  logEdit('secondary_roster_edited', {name:sr.name});
+}
+
+// ── Members on a secondary roster ──
+function openAddSecondaryMember(id){
+  const sr=getSR(id); if(!sr) return;
+  if(!sr.rank_groups||!sr.rank_groups.length){ showToast('⚠ Add a rank group first via Edit Roster.', true); return; }
+  let html=`<div class="modal" style="max-width:420px;">
+    <div class="modal-title">+ Add Member — ${sr.name}</div>
+    <div class="form-group"><label class="form-label">Name</label><input class="form-input" id="srmName"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Callsign</label><input class="form-input" id="srmCallsign"></div>
+      <div class="form-group"><label class="form-label">Rank Group</label><select class="form-select" id="srmGroup">${sr.rank_groups.map(g=>`<option>${g.name}</option>`).join('')}</select></div>
+    </div>
+    <div class="form-group"><label class="form-label">Status</label><select class="form-select" id="srmStatus"><option>Active</option><option>Inactive</option><option>LOA</option><option>Part Time</option></select></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="document.getElementById('srmModalOverlay').remove()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveSecondaryMember('${id}')">Add</button>
+    </div>
+  </div>`;
+  const overlay=document.createElement('div');
+  overlay.className='modal-overlay';
+  overlay.id='srmModalOverlay';
+  overlay.onclick=(e)=>{ if(e.target===overlay) overlay.remove(); };
+  overlay.innerHTML=html;
+  document.body.appendChild(overlay);
+}
+
+async function saveSecondaryMember(id){
+  const sr=getSR(id); if(!sr) return;
+  const name=document.getElementById('srmName').value.trim();
+  if(!name){ showToast('⚠ Name required.', true); return; }
+  if(!sr.members) sr.members=[];
+  sr.members.push({
+    id:(sr.members.length>0?Math.max(...sr.members.map(m=>m.id||0)):0)+1,
+    name,
+    callsign:document.getElementById('srmCallsign').value.trim(),
+    rankGroup:document.getElementById('srmGroup').value,
+    status:document.getElementById('srmStatus').value,
+    strikes:0, notes:''
+  });
+  await saveSecondaryRoster(sr);
+  document.getElementById('srmModalOverlay')?.remove();
+  renderSecondaryRoster(id);
+  showToast(`✓ ${name} added.`);
+}
+
+function openEditSecondaryMember(rosterId, memberId){
+  const sr=getSR(rosterId); if(!sr) return;
+  const m=sr.members.find(x=>x.id===memberId); if(!m) return;
+  let html=`<div class="modal" style="max-width:420px;">
+    <div class="modal-title">Edit Member — ${sr.name}</div>
+    <div class="form-group"><label class="form-label">Name</label><input class="form-input" id="srmEditName" value="${m.name}"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Callsign</label><input class="form-input" id="srmEditCallsign" value="${m.callsign||''}"></div>
+      <div class="form-group"><label class="form-label">Rank Group</label><select class="form-select" id="srmEditGroup">${sr.rank_groups.map(g=>`<option ${g.name===m.rankGroup?'selected':''}>${g.name}</option>`).join('')}</select></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Status</label><select class="form-select" id="srmEditStatus">${['Active','Inactive','LOA','Part Time'].map(s=>`<option ${s===m.status?'selected':''}>${s}</option>`).join('')}</select></div>
+      <div class="form-group"><label class="form-label">Strikes</label><input class="form-input" type="number" id="srmEditStrikes" value="${m.strikes||0}"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Notes</label><input class="form-input" id="srmEditNotes" value="${m.notes||''}"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="document.getElementById('srmEditModalOverlay').remove()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveEditSecondaryMember('${rosterId}',${memberId})">Save</button>
+    </div>
+  </div>`;
+  const overlay=document.createElement('div');
+  overlay.className='modal-overlay';
+  overlay.id='srmEditModalOverlay';
+  overlay.onclick=(e)=>{ if(e.target===overlay) overlay.remove(); };
+  overlay.innerHTML=html;
+  document.body.appendChild(overlay);
+}
+
+async function saveEditSecondaryMember(rosterId, memberId){
+  const sr=getSR(rosterId); if(!sr) return;
+  const i=sr.members.findIndex(x=>x.id===memberId); if(i<0) return;
+  sr.members[i]={...sr.members[i],
+    name:document.getElementById('srmEditName').value.trim(),
+    callsign:document.getElementById('srmEditCallsign').value.trim(),
+    rankGroup:document.getElementById('srmEditGroup').value,
+    status:document.getElementById('srmEditStatus').value,
+    strikes:parseInt(document.getElementById('srmEditStrikes').value)||0,
+    notes:document.getElementById('srmEditNotes').value.trim()
+  };
+  await saveSecondaryRoster(sr);
+  document.getElementById('srmEditModalOverlay')?.remove();
+  renderSecondaryRoster(rosterId);
+  showToast('✓ Member updated.');
+}
+
+async function removeSecondaryMember(rosterId, memberId){
+  const sr=getSR(rosterId); if(!sr) return;
+  if(!confirm('Remove this member from the roster?')) return;
+  sr.members=sr.members.filter(m=>m.id!==memberId);
+  await saveSecondaryRoster(sr);
+  renderSecondaryRoster(rosterId);
+  showToast('✓ Removed.');
+}
+
 function switchTab(name, btn){
   document.querySelectorAll('.tab-panel').forEach(p=>{p.style.display='none';p.classList.remove('active');});
   document.querySelectorAll('.nav-tab').forEach(b=>b.classList.remove('active'));
@@ -3483,6 +3936,7 @@ function saveMember(){
     logEdit('member_added', { name: data.name, callsign: data.callsign, rankGroup: data.rankGroup });
   }
   closeMemberModal(); renderRoster(); renderStats(); scheduleSave();
+  syncAutoPopulatedRosters();
 }
 
 function openAddTrainee(){
@@ -3543,6 +3997,7 @@ function confirmDelete(){
   renderRoster(); renderTrainees(); renderStats(); scheduleSave();
   showToast('✓ Removed.');
   if(rec) logEdit(deletingType==='member'?'member_removed':'trainee_removed', { name: rec.name, callsign: rec.callsign });
+  if(deletingType==='member') syncAutoPopulatedRosters();
 }
 
 
