@@ -3674,7 +3674,7 @@ function renderRoster(){
     };
 
     const matchedIds = new Set();
-    const rowsFromSlots = slots.map(slot=>{
+    const rowsFromSlots = isRosterMode ? [] : slots.map(slot=>{
           const m = gMembers.find(mb=>mb.callsign===slot);
           if(m){
             matchedIds.add(m.id);
@@ -3687,12 +3687,23 @@ function renderRoster(){
             </tr>`;
           }
         });
-    // Members whose callsign doesn't match any generated slot (e.g. a stale range was just
-    // changed) still render here instead of silently vanishing.
     const unmatchedRows = gMembers.filter(m=>!matchedIds.has(m.id)).map(buildFilledRow);
 
-    const rows = (rowsFromSlots.length || unmatchedRows.length)
-      ? rowsFromSlots.join('') + unmatchedRows.join('')
+    // In roster mode: show filled members + blank vacant rows for remaining slots
+    let vacantRows = '';
+    if(isRosterMode && total > gMembers.length){
+      const vacantCount = Math.min(total - gMembers.length, MAX_VACANT);
+      for(let v=0; v<vacantCount; v++){
+        vacantRows += `<tr class="row-empty">
+          <td></td>
+          ${showInsignia?`<td></td>`:''}
+          <td colspan="${currentUser?(showInsignia?8:8):(showInsignia?7:7)}" style="color:var(--border2);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;padding:10px 12px;">— VACANT —</td>
+        </tr>`;
+      }
+    }
+
+    const rows = (rowsFromSlots.length || unmatchedRows.length || vacantRows)
+      ? rowsFromSlots.join('') + unmatchedRows.join('') + vacantRows
       : `<tr class="row-empty"><td colspan="${currentUser?(showInsignia?10:9):(showInsignia?9:8)}" style="text-align:center;padding:16px;font-family:'JetBrains Mono',monospace;font-size:11px;">— NO MEMBERS —</td></tr>`;
 
     html+=`
@@ -5222,6 +5233,7 @@ document.addEventListener('keydown',e=>{
   // No session found — show landing page
   document.getElementById('landingPage').style.display='flex';
   loadLandingStats();
+
 })();
 </script>
 <button class="mobile-fab hidden" id="mobileFab" onclick="onMobileFab()">+</button>
