@@ -1532,19 +1532,16 @@ let useRosterCallsign = false;
 
 function toggleUseRosterCS(val){
   useRosterCallsign = val;
-  // Show/hide From/To fields in the add-group form
-  const fromEl = document.getElementById('rgNewFrom');
-  const toEl = document.getElementById('rgNewTo');
-  if(fromEl) fromEl.style.display = val ? 'none' : '';
-  if(toEl) toEl.style.display = val ? 'none' : '';
-  // Update col-labels
   const colLabels = document.getElementById('rgColLabels');
   if(colLabels){
-    colLabels.style.gridTemplateColumns = val ? '1fr 140px 28px 28px 28px' : '1fr 100px 100px 140px 28px 28px 28px';
     colLabels.innerHTML = val
-      ? '<span>Group Name</span><span>Position</span><span></span><span></span><span></span>'
+      ? '<span>Group Name</span><span>Slots From</span><span>Slots To</span><span>Position</span><span></span><span></span><span></span>'
       : '<span>Group Name</span><span>From</span><span>To</span><span>Position</span><span></span><span></span><span></span>';
   }
+  const fromEl = document.getElementById('rgNewFrom');
+  const toEl = document.getElementById('rgNewTo');
+  if(fromEl) fromEl.placeholder = val ? 'e.g. 1' : 'e.g. 1W-01';
+  if(toEl) toEl.placeholder = val ? 'e.g. 20' : 'e.g. 1W-06';
   renderRGList();
   renderRoster();
   scheduleSave();
@@ -3135,7 +3132,7 @@ function _renderSecondaryRosterInner(id, sr){
         matchedIds.add(m.id);
         return memberRow(m);
       }
-      return `<tr class="row-empty"><td><span class="cs-empty">${slot}</span></td><td colspan="${colCount-1}" style="color:var(--border2);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;padding:10px 12px;">— VACANT —</td></tr>`;
+      return `<tr class="row-empty"><td>${isRosterMode?'':(`<span class="cs-empty">${slot}</span>`)}</td><td colspan="${colCount-1}" style="color:var(--border2);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;padding:10px 12px;">— VACANT —</td></tr>`;
     });
     const unmatchedRows = gMembers.filter(m=>!matchedIds.has(m.id)).map(memberRow);
 
@@ -3684,7 +3681,7 @@ function renderRoster(){
             return buildFilledRow(m);
           } else {
             return `<tr class="row-empty">
-              <td><span class="cs-empty">${slot}</span></td>
+              <td>${isRosterMode?'':(`<span class="cs-empty">${slot}</span>`)}</td>
               ${showInsignia ? `<td class="ins-cell" style="text-align:center;vertical-align:middle;">${alwaysShowInsignia ? getRankInsignia(gi,'',slot) : ''}</td>` : ''}
               <td colspan="${currentUser?(showInsignia?8:8):(showInsignia?7:7)}" style="color:var(--border2);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;padding:10px 12px;">— VACANT —</td>
             </tr>`;
@@ -4427,13 +4424,10 @@ function updateTraineeFormatPreview(){
 
 function renderRGList(){
   document.getElementById('rgList').innerHTML=rankGroups.map((g,i)=>`
-    <div class="edit-row" style="grid-template-columns:1fr ${useRosterCallsign?'':'100px 100px '}140px 44px 28px 28px 28px;">
+    <div class="edit-row" style="grid-template-columns:1fr 100px 100px 140px 44px 28px 28px 28px;">
       <input class="edit-input" value="${g.name}" oninput="updateRGName(${i},this.value)" placeholder="Group name">
-      ${useRosterCallsign?'':
-        `<input class="edit-input" value="${g.from||''}" oninput="updateRGFrom(${i},this.value)" onfocus="this.dataset.orig=this.value" onblur="rg_checkRangeChanged(${i},'from',this)" placeholder="e.g. 1W-01">
-         <input class="edit-input" value="${g.to||''}" oninput="updateRGTo(${i},this.value)" onfocus="this.dataset.orig=this.value" onblur="rg_checkRangeChanged(${i},'to',this)" placeholder="e.g. 1W-06">`
-      }
-      <input class="edit-input" value="${g.position||''}" oninput="updateRGPos(${i},this.value)" placeholder="Position title">
+      <input class="edit-input" value="${g.from||''}" oninput="updateRGFrom(${i},this.value)" onfocus="this.dataset.orig=this.value" onblur="rg_checkRangeChanged(${i},'from',this)" placeholder="${useRosterCallsign?'e.g. 1':'e.g. 1W-01'}">
+      <input class="edit-input" value="${g.to||''}" oninput="updateRGTo(${i},this.value)" onfocus="this.dataset.orig=this.value" onblur="rg_checkRangeChanged(${i},'to',this)" placeholder="${useRosterCallsign?'e.g. 20':'e.g. 1W-06'}">      <input class="edit-input" value="${g.position||''}" oninput="updateRGPos(${i},this.value)" placeholder="Position title">
       <div style="display:flex;align-items:center;justify-content:center;">
         ${g.insignia
           ? `<div class="ins-upload" onclick="removeRGInsignia(${i})" title="Click to remove insignia">
