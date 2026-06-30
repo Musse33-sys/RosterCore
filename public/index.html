@@ -3215,6 +3215,8 @@ async function deleteSecondaryRoster(id){
 // ── Edit Roster (rank groups / callsigns) ──
 function openEditSecondaryRoster(id){
   const sr=getSR(id); if(!sr) return;
+  // Snapshot the original ranges so saveSecondaryRosterEdits can detect what changed
+  window._srOriginalRanges = (sr.rank_groups||[]).map(g=>({name:g.name, from:g.from, to:g.to}));
   let html=`<div class="modal" style="max-width:520px;">
     <div class="modal-title">⚙ Edit "${sr.name}"</div>
     <div class="form-group"><label class="form-label">Roster Name</label><input class="form-input" id="srEditName" value="${sr.name}"></div>
@@ -3289,13 +3291,30 @@ async function saveSecondaryRosterEdits(id){
   const sr=getSR(id); if(!sr) return;
   sr.name=document.getElementById('srEditName').value.trim()||sr.name;
   sr.source_subdivision=document.getElementById('srEditSubdiv').value||null;
+
+  // Detect any rank groups whose from/to changed since the modal opened, and
+  // reassign every member currently in that group to a fresh callsign in the new range.
+  const original = window._srOriginalRanges||[];
+  let reassignedCount = 0;
+  (sr.rank_groups||[]).forEach(g=>{
+    const before = original.find(o=>o.name===g.name);
+    const rangeChanged = before && (before.from!==g.from || before.to!==g.to);
+    if(!rangeChanged) return;
+    const affected = (sr.members||[]).filter(m=>m.rankGroup===g.name);
+    affected.forEach(m=>{
+      const cs = nextSecondaryCallsign(sr, g.name, m.id);
+      if(cs){ m.callsign = cs; reassignedCount++; }
+    });
+  });
+  window._srOriginalRanges = null;
+
   await saveSecondaryRoster(sr);
   document.getElementById('srEditModalOverlay')?.remove();
   renderSecondaryRosterTabs();
   switchToSecondaryRoster(id);
   syncAutoPopulatedRosters();
-  showToast('✓ Roster updated.');
-  logEdit('secondary_roster_edited', {name:sr.name});
+  showToast(reassignedCount ? `✓ Roster updated. ${reassignedCount} member(s) reassigned to new callsigns.` : '✓ Roster updated.');
+  logEdit('secondary_roster_edited', {name:sr.name, reassignedCount});
 }
 
 // ── Members on a secondary roster ──
