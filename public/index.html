@@ -2440,6 +2440,7 @@ async function completeStaffLogin(profile){
   if(hasPerm('promotions')) document.getElementById('promoTab').classList.remove('hidden');
 
   renderAll();
+  await loadSecondaryRosters();
   showToast('Welcome, '+profile.name+'!');
   history.replaceState(null,'','#main-roster'); document.title='RosterCore — Main Roster';
   switchTab('roster', document.getElementById('rosterTab'));
@@ -2930,7 +2931,8 @@ async function loadSecondaryRosters(){
   if(error||!data) return;
   secondaryRosters = data;
   renderSecondaryRosterTabs();
-  syncAutoPopulatedRosters();
+  // Only auto-sync (which writes to the DB) for an actual editor, not public viewers
+  if(currentUser && currentUser.email!=='shared') syncAutoPopulatedRosters();
 }
 
 function renderSecondaryRosterTabs(){
@@ -2954,9 +2956,9 @@ function renderSecondaryRosterTabs(){
       <div class="filter-bar">
         <input class="filter-input" id="srSearch_${sr.id}" placeholder="Search name or callsign…" oninput="renderSecondaryRoster('${sr.id}')">
         <select class="filter-select" id="srFilterGroup_${sr.id}" onchange="renderSecondaryRoster('${sr.id}')"><option value="">All Groups</option></select>
-        <button class="btn btn-primary btn-sm" onclick="openAddSecondaryMember('${sr.id}')">+ Add Member</button>
-        <button class="btn btn-ghost btn-sm" onclick="openEditSecondaryRoster('${sr.id}')">⚙ Edit Roster</button>
-        <button class="btn btn-danger" onclick="confirmDeleteSecondaryRoster('${sr.id}')">✕</button>
+        ${hasPerm('editMembers')?`<button class="btn btn-primary btn-sm" onclick="openAddSecondaryMember('${sr.id}')">+ Add Member</button>`:''}
+        ${currentUser && currentUser.email!=='staff' && currentUser.email!=='shared' ? `<button class="btn btn-ghost btn-sm" onclick="openEditSecondaryRoster('${sr.id}')">⚙ Edit Roster</button>
+        <button class="btn btn-danger" onclick="confirmDeleteSecondaryRoster('${sr.id}')">✕</button>` : ''}
       </div>
       <div id="srWrap_${sr.id}"></div>
     `;
@@ -2979,23 +2981,32 @@ function getSR(id){ return secondaryRosters.find(s=>s.id===id); }
 
 // Auto-populate: scan main roster members, add anyone matching the linked subdivision
 function syncAutoPopulatedRosters(){
-  console.log('[sync] running, secondaryRosters:', secondaryRosters.length, 'mainMembers:', members.length);
   secondaryRosters.forEach(async sr=>{
-    console.log('[sync] checking roster', sr.name, 'source_subdivision:', sr.source_subdivision);
     if(!sr.source_subdivision) return;
     const eligible = members.filter(m=>(m.subdivs||[]).includes(sr.source_subdivision));
-    console.log('[sync] eligible members for', sr.name, ':', eligible.map(m=>m.name));
     const srMembers = sr.members||[];
+    const defaultGroup = sr.rank_groups?.[sr.rank_groups.length-1]?.name || '';
     let changed=false;
+
+    // Repair any previously auto-added members that got stuck with a blank rankGroup
+    if(defaultGroup){
+      srMembers.forEach(x=>{
+        if(x.mainMemberId && !x.rankGroup){
+          x.rankGroup = defaultGroup;
+          changed = true;
+        }
+      });
+    }
+
     eligible.forEach(m=>{
       const exists = srMembers.find(x=>x.mainMemberId===m.id);
-      if(!exists){
+      if(!exists && defaultGroup){
         srMembers.push({
           id: (srMembers.length>0?Math.max(...srMembers.map(x=>x.id||0)):0)+1,
           mainMemberId: m.id,
           name: m.name,
           callsign: '',
-          rankGroup: sr.rank_groups?.[sr.rank_groups.length-1]?.name || '',
+          rankGroup: defaultGroup,
           status: m.status,
           discord: m.discord,
           doh: m.doh,
@@ -3065,6 +3076,8 @@ function renderSecondaryRoster(id){
     const filledCallsigns=gMembers.map(m=>m.callsign);
     const {slots, total, capped}=getSmartSlots(g.from,g.to,filledCallsigns);
 
+    const canEdit = hasPerm('editMembers');
+    const colCount = canEdit ? 7 : 6;
     const rows=slots.length ? slots.map(slot=>{
       const m=gMembers.find(mb=>mb.callsign===slot);
       if(m){
@@ -3078,15 +3091,15 @@ function renderSecondaryRoster(id){
           <td class="col-doh" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);">${fmtDate(m.doh)}</td>
           <td>${strikeBadge(m.strikes||0)}</td>
           <td class="col-notes" style="font-size:11px;color:var(--text2);">${m.notes||'—'}</td>
-          <td><div class="row-acts">
+          ${canEdit?`<td><div class="row-acts">
             <button class="btn btn-ghost btn-xs" onclick="openEditSecondaryMember('${id}',${m.id})">Edit</button>
             <button class="btn btn-danger" onclick="removeSecondaryMember('${id}',${m.id})">✕</button>
-          </div></td>
+          </div></td>`:''}
         </tr>`;
       } else {
-        return `<tr class="row-empty"><td><span class="cs-empty">${slot}</span></td><td colspan="6" style="color:var(--border2);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;padding:10px 12px;">— VACANT —</td></tr>`;
+        return `<tr class="row-empty"><td><span class="cs-empty">${slot}</span></td><td colspan="${colCount-1}" style="color:var(--border2);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;padding:10px 12px;">— VACANT —</td></tr>`;
       }
-    }).join('') : `<tr class="row-empty"><td colspan="7" style="text-align:center;padding:16px;font-family:'JetBrains Mono',monospace;font-size:11px;">— NO MEMBERS —</td></tr>`;
+    }).join('') : `<tr class="row-empty"><td colspan="${colCount}" style="text-align:center;padding:16px;font-family:'JetBrains Mono',monospace;font-size:11px;">— NO MEMBERS —</td></tr>`;
 
     html+=`
     <div class="rank-group fade-up">
@@ -3094,8 +3107,8 @@ function renderSecondaryRoster(id){
         <div class="rg-label" data-count="${gMembers.length}/${total}">${g.name}</div>
         <div class="rg-table-wrap">
           <table class="roster-table">
-            <thead><tr><th class="cs-th">Callsign</th><th>Name</th><th>Status</th><th>DOH</th><th>Strikes</th><th>Notes</th><th>Actions</th></tr></thead>
-            <tbody>${rows}${capped?`<tr class="row-empty"><td colspan="7" style="text-align:center;padding:10px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);">Showing ${filledCallsigns.length} filled + vacant of ${total} total slots</td></tr>`:''}</tbody>
+            <thead><tr><th class="cs-th">Callsign</th><th>Name</th><th>Status</th><th>DOH</th><th>Strikes</th><th>Notes</th>${canEdit?'<th>Actions</th>':''}</tr></thead>
+            <tbody>${rows}${capped?`<tr class="row-empty"><td colspan="${colCount}" style="text-align:center;padding:10px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);">Showing ${filledCallsigns.length} filled + vacant of ${total} total slots</td></tr>`:''}</tbody>
           </table>
         </div>
       </div>
@@ -3211,6 +3224,7 @@ async function saveSecondaryRosterEdits(id){
   document.getElementById('srEditModalOverlay')?.remove();
   renderSecondaryRosterTabs();
   switchToSecondaryRoster(id);
+  syncAutoPopulatedRosters();
   showToast('✓ Roster updated.');
   logEdit('secondary_roster_edited', {name:sr.name});
 }
@@ -4900,6 +4914,7 @@ document.addEventListener('keydown',e=>{
         document.getElementById('traineesTab').classList.remove('hidden');
         document.getElementById('membersTab').classList.remove('hidden');
         renderAll();
+        await loadSecondaryRosters();
         switchTab('roster', document.getElementById('rosterTab'));
         startRealtimeSync();
         return;
@@ -4922,9 +4937,14 @@ document.addEventListener('keydown',e=>{
       document.getElementById('headerName').textContent=deptName;
       document.getElementById('landingPage').style.display='none';
       document.getElementById('appPage').style.display='flex'; document.getElementById('appPage').style.flexDirection='column';
+      document.getElementById('loginFromPublicBtn').classList.remove('hidden');
+      document.getElementById('rosterTab').classList.remove('hidden');
+      document.getElementById('traineesTab').classList.remove('hidden');
+      document.getElementById('membersTab').classList.remove('hidden');
       renderAll();
+      await loadSecondaryRosters();
+      switchTab('roster', document.getElementById('rosterTab'));
       startRealtimeSync();
-      await showNameGate(token);
       return;
     }
   }
