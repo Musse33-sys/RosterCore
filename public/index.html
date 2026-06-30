@@ -864,9 +864,9 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
               </div>
             </label>
           </div>
-          <div class="col-labels" style="grid-template-columns:1fr 100px 100px 140px 28px 28px 28px;"><span>Group Name</span><span>From</span><span>To</span><span>Position</span><span></span><span></span><span></span></div>
+          <div class="col-labels" id="rgColLabels" style="grid-template-columns:1fr 100px 100px 140px 28px 28px 28px;"><span>Group Name</span><span>From</span><span>To</span><span>Position</span><span></span><span></span><span></span></div>
           <div class="edit-list" id="rgList"></div>
-          <div class="add-form">
+          <div class="add-form" id="rgAddForm">
             <input class="add-input" id="rgNewName" placeholder="Group name (e.g. Administration)">
             <input class="add-input" id="rgNewFrom" placeholder="e.g. 1W-01" style="max-width:110px;">
             <input class="add-input" id="rgNewTo" placeholder="e.g. 1W-06" style="max-width:110px;">
@@ -1532,6 +1532,20 @@ let useRosterCallsign = false;
 
 function toggleUseRosterCS(val){
   useRosterCallsign = val;
+  // Show/hide From/To fields in the add-group form
+  const fromEl = document.getElementById('rgNewFrom');
+  const toEl = document.getElementById('rgNewTo');
+  if(fromEl) fromEl.style.display = val ? 'none' : '';
+  if(toEl) toEl.style.display = val ? 'none' : '';
+  // Update col-labels
+  const colLabels = document.getElementById('rgColLabels');
+  if(colLabels){
+    colLabels.style.gridTemplateColumns = val ? '1fr 140px 28px 28px 28px' : '1fr 100px 100px 140px 28px 28px 28px';
+    colLabels.innerHTML = val
+      ? '<span>Group Name</span><span>Position</span><span></span><span></span><span></span>'
+      : '<span>Group Name</span><span>From</span><span>To</span><span>Position</span><span></span><span></span><span></span>';
+  }
+  renderRGList();
   renderRoster();
   scheduleSave();
 }
@@ -3188,7 +3202,7 @@ function openEditSecondaryRoster(id){
     </div>
     <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;margin-bottom:4px;">
       <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
-        <input type="checkbox" id="srEditUseRosterCS" ${sr.use_roster_callsign?'checked':''} style="accent-color:var(--accent);width:15px;height:15px;">
+        <input type="checkbox" id="srEditUseRosterCS" ${sr.use_roster_callsign?'checked':''} onchange="getSR('${sr.id}').use_roster_callsign=this.checked;renderSecondaryRankGroupList('${sr.id}');" style="accent-color:var(--accent);width:15px;height:15px;">
         <div>
           <div style="font-size:11px;font-weight:700;color:var(--text);letter-spacing:1px;">Use Main Roster callsign</div>
           <div style="font-size:10px;color:var(--text3);margin-top:2px;">Members will keep their callsign from the Main Roster. No vacant slots will be shown.</div>
@@ -3222,15 +3236,23 @@ function renderSecondaryRankGroupList(id){
   const sr=getSR(id); if(!sr) return;
   const el=document.getElementById('srRankGroupList');
   if(!el) return;
+  const rosterMode = sr.use_roster_callsign===true;
   el.innerHTML=(sr.rank_groups||[]).map((g,i)=>`
     <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:8px 10px;margin-bottom:6px;">
-      <div class="edit-row" style="grid-template-columns:1fr 90px 90px 28px;">
+      <div class="edit-row" style="grid-template-columns:1fr ${rosterMode?'':' 90px 90px '}28px;">
         <input class="edit-input" value="${g.name}" oninput="sr_updateGroupField('${id}',${i},'name',this.value)">
-        <input class="edit-input" value="${g.from||''}" oninput="sr_updateGroupField('${id}',${i},'from',this.value)" placeholder="From">
-        <input class="edit-input" value="${g.to||''}" oninput="sr_updateGroupField('${id}',${i},'to',this.value)" placeholder="To">
+        ${rosterMode?'':
+          `<input class="edit-input" value="${g.from||''}" oninput="sr_updateGroupField('${id}',${i},'from',this.value)" placeholder="From">
+           <input class="edit-input" value="${g.to||''}" oninput="sr_updateGroupField('${id}',${i},'to',this.value)" placeholder="To">`
+        }
         <button class="del-btn" onclick="sr_removeGroup('${id}',${i})">×</button>
       </div>
     </div>`).join('');
+  // Also show/hide the From/To in the add-group form
+  const srFrom=document.getElementById('srNewGroupFrom');
+  const srTo=document.getElementById('srNewGroupTo');
+  if(srFrom) srFrom.style.display=rosterMode?'none':'';
+  if(srTo) srTo.style.display=rosterMode?'none':'';
 }
 
 function sr_updateGroupField(id,i,field,val){
@@ -4405,10 +4427,12 @@ function updateTraineeFormatPreview(){
 
 function renderRGList(){
   document.getElementById('rgList').innerHTML=rankGroups.map((g,i)=>`
-    <div class="edit-row" style="grid-template-columns:1fr 100px 100px 140px 44px 28px 28px 28px;">
+    <div class="edit-row" style="grid-template-columns:1fr ${useRosterCallsign?'':'100px 100px '}140px 44px 28px 28px 28px;">
       <input class="edit-input" value="${g.name}" oninput="updateRGName(${i},this.value)" placeholder="Group name">
-      <input class="edit-input" value="${g.from||''}" oninput="updateRGFrom(${i},this.value)" onfocus="this.dataset.orig=this.value" onblur="rg_checkRangeChanged(${i},'from',this)" placeholder="e.g. 1W-01">
-      <input class="edit-input" value="${g.to||''}" oninput="updateRGTo(${i},this.value)" onfocus="this.dataset.orig=this.value" onblur="rg_checkRangeChanged(${i},'to',this)" placeholder="e.g. 1W-06">
+      ${useRosterCallsign?'':
+        `<input class="edit-input" value="${g.from||''}" oninput="updateRGFrom(${i},this.value)" onfocus="this.dataset.orig=this.value" onblur="rg_checkRangeChanged(${i},'from',this)" placeholder="e.g. 1W-01">
+         <input class="edit-input" value="${g.to||''}" oninput="updateRGTo(${i},this.value)" onfocus="this.dataset.orig=this.value" onblur="rg_checkRangeChanged(${i},'to',this)" placeholder="e.g. 1W-06">`
+      }
       <input class="edit-input" value="${g.position||''}" oninput="updateRGPos(${i},this.value)" placeholder="Position title">
       <div style="display:flex;align-items:center;justify-content:center;">
         ${g.insignia
@@ -4472,6 +4496,7 @@ function addRankGroup(){
   const to=document.getElementById('rgNewTo').value.trim();
   const position=document.getElementById('rgNewPos').value.trim();
   if(!name){showToast('⚠ Enter a group name.',true);return;}
+  if(!useRosterCallsign && (!from||!to)){showToast('⚠ Enter From and To callsigns.',true);return;}
   rankGroups.push({name,from,to,position});
   document.getElementById('rgNewName').value='';
   document.getElementById('rgNewFrom').value='';
