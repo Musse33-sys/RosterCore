@@ -2980,6 +2980,15 @@ function switchToSecondaryRoster(id){
 function getSR(id){ return secondaryRosters.find(s=>s.id===id); }
 
 // Auto-populate: scan main roster members, add anyone matching the linked subdivision
+function nextSecondaryCallsign(sr, groupName, excludeMemberId=null){
+  const g = (sr.rank_groups||[]).find(r=>r.name===groupName);
+  if(!g) return '';
+  const slots = getRangeSlots(g.from, g.to);
+  const taken = new Set((sr.members||[]).filter(m=>m.id!==excludeMemberId && m.rankGroup===groupName && m.callsign).map(m=>m.callsign));
+  for(const slot of slots){ if(!taken.has(slot)) return slot; }
+  return '';
+}
+
 function syncAutoPopulatedRosters(){
   secondaryRosters.forEach(async sr=>{
     if(!sr.source_subdivision) return;
@@ -2988,12 +2997,16 @@ function syncAutoPopulatedRosters(){
     const defaultGroup = sr.rank_groups?.[sr.rank_groups.length-1]?.name || '';
     let changed=false;
 
-    // Repair any previously auto-added members that got stuck with a blank rankGroup
+    // Repair any previously auto-added members that got stuck with a blank rankGroup or blank callsign
     if(defaultGroup){
       srMembers.forEach(x=>{
         if(x.mainMemberId && !x.rankGroup){
           x.rankGroup = defaultGroup;
           changed = true;
+        }
+        if(x.mainMemberId && x.rankGroup && !x.callsign){
+          const cs = nextSecondaryCallsign(sr, x.rankGroup, x.id);
+          if(cs){ x.callsign = cs; changed = true; }
         }
       });
     }
@@ -3001,11 +3014,13 @@ function syncAutoPopulatedRosters(){
     eligible.forEach(m=>{
       const exists = srMembers.find(x=>x.mainMemberId===m.id);
       if(!exists && defaultGroup){
+        const newId = (srMembers.length>0?Math.max(...srMembers.map(x=>x.id||0)):0)+1;
+        const cs = nextSecondaryCallsign(sr, defaultGroup, newId);
         srMembers.push({
-          id: (srMembers.length>0?Math.max(...srMembers.map(x=>x.id||0)):0)+1,
+          id: newId,
           mainMemberId: m.id,
           name: m.name,
-          callsign: '',
+          callsign: cs,
           rankGroup: defaultGroup,
           status: m.status,
           discord: m.discord,
