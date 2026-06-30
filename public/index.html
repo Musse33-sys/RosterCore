@@ -3174,10 +3174,10 @@ function openEditSecondaryRoster(id){
     <div id="srRankGroupList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;"></div>
     <div class="add-form">
       <input class="add-input" id="srNewGroupName" placeholder="Group name">
-      <select class="add-input" id="srNewGroupMode" onchange="var c=this.value==='custom';document.getElementById('srNewGroupFrom').style.display=c?'':'none';document.getElementById('srNewGroupTo').style.display=c?'':'none';" style="font-size:10px;max-width:150px;">
-        <option value="custom">Custom callsigns</option>
-        <option value="roster">Main Roster callsign</option>
-      </select>
+      <label style="display:flex;align-items:center;gap:6px;font-size:10px;color:var(--text2);white-space:nowrap;cursor:pointer;">
+        <input type="checkbox" id="srNewGroupMode" onchange="var c=!this.checked;document.getElementById('srNewGroupFrom').style.display=c?'':'none';document.getElementById('srNewGroupTo').style.display=c?'':'none';" style="accent-color:var(--accent);">
+        Use Main Roster callsign
+      </label>
       <input class="add-input" id="srNewGroupFrom" placeholder="From (e.g. K9-01)" style="max-width:110px;">
       <input class="add-input" id="srNewGroupTo" placeholder="To (e.g. K9-10)" style="max-width:110px;">
       <button class="btn btn-primary btn-sm" onclick="addSecondaryRankGroup('${id}')">+ Add</button>
@@ -3206,10 +3206,10 @@ function renderSecondaryRankGroupList(id){
     <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:8px 10px;margin-bottom:6px;">
       <div class="edit-row" style="grid-template-columns:1fr 140px 28px;margin-bottom:${custom?'6px':'0'};">
         <input class="edit-input" value="${g.name}" oninput="sr_updateGroupField('${id}',${i},'name',this.value)">
-        <select class="edit-input" onchange="sr_updateGroupField('${id}',${i},'callsignMode',this.value);renderSecondaryRankGroupList('${id}')" style="font-size:10px;">
-          <option value="custom" ${custom?'selected':''}>Custom callsigns</option>
-          <option value="roster" ${!custom?'selected':''}>Main Roster callsign</option>
-        </select>
+        <label style="display:flex;align-items:center;gap:6px;font-size:10px;color:var(--text2);white-space:nowrap;cursor:pointer;">
+          <input type="checkbox" ${!custom?'checked':''} onchange="sr_updateGroupField('${id}',${i},'callsignMode',this.checked?'roster':'custom');renderSecondaryRankGroupList('${id}')" style="accent-color:var(--accent);">
+          Use Main Roster callsign
+        </label>
         <button class="del-btn" onclick="sr_removeGroup('${id}',${i})">×</button>
       </div>
       ${custom ? `<div class="edit-row" style="grid-template-columns:1fr 1fr;">
@@ -3233,7 +3233,7 @@ function sr_removeGroup(id,i){
 function addSecondaryRankGroup(id){
   const sr=getSR(id); if(!sr) return;
   const name=document.getElementById('srNewGroupName').value.trim();
-  const mode=document.getElementById('srNewGroupMode').value;
+  const mode=document.getElementById('srNewGroupMode').checked ? 'roster' : 'custom';
   const from=document.getElementById('srNewGroupFrom').value.trim();
   const to=document.getElementById('srNewGroupTo').value.trim();
   if(!name){ showToast('⚠ Group name required.', true); return; }
@@ -4397,10 +4397,10 @@ function renderRGList(){
     <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;margin-bottom:6px;">
       <div class="edit-row" style="grid-template-columns:1fr 140px 44px 28px 28px 28px;margin-bottom:${custom?'8px':'0'};">
         <input class="edit-input" value="${g.name}" oninput="updateRGName(${i},this.value)" placeholder="Group name">
-        <select class="edit-input" onchange="updateRGCallsignMode(${i},this.value)" style="font-size:10px;">
-          <option value="custom" ${custom?'selected':''}>Custom callsigns</option>
-          <option value="roster" ${!custom?'selected':''}>Main Roster callsign</option>
-        </select>
+        <label style="display:flex;align-items:center;gap:6px;font-size:10px;color:var(--text2);white-space:nowrap;cursor:pointer;">
+          <input type="checkbox" ${!custom?'checked':''} onchange="updateRGCallsignMode(${i},this.checked?'roster':'custom')" style="accent-color:var(--accent);">
+          Use Main Roster callsign
+        </label>
         <div style="display:flex;align-items:center;justify-content:center;">
           ${g.insignia
             ? `<div class="ins-upload" onclick="removeRGInsignia(${i})" title="Click to remove insignia">
