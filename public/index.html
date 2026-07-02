@@ -689,15 +689,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
         <div style="text-align:center;margin-top:16px;font-family:'JetBrains Mono',monospace;font-size:9px;color:#404040;letter-spacing:1px;">Member? <span style="color:var(--accent);cursor:pointer;" onclick="closeAuthModal();showStaffLoginModal()">Login here →</span></div>
       </div>
       <!-- FORCE PASSWORD CHANGE -->
-      <div id="authChangePasswordForm" style="display:none;">
-        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--accent);margin-bottom:6px;">FIRST LOGIN</div>
-        <div style="font-family:'Inter',sans-serif;font-size:22px;font-weight:700;color:var(--text);margin-bottom:8px;">Set Your Password</div>
-        <p style="font-size:12px;color:var(--text3);margin-bottom:20px;line-height:1.6;">Welcome! Please set a new password to continue.</p>
-        <div class="form-error hidden" id="authChangePwError"></div>
-        <div class="form-group"><label class="form-label">New Password</label><input class="form-input" type="password" id="authNewPassword" placeholder="Min 6 characters"></div>
-        <div class="form-group"><label class="form-label">Confirm Password</label><input class="form-input" type="password" id="authConfirmPassword" placeholder="Repeat password"></div>
-        <button class="btn btn-primary" style="width:100%;padding:14px;font-size:11px;letter-spacing:3px;margin-top:8px;" onclick="doDeptChangePassword()">SET PASSWORD →</button>
-      </div>
     </div>
   </div>
 </div>
@@ -1382,16 +1373,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
         <button class="btn" style="width:100%;padding:14px;font-size:11px;letter-spacing:3px;margin-top:8px;background:var(--purple);color:#080808;font-weight:700;font-family:'JetBrains Mono',monospace;" onclick="doStaffLogin()">SIGN IN →</button>
         <div style="text-align:center;margin-top:16px;font-family:'JetBrains Mono',monospace;font-size:9px;color:#404040;letter-spacing:1px;">Dept head? <span style="color:var(--purple);cursor:pointer;" onclick="switchToOwnerLogin()">Login here →</span></div>
       </div>
-      <!-- FORCE PASSWORD CHANGE FORM -->
-      <div id="staffChangePasswordForm" style="display:none;">
-        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--purple);margin-bottom:6px;">FIRST LOGIN</div>
-        <div style="font-family:'Inter',sans-serif;font-size:22px;font-weight:700;color:var(--text);margin-bottom:8px;">Set Your Password</div>
-        <p style="font-size:12px;color:var(--text3);margin-bottom:20px;line-height:1.6;">This is your first time logging in. Please set a new password to continue.</p>
-        <div class="form-error hidden" id="changePasswordError"></div>
-        <div class="form-group"><label class="form-label" style="color:var(--purple);">New Password</label><input class="form-input" type="password" id="newPassword" placeholder="Min 4 characters"></div>
-        <div class="form-group"><label class="form-label" style="color:var(--purple);">Confirm Password</label><input class="form-input" type="password" id="confirmPassword" placeholder="Repeat password"></div>
-        <button class="btn" style="width:100%;padding:14px;font-size:11px;letter-spacing:3px;margin-top:8px;background:var(--purple);color:#080808;font-weight:700;font-family:'JetBrains Mono',monospace;" onclick="doChangePassword()">SET PASSWORD →</button>
-      </div>
     </div>
   </div>
 </div>
@@ -2048,39 +2029,7 @@ async function doLogin(){
   document.getElementById('authSubmitBtn').textContent='SIGN IN →';
   if(error){ errEl.textContent='⚠ '+error.message; errEl.classList.remove('hidden'); return; }
 
-  // Check if dept must change password
-  const {data:dept} = await sb.from('departments').select('must_change_password').eq('user_id',data.user.id).single();
-  if(dept?.must_change_password === true){
-    _pendingDeptUser = data.user;
-    document.getElementById('authLoginForm').style.display='none';
-    document.getElementById('authChangePasswordForm').style.display='block';
-    return;
-  }
-
   await onLoginSuccess(data.user);
-}
-
-async function doDeptChangePassword(){
-  const newPwd = document.getElementById('authNewPassword').value;
-  const confirmPwd = document.getElementById('authConfirmPassword').value;
-  const errEl = document.getElementById('authChangePwError');
-  errEl.classList.add('hidden');
-  if(!newPwd||!confirmPwd){errEl.textContent='⚠ Both fields required.';errEl.classList.remove('hidden');return;}
-  if(newPwd.length<6){errEl.textContent='⚠ Password must be at least 6 characters.';errEl.classList.remove('hidden');return;}
-  if(newPwd!==confirmPwd){errEl.textContent='⚠ Passwords do not match.';errEl.classList.remove('hidden');return;}
-
-  const {error} = await sb.auth.updateUser({password: newPwd});
-  if(error){errEl.textContent='⚠ '+error.message;errEl.classList.remove('hidden');return;}
-
-  // Update must_change_password and password_hint
-  await sb.from('departments').update({must_change_password:false, password_hint:newPwd}).eq('user_id',_pendingDeptUser.id);
-
-  showToast('✓ Password set successfully!');
-  document.getElementById('authChangePasswordForm').style.display='none';
-  document.getElementById('authLoginForm').style.display='block';
-  const user = _pendingDeptUser;
-  _pendingDeptUser = null;
-  await onLoginSuccess(user);
 }
 
 async function onLoginSuccess(user){
@@ -2349,44 +2298,7 @@ async function doStaffLogin(){
 
   if(error||!profile){errEl.textContent='⚠ Invalid username or password.';errEl.classList.remove('hidden');return;}
 
-  // Check if first login — force password change
-  if(profile.must_change_password === true){
-    _pendingProfile = profile;
-    document.getElementById('staffLoginForm').style.display='none';
-    document.getElementById('staffChangePasswordForm').style.display='block';
-    return;
-  }
-
   await completeStaffLogin(profile);
-}
-
-async function doChangePassword(){
-  console.log('[changePassword] called, pendingProfile:', _pendingProfile?.username);
-  const newPass = document.getElementById('newPassword').value;
-  const confirmPass = document.getElementById('confirmPassword').value;
-  const errEl = document.getElementById('changePasswordError');
-  errEl.classList.add('hidden');
-  if(!newPass||!confirmPass){errEl.textContent='⚠ Both fields required.';errEl.classList.remove('hidden');return;}
-  if(newPass.length<4){errEl.textContent='⚠ Password must be at least 4 characters.';errEl.classList.remove('hidden');return;}
-  if(newPass!==confirmPass){errEl.textContent='⚠ Passwords do not match.';errEl.classList.remove('hidden');return;}
-
-  const username = _pendingProfile.username;
-  const newHash = btoa(unescape(encodeURIComponent(newPass+'_rc_salt_'+username)));
-
-  const {error} = await sb.from('roster_profiles').update({
-    password_hash: newHash,
-    must_change_password: false
-  }).eq('id', _pendingProfile.id);
-
-  if(error){errEl.textContent='⚠ '+error.message;errEl.classList.remove('hidden');return;}
-
-  _pendingProfile.password_hash = newHash;
-  _pendingProfile.must_change_password = false;
-  showToast('✓ Password set successfully!');
-  document.getElementById('staffChangePasswordForm').style.display='none';
-  document.getElementById('staffLoginForm').style.display='block';
-  await completeStaffLogin(_pendingProfile);
-  _pendingProfile = null;
 }
 
 async function completeStaffLogin(profile){
@@ -4990,26 +4902,48 @@ async function doChangeDeptPassword(){
   const pwd=document.getElementById('changePwInput').value;
   const confirm=document.getElementById('changePwConfirm').value;
   const errEl=document.getElementById('changePwError');
+  const btn=document.querySelector('#changePwModal .btn-primary');
   errEl.classList.add('hidden');
   if(pwd.length<6){errEl.textContent='⚠ Password must be at least 6 characters.';errEl.classList.remove('hidden');return;}
   if(pwd!==confirm){errEl.textContent='⚠ Passwords do not match.';errEl.classList.remove('hidden');return;}
+  if(!changePwUserId){errEl.textContent='⚠ No department selected.';errEl.classList.remove('hidden');return;}
 
-  // Update password in Supabase Auth via Edge Function
-  console.log('[resetPw] Updating password for user_id:', changePwUserId);
-  const res = await fetch('https://lzxsltdwbuyzxbmkpuny.supabase.co/functions/v1/reset-password', {
-    method: 'POST',
-    headers: { 'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx6eHNsdGR3YnV5enhibWtwdW55Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2MDM3NDksImV4cCI6MjA5NDE3OTc0OX0._Pr9Na_5u3AHweM2F-_W9R4EmXbsvpGsoBFYPC1I914', 'Content-Type': 'application/json' },
-    body: JSON.stringify({ user_id: changePwUserId, password: pwd })
-  });
-  const result = await res.json();
-  console.log('[resetPw] Edge function result:', JSON.stringify(result));
-  if(result.error){ errEl.textContent='⚠ '+result.error; errEl.classList.remove('hidden'); return; }
+  if(btn){btn.textContent='Updating…';btn.disabled=true;}
 
-  // Update password_hint and must_change_password in departments table
-  await sb.from('departments').update({password_hint:pwd, must_change_password:true}).eq('user_id',changePwUserId);
-  document.getElementById('changePwModal').classList.add('hidden');
-  await loadSuperAdminDepts();
-  showToast('✓ Password updated. Share it with the department head.');
+  try {
+    const res = await fetch('https://lzxsltdwbuyzxbmkpuny.supabase.co/functions/v1/reset-password', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx6eHNsdGR3YnV5enhibWtwdW55Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2MDM3NDksImV4cCI6MjA5NDE3OTc0OX0._Pr9Na_5u3AHweM2F-_W9R4EmXbsvpGsoBFYPC1I914',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ user_id: changePwUserId, password: pwd })
+    });
+
+    let result;
+    try { result = await res.json(); } catch(e) { result = {}; }
+
+    if(!res.ok || result.error){
+      errEl.textContent='⚠ '+(result.error||result.message||`Edge function error (${res.status})`);
+      errEl.classList.remove('hidden');
+      return;
+    }
+
+    // Update password hint and mark as temp pw so dept head must change on next login
+    await sb.from('departments').update({
+      password_hint: pwd,
+      must_change_password: true
+    }).eq('user_id', changePwUserId);
+
+    document.getElementById('changePwModal').classList.add('hidden');
+    await loadSuperAdminDepts();
+    showToast('✓ Password updated in Supabase. Share it with the department head.');
+  } catch(e) {
+    errEl.textContent='⚠ Network error: '+e.message;
+    errEl.classList.remove('hidden');
+  } finally {
+    if(btn){btn.textContent='Save Password';btn.disabled=false;}
+  }
 }
 
 function renderEditLogList(targetEl, logs){
