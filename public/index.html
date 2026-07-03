@@ -2935,6 +2935,8 @@ async function createSecondaryRoster(){
 
 async function loadSecondaryRosters(){
   if(!rosterDataId || currentUser?.email==='demo') return;
+  // Don't reload from server if a save is in progress — we'd overwrite unsaved changes
+  if(isSyncing) return;
   const {data,error}=await sb.from('secondary_rosters').select('*').eq('parent_roster_id',rosterDataId).order('created_at');
   if(error||!data) return;
   secondaryRosters = data;
@@ -3367,7 +3369,8 @@ async function saveSecondaryRosterEdits(id){
   document.getElementById('srEditModalOverlay')?.remove();
   renderSecondaryRosterTabs();
   switchToSecondaryRoster(id);
-  syncAutoPopulatedRosters();
+  // Wait for isSyncing to clear before running sync
+  setTimeout(()=>syncAutoPopulatedRosters(), 2100);
   showToast(reassignedCount ? `✓ Roster updated. ${reassignedCount} member(s) reassigned to new callsigns.` : '✓ Roster updated.');
   logEdit('secondary_roster_edited', {name:sr.name, reassignedCount});
 }
