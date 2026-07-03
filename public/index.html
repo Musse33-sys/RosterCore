@@ -1633,6 +1633,24 @@ function startRealtimeSync(){
       if(isSyncing) return;
       const rd = payload.new;
 
+      // If there's a pending save timer, we own the current state — ignore the realtime update.
+      // It will be reconciled after our save completes and realtime fires again.
+      if(saveTimer){
+        // Just update the timestamp so our next save uses the correct anchor
+        lastKnownUpdatedAt = rd.updated_at;
+        return;
+      }
+
+      // Never wipe existing members or rank groups via a bad realtime payload
+      if((!rd.members || rd.members.length === 0) && members.length > 0){
+        lastKnownUpdatedAt = rd.updated_at;
+        return;
+      }
+      if((!rd.rank_groups || rd.rank_groups.length === 0) && rankGroups.length > 0){
+        lastKnownUpdatedAt = rd.updated_at;
+        return;
+      }
+
       const oldMembers = [...members];
       const oldTrainees = [...trainees];
       const structureChanged = JSON.stringify(rd.rank_groups) !== JSON.stringify(rankGroups) ||
@@ -1861,7 +1879,14 @@ async function loadDepartment(userId){
 
 function scheduleSave(){
   clearTimeout(saveTimer);
-  saveTimer = setTimeout(saveRoster, 600);
+  saveTimer = setTimeout(()=>{
+    // Never fire if logged out or no roster loaded
+    if(!currentUser || !rosterDataId) return;
+    // Never save empty members if we had data when we last loaded
+    // Guards against session expiry + re-auth wipe triggering a stale save
+    if(members.length === 0 && lastKnownUpdatedAt) return;
+    saveRoster();
+  }, 600);
 }
 
 async function logEdit(action, details){
@@ -1906,10 +1931,15 @@ async function saveRoster(){
     console.error('Save error:', e1);
     showToast('⚠ Save failed: '+e1.message,true);
   } else if(lastKnownUpdatedAt && (!writtenRows || writtenRows.length===0)){
-    // Conflict detected — someone else saved in between. Do NOT overwrite. Reload fresh data instead.
-    showToast('⚠ Someone else just updated this roster — reloading the latest version to avoid overwriting their changes.', true);
+    // Conflict detected — someone else saved in between. Cancel any pending saves and reload.
+    if(saveTimer){ clearTimeout(saveTimer); saveTimer=null; }
+    showToast('⚠ Roster was updated by someone else — reloading. Do not edit until the page refreshes.', true);
     logEdit('save_conflict_detected', { note: 'Local save blocked because roster changed elsewhere; reloaded fresh data instead of overwriting.' });
+    // Disable editing briefly so no actions fire while we reload
+    document.body.style.pointerEvents='none';
     await reloadRosterFromServer();
+    document.body.style.pointerEvents='';
+    showToast('✓ Roster reloaded — you can continue editing.');
   } else {
     lastKnownUpdatedAt = newTimestamp;
     showToast('✓ Saved.');
@@ -1920,6 +1950,7 @@ async function saveRoster(){
 
 async function reloadRosterFromServer(){
   if(!rosterDataId) return;
+  if(saveTimer){ clearTimeout(saveTimer); saveTimer=null; } // cancel any pending save
   const {data:rd} = await sb.from('roster_data').select('*').eq('id', rosterDataId).single();
   if(!rd) return;
   members = rd.members||[];
@@ -1947,7 +1978,7 @@ async function saveSnapshot(){
   const snapshot={members,trainees,rankGroups,subdivisions,positions,traineeFormat,traineeFormatTo,customTags,promotions,customThemes,activeTheme,deptName};
   const createdBy=currentUser?.name||currentUser?.email||'Unknown';
   await sb.from('roster_snapshots').insert({roster_id:rosterDataId,snapshot,created_by:createdBy});
-  const cutoff=new Date(Date.now()-48*60*60*1000).toISOString();
+  const cutoff=new Date(Date.now()-14*24*60*60*1000).toISOString();
   await sb.from('roster_snapshots').delete().eq('roster_id',rosterDataId).lt('created_at',cutoff);
 }
 
@@ -2033,6 +2064,8 @@ async function doLogin(){
 }
 
 async function onLoginSuccess(user){
+  // Cancel any pending saves before wiping state
+  clearTimeout(saveTimer); saveTimer = null;
   // Reset all state first
   members=[]; trainees=[]; rankGroups=[]; subdivisions=[]; positions=[];
   traineeFormat=''; traineeFormatTo=''; customTags=[]; promotions=[];
@@ -2095,6 +2128,8 @@ async function onLoginSuccess(user){
 }
 
 async function doLogout(){
+  // Cancel any pending saves before wiping state
+  clearTimeout(saveTimer); saveTimer = null;
   if(currentUser && currentUser.email !== 'shared' && currentUser.email !== 'staff'){
     await sb.auth.signOut({scope:'global'});
   }
@@ -2692,71 +2727,105 @@ async function downloadRosterPDF(){
 function generatePromoAnnouncement(){
   if(!promotions.length){showToast('⚠ No promotions to announce.',true);return;}
 
-  const theme = themes.find(t=>t.id===activeTheme);
-  const customTheme = activeTheme==='custom-1'?customThemes[0]:activeTheme==='custom-2'?customThemes[1]:null;
-  const accent = customTheme?.accent || theme?.vars['--accent'] || '#4ade80';
-  const bg = customTheme?.bg || theme?.vars['--bg'] || '#07090d';
-  const bg2 = theme?.vars['--bg2'] || '#0e1812';
-  const border = theme?.vars['--border'] || '#1e3a28';
-  const text = theme?.vars['--text'] || '#e0f5e8';
-  const text3 = theme?.vars['--text3'] || '#4a7a58';
+  const today=new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}).toUpperCase();
+  const docRef='RC-'+new Date().getFullYear()+'-'+String(new Date().getMonth()+1).padStart(2,'0')+'-'+String(promotions.length).padStart(3,'0');
 
+  // Sort: highest rank first (lowest toGroupIndex = highest rank), then alphabetically within group
   const sorted=[...promotions].sort((a,b)=>{
     if(a.toGroupIndex!==b.toGroupIndex) return a.toGroupIndex-b.toGroupIndex;
-    return new Date(b.date)-new Date(a.date);
+    return a.name.localeCompare(b.name);
   });
 
-  const today=new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}).toUpperCase();
-  const COLS=3, PER_ROW=15, PER_COL=Math.ceil(PER_ROW/COLS);
+  // Build two-column grid entries — fill left column first, then right
+  const half=Math.ceil(sorted.length/2);
+  const leftCol=sorted.slice(0,half);
+  const rightCol=sorted.slice(half);
 
-  function buildEntry(p){
-    const m=members.find(mb=>mb.name===p.name);
-    const pos=m?.position||(rankGroups.find(g=>g.name===p.toGroup)?.position||'');
-    return `<div style="display:flex;align-items:center;justify-content:space-between;border-left:2px solid ${accent};padding:7px 8px 7px 10px;border-bottom:1px solid ${border};">
-      <div style="flex:1;min-width:0;">
-        <div style="color:${text};font-size:12px;font-weight:700;font-family:'JetBrains Mono',monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name}</div>
-        <div style="color:${accent};font-size:9px;letter-spacing:1px;font-family:'JetBrains Mono',monospace;margin-top:1px;">→ ${p.toGroup.toUpperCase()}</div>
-        <div style="color:${text3};font-size:8px;font-family:'JetBrains Mono',monospace;margin-top:1px;">Was: ${p.fromGroup||'—'}</div>
+  function buildEntry(p, idx){
+    const num=String(idx+1).padStart(3,'0');
+    return `<div style="display:grid;grid-template-columns:44px 1fr 64px;align-items:center;padding:10px 16px;border-bottom:1px solid #0f141c;gap:10px;">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#2a3550;font-weight:700;">${num}</div>
+      <div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:#c8d4e8;letter-spacing:0.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name.toUpperCase()}</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#4ade80;margin-top:2px;letter-spacing:1px;">→ ${p.toGroup.toUpperCase()}</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:8px;color:#2a3550;margin-top:1px;">WAS: ${(p.fromGroup||'—').toUpperCase()}</div>
       </div>
-      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:${text3};flex-shrink:0;margin-left:6px;">${p.toCS||'—'}</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:#4ade80;text-align:right;letter-spacing:1px;">${p.toCS||'—'}</div>
     </div>`;
   }
 
-  let rowsHtml='';
-  for(let r=0;r<sorted.length;r+=PER_ROW){
-    const chunk=sorted.slice(r,r+PER_ROW);
-    const startNum=r+1, endNum=Math.min(r+PER_ROW,sorted.length);
-    let colsHtml='';
-    for(let c=0;c<COLS;c++){
-      const col=chunk.slice(c*PER_COL,(c+1)*PER_COL);
-      colsHtml+=`<div style="flex:1;min-width:0;">${col.map(buildEntry).join('')}</div>`;
-    }
-    if(r>0) rowsHtml+=`<div style="border-top:1px dashed ${border};margin:8px 0;"></div>`;
-    rowsHtml+=`
-      <div style="font-size:8px;letter-spacing:2px;color:${text3};font-family:'JetBrains Mono',monospace;margin-bottom:6px;">${startNum} — ${endNum}</div>
-      <div style="display:flex;gap:12px;">${colsHtml}</div>`;
-  }
+  const leftHtml=leftCol.map((p,i)=>buildEntry(p,i)).join('');
+  const rightHtml=rightCol.map((p,i)=>buildEntry(p,i+half)).join('');
 
   const cardHtml=`
-    <div style="background:${bg};border:1px solid ${border};border-radius:10px;overflow:hidden;font-family:'JetBrains Mono',monospace;">
-      <div style="padding:18px 22px;border-bottom:1px solid ${border};">
-        <p style="font-size:8px;color:${accent};letter-spacing:3px;margin:0 0 6px;">✦ OFFICIAL ANNOUNCEMENT ✦</p>
-        <p style="font-size:20px;font-weight:700;color:${text};margin:0;letter-spacing:1px;">${deptName}</p>
-        <p style="font-size:8px;color:${accent};letter-spacing:2px;margin:6px 0 0;opacity:0.7;">PROMOTION LIST — ${today}</p>
+  <div id="promoCardInner" style="width:794px;min-height:1123px;background:#0a0c0f;font-family:'JetBrains Mono',monospace;padding:60px 64px;position:relative;border:1px solid #1e2230;">
+    <div style="position:absolute;top:20px;left:20px;width:24px;height:24px;border-top:1px solid #2a3040;border-left:1px solid #2a3040;"></div>
+    <div style="position:absolute;top:20px;right:20px;width:24px;height:24px;border-top:1px solid #2a3040;border-right:1px solid #2a3040;"></div>
+    <div style="position:absolute;bottom:20px;left:20px;width:24px;height:24px;border-bottom:1px solid #2a3040;border-left:1px solid #2a3040;"></div>
+    <div style="position:absolute;bottom:20px;right:20px;width:24px;height:24px;border-bottom:1px solid #2a3040;border-right:1px solid #2a3040;"></div>
+    <div style="position:absolute;bottom:80px;left:50%;transform:translateX(-50%);font-family:'Bebas Neue',sans-serif;font-size:120px;color:#0d1018;letter-spacing:8px;white-space:nowrap;pointer-events:none;">ROSTERCORE</div>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:48px;">
+      <div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:3px;color:#2a3550;">DOCUMENT REF — ${docRef}</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:3px;color:#2a3550;margin-top:4px;">CLASSIFICATION — OFFICIAL PERSONNEL NOTICE</div>
       </div>
-      <div style="padding:14px 18px;background:${bg2};">${rowsHtml}</div>
-      <div style="padding:10px 22px;border-top:1px solid ${border};background:${bg};display:flex;justify-content:space-between;align-items:center;">
-        <span style="font-size:8px;color:${text3};font-family:'JetBrains Mono',monospace;">Signed by <span style="color:${accent};">${currentUser?.name||deptName}</span></span>
-        <span style="font-size:8px;color:${text3};opacity:0.5;font-family:'JetBrains Mono',monospace;">ROSTERCORE.SPACE</span>
+      <div style="width:40px;height:40px;border:1px solid #2a3550;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;color:#2a3550;">⬡</div>
+    </div>
+
+    <div style="border-top:1px solid #1e2230;border-bottom:1px solid #1e2230;padding:24px 0;margin-bottom:40px;display:grid;grid-template-columns:1fr auto;">
+      <div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:52px;letter-spacing:4px;color:#e8ecf4;line-height:1;">${deptName}</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:4px;color:#3a4560;margin-top:8px;">DEPARTMENT PROMOTION ORDER</div>
       </div>
-    </div>`;
+      <div style="text-align:right;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:3px;color:#3a4560;">EFFECTIVE DATE</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:14px;color:#5b6b8a;margin-top:4px;letter-spacing:1px;">${today}</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:3px;color:#3a4560;margin-top:16px;">TOTAL PROMOTIONS</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:14px;color:#5b6b8a;margin-top:4px;">${sorted.length}</div>
+      </div>
+    </div>
+
+    <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:3px;color:#4ade80;margin-bottom:20px;display:flex;align-items:center;gap:12px;">
+      <div style="flex:1;height:1px;background:#1a2e20;"></div>
+      PROMOTION ORDER
+      <div style="flex:1;height:1px;background:#1a2e20;"></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;border:1px solid #1a2030;">
+      <div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:2px;color:#3a4560;padding:10px 16px;border-bottom:1px solid #1a2030;background:#0d1018;border-right:1px solid #1a2030;">PERSONNEL / NEW RANK</div>
+        <div style="border-right:1px solid #1a2030;">${leftHtml||'<div style="padding:16px;font-family:\'JetBrains Mono\',monospace;font-size:11px;color:#2a3550;">—</div>'}</div>
+      </div>
+      <div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:2px;color:#3a4560;padding:10px 16px;border-bottom:1px solid #1a2030;background:#0d1018;">PERSONNEL / NEW RANK</div>
+        <div>${rightHtml}</div>
+      </div>
+    </div>
+
+    <div style="margin-top:40px;display:grid;grid-template-columns:1fr auto 1fr;align-items:end;gap:20px;">
+      <div>
+        <div style="width:160px;border-bottom:1px solid #2a3550;margin-bottom:6px;"></div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#5b6b8a;letter-spacing:1px;">${currentUser?.name||deptName}</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:8px;color:#2a3550;letter-spacing:2px;margin-top:2px;">AUTHORIZED SIGNATORY</div>
+      </div>
+      <div style="text-align:center;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:48px;color:#1a2030;line-height:1;">${String(sorted.length).padStart(2,'0')}</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:3px;color:#2a3550;">PROMOTIONS</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:3px;color:#1e2535;margin-bottom:4px;">POWERED BY</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:8px;color:#2a3550;">ROSTERCORE.SPACE</div>
+      </div>
+    </div>
+  </div>`;
 
   document.getElementById('promoCard').innerHTML=cardHtml;
   document.getElementById('promoModal').classList.remove('hidden');
 }
 
 async function downloadPromoImage(){
-  const card=document.getElementById('promoCard');
+  const card=document.getElementById('promoCardInner')||document.getElementById('promoCard');
   try {
     if(!window.html2canvas){
       const script=document.createElement('script');
@@ -2765,13 +2834,12 @@ async function downloadPromoImage(){
       await new Promise(r=>script.onload=r);
     }
     showToast('Generating image…');
-    const theme = themes.find(t=>t.id===activeTheme);
-    const bgColor = customThemes[activeTheme==='custom-1'?0:1]?.bg || theme?.vars['--bg'] || '#07090d';
     const canvas=await html2canvas(card,{
-      backgroundColor:bgColor,
+      backgroundColor:'#0a0c0f',
       scale:2,
       useCORS:true,
-      logging:false
+      logging:false,
+      width:794
     });
     const link=document.createElement('a');
     link.download=deptName.replace(/\s+/g,'-')+'-Promotions.png';
@@ -2968,9 +3036,14 @@ function syncAutoPopulatedRosters(){
     }
 
     // Remove members no longer matching the subdivision
+    // But only if eligible is non-empty — if nobody matches the subdivision at all,
+    // don't wipe the existing members (could be a stale/wrong subdivision name)
     const stillEligibleIds = new Set(eligible.map(m=>m.id));
-    const filtered = srMembers.filter(x=>!x.mainMemberId || stillEligibleIds.has(x.mainMemberId));
-    if(filtered.length!==srMembers.length) changed=true;
+    let filtered = srMembers;
+    if(eligible.length > 0){
+      filtered = srMembers.filter(x=>!x.mainMemberId || stillEligibleIds.has(x.mainMemberId));
+      if(filtered.length!==srMembers.length) changed=true;
+    }
 
     if(changed){
       sr.members=filtered;
@@ -3114,13 +3187,16 @@ function _renderSecondaryRosterInner(id, sr){
 }
 
 async function saveSecondaryRoster(sr){
+  isSyncing = true;
   await sb.from('secondary_rosters').update({
     name: sr.name,
     source_subdivision: sr.source_subdivision,
     rank_groups: sr.rank_groups,
     members: sr.members,
+    use_roster_callsign: sr.use_roster_callsign,
     updated_at: new Date().toISOString()
   }).eq('id', sr.id);
+  setTimeout(()=>{ isSyncing = false; }, 2000);
 }
 
 function confirmDeleteSecondaryRoster(id){
