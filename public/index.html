@@ -832,6 +832,25 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
         </div>
         <div class="editor-divider"></div>
 
+        <!-- DEPARTMENT LOGO -->
+        <div class="editor-section">
+          <div class="editor-h3">Department Logo</div>
+          <div style="display:flex;align-items:center;gap:16px;">
+            <div id="deptLogoPreview" style="width:64px;height:64px;border:1px solid var(--border);border-radius:8px;background:var(--bg3);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;">
+              <span style="font-size:24px;color:var(--border2);">⬡</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <label class="btn btn-ghost btn-sm" style="cursor:pointer;">
+                Upload Logo
+                <input type="file" accept="image/*" style="display:none;" onchange="uploadDeptLogo(this)">
+              </label>
+              <button class="btn btn-danger" onclick="removeDeptLogo()" style="font-size:9px;padding:5px 10px;">Remove</button>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3);">Shows in header + promo cards. PNG or SVG recommended.</div>
+            </div>
+          </div>
+        </div>
+        <div class="editor-divider"></div>
+
         <!-- THEME -->
         <div class="editor-section">
           <div class="editor-h3">Theme</div>
@@ -1738,6 +1757,7 @@ function stopPresence(){
 }
 
 let deptName = '';
+let deptLogo = '';
 let rankGroups = [];
 let showInsignia = false;
 let alwaysShowInsignia = false;
@@ -1875,6 +1895,9 @@ async function loadDepartment(userId){
   showInsignia = rd.show_insignia||false;
   alwaysShowInsignia = rd.always_show_insignia||false;
   useRosterCallsign = rd.use_roster_callsign||false;
+  deptLogo = rd.dept_logo||'';
+  renderHeaderLogo();
+  renderDeptLogoPreview();
   members = rd.members||[];
   trainees = rd.trainees||[];
   nextMemberId = members.length>0 ? Math.max(...members.map(m=>m.id||0))+1 : 1;
@@ -1921,7 +1944,7 @@ async function saveRoster(){
 
     let updateQuery = sb.from('roster_data').update({
       rank_groups: rankGroups, subdivisions: subdivisions,
-      positions: positions, trainee_format: traineeFormat, trainee_format_to: traineeFormatTo, custom_tags: customTags, promotions: promotions, custom_themes: customThemes, show_insignia: showInsignia, always_show_insignia: alwaysShowInsignia, use_roster_callsign: useRosterCallsign,
+      positions: positions, trainee_format: traineeFormat, trainee_format_to: traineeFormatTo, custom_tags: customTags, promotions: promotions, custom_themes: customThemes, show_insignia: showInsignia, always_show_insignia: alwaysShowInsignia, use_roster_callsign: useRosterCallsign, dept_logo: deptLogo,
       theme: activeTheme, members: members, trainees: trainees,
       updated_at: newTimestamp
     }).eq('id', rosterDataId);
@@ -2789,10 +2812,11 @@ function generatePromoAnnouncement(){
         <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:3px;color:#2a3550;">DOCUMENT REF — ${docRef}</div>
         <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:3px;color:#2a3550;margin-top:4px;">CLASSIFICATION — OFFICIAL PERSONNEL NOTICE</div>
       </div>
-      <div style="width:40px;height:40px;border:1px solid #2a3550;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;color:#2a3550;">⬡</div>
+      <div style="width:40px;height:40px;border:1px solid #2a3550;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;color:#2a3550;overflow:hidden;">${deptLogo?`<img src="${deptLogo}" style="width:100%;height:100%;object-fit:contain;">`:'⬡'}</div>
     </div>
 
-    <div style="border-top:1px solid #1e2230;border-bottom:1px solid #1e2230;padding:24px 0;margin-bottom:40px;display:grid;grid-template-columns:1fr auto;">
+    <div style="border-top:1px solid #1e2230;border-bottom:1px solid #1e2230;padding:24px 0;margin-bottom:40px;display:grid;grid-template-columns:${deptLogo?'auto ':''} 1fr auto;gap:16px;align-items:center;">
+      ${deptLogo?`<img src="${deptLogo}" style="height:60px;width:60px;object-fit:contain;border-radius:8px;border:1px solid #1e2230;">`:''}
       <div>
         <div style="font-family:'Bebas Neue',sans-serif;font-size:52px;letter-spacing:4px;color:#e8ecf4;line-height:1;">${deptName}</div>
         <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:4px;color:#3a4560;margin-top:8px;">DEPARTMENT PROMOTION ORDER</div>
@@ -4322,6 +4346,7 @@ function renderEditor(){
   if(toEl) toEl.value=traineeFormatTo;
   updateTraineeFormatPreview();
   renderThemesGrid();
+  renderDeptLogoPreview();
   // Sync useRosterCallsign checkbox
   const rcsToggle = document.getElementById('useRosterCSToggle');
   if(rcsToggle) rcsToggle.checked = useRosterCallsign;
@@ -4430,6 +4455,51 @@ function selectCustomTheme(i){
   renderThemesGrid();
   scheduleSave();
   showToast(`✓ ${customThemes[i].name} applied.`);
+}
+
+function uploadDeptLogo(input){
+  const file = input.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    deptLogo = e.target.result;
+    renderDeptLogoPreview();
+    renderHeaderLogo();
+    scheduleSave();
+  };
+  reader.readAsDataURL(file);
+}
+function removeDeptLogo(){
+  deptLogo = '';
+  renderDeptLogoPreview();
+  renderHeaderLogo();
+  scheduleSave();
+}
+function renderDeptLogoPreview(){
+  const el = document.getElementById('deptLogoPreview');
+  if(!el) return;
+  if(deptLogo){
+    el.innerHTML = `<img src="${deptLogo}" style="width:100%;height:100%;object-fit:contain;border-radius:6px;">`;
+  } else {
+    el.innerHTML = `<span style="font-size:24px;color:var(--border2);">⬡</span>`;
+  }
+}
+function renderHeaderLogo(){
+  const existing = document.getElementById('headerLogoImg');
+  const nameEl = document.getElementById('headerName');
+  if(!nameEl) return;
+  if(deptLogo){
+    if(!existing){
+      const img = document.createElement('img');
+      img.id = 'headerLogoImg';
+      img.src = deptLogo;
+      img.style.cssText = 'height:40px;width:40px;object-fit:contain;border-radius:6px;border:1px solid var(--border);flex-shrink:0;';
+      nameEl.parentElement.insertBefore(img, nameEl);
+    } else {
+      existing.src = deptLogo;
+    }
+  } else {
+    if(existing) existing.remove();
+  }
 }
 
 function uploadInsignia(i, input){
