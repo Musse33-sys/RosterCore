@@ -3218,14 +3218,24 @@ function _renderSecondaryRosterInner(id, sr){
 
 async function saveSecondaryRoster(sr){
   isSyncing = true;
-  await sb.from('secondary_rosters').update({
+  const {data, error} = await sb.from('secondary_rosters').update({
     name: sr.name,
     source_subdivision: sr.source_subdivision,
     rank_groups: sr.rank_groups,
     members: sr.members,
     use_roster_callsign: sr.use_roster_callsign,
     updated_at: new Date().toISOString()
-  }).eq('id', sr.id);
+  }).eq('id', sr.id).select().single();
+  if(error){
+    showToast('⚠ Failed to save roster: '+error.message, true);
+    console.error('[saveSecondaryRoster]', error);
+  } else if(data){
+    const idx = secondaryRosters.findIndex(s=>s.id===sr.id);
+    if(idx>=0) secondaryRosters[idx] = data;
+  } else {
+    showToast('⚠ Roster save returned no data — check Supabase RLS policies.', true);
+    console.warn('[saveSecondaryRoster] No data returned for id:', sr.id);
+  }
   setTimeout(()=>{ isSyncing = false; }, 2000);
 }
 
@@ -3339,8 +3349,11 @@ function addSecondaryRankGroup(id){
   document.getElementById('srNewGroupFrom').value='';
   document.getElementById('srNewGroupTo').value='';
   renderSecondaryRankGroupList(id);
-  // Save immediately so rank groups persist even if modal is closed without Save
-  saveSecondaryRoster(sr);
+  // Save immediately and re-render after confirmation
+  saveSecondaryRoster(sr).then(()=>{
+    renderSecondaryRankGroupList(id);
+    if(activeSecondaryId===sr.id) renderSecondaryRoster(sr.id);
+  });
 }
 
 async function saveSecondaryRosterEdits(id){
