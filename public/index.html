@@ -715,29 +715,32 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
         <span class="admin-pill hidden" id="adminPill">⬡ Admin</span>
         <button class="btn btn-ghost btn-sm hidden" id="loginFromPublicBtn" onclick="showAuthModal()" style="font-size:10px;">Admin Login</button>
         <button class="btn btn-outline btn-sm hidden" id="shareBtn" onclick="openShareModal()">Share</button>
-        <button class="btn btn-ghost btn-sm hidden" id="saveRosterPdfBtn" onclick="downloadRosterPDF()" style="border-color:var(--green2);color:var(--green);font-size:10px;">⬇ Save Roster</button>
+        <button class="btn btn-ghost btn-sm hidden" id="saveRosterPdfBtn" onclick="downloadRosterPDF()" style="border-color:var(--green2);color:var(--green);font-size:10px;">↑ Save Roster</button>
         <button class="logout-btn" onclick="doLogout()">Logout</button>
-        <button id="hamburgerBtn" onclick="toggleHamburger(event)" style="background:transparent;border:1px solid var(--border);color:var(--text2);width:34px;height:34px;border-radius:var(--radius);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;transition:all .15s;flex-shrink:0;" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text2)'">
-          <span style="width:14px;height:1.5px;background:currentColor;border-radius:1px;display:block;"></span>
-          <span style="width:14px;height:1.5px;background:currentColor;border-radius:1px;display:block;"></span>
-          <span style="width:14px;height:1.5px;background:currentColor;border-radius:1px;display:block;"></span>
-        </button>
       </div>
     </div>
     <div id="demoBanner" style="display:none;background:rgba(167,139,250,.12);border-bottom:1px solid rgba(167,139,250,.3);padding:8px 32px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--purple);letter-spacing:1px;align-items:center;justify-content:space-between;">
       <span>▶ DEMO MODE — Changes are temporary and will reset on refresh.</span>
       <button onclick="doLogout()" style="background:transparent;border:1px solid rgba(167,139,250,.4);color:var(--purple);font-family:'JetBrains Mono',monospace;font-size:10px;padding:4px 10px;cursor:pointer;border-radius:var(--radius);">Exit Demo</button>
     </div>
+    <nav class="nav-bar" style="display:flex;align-items:stretch;position:relative;">
+      <!-- Roster tabs — always visible -->
       <button class="nav-tab hidden" id="rosterTab" onclick="switchTab('roster',this)">Main Roster</button>
       <button class="nav-tab hidden" id="traineesTab" onclick="switchTab('trainees',this)">Trainee Roster</button>
       <span id="secondaryRosterTabs"></span>
       <button class="nav-tab hidden" id="addRosterTab" onclick="openCreateSecondaryRoster()" style="color:var(--accent);font-weight:700;" title="Create a new roster">+ Roster</button>
       <button class="nav-tab hidden" id="membersTab" onclick="switchTab('members',this)">All Members</button>
-      <button class="nav-tab hidden" id="editorTab" onclick="switchTab('editor',this)">Editor</button>
-      <button class="nav-tab hidden" id="promoTab" onclick="switchTab('promotions',this)">Promotions</button>
-      <button class="nav-tab hidden" id="editLogTab" onclick="switchTab('editlog',this)">Edit Log</button>
-      <button class="nav-tab hidden" id="historyBtn" onclick="openHistoryModal()" style="color:var(--blue);">⟳ History</button>
-      <button class="nav-tab hidden" id="saTab" onclick="switchTab('superadmin',this)">⬡ Super Admin</button>
+      <!-- Tools dropdown -->
+      <div id="toolsDropdownWrap" class="hidden" style="position:relative;display:flex;align-items:stretch;margin-left:auto;">
+        <button id="toolsDropdownBtn" onclick="toggleToolsDropdown()" style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text2);padding:13px 18px;cursor:pointer;background:none;border:none;border-bottom:2px solid transparent;border-left:1px solid var(--border);white-space:nowrap;display:flex;align-items:center;gap:8px;transition:all .15s;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text2)'">⋯ Tools</button>
+        <div id="toolsDropdown" style="display:none;position:absolute;top:100%;right:0;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius);min-width:180px;z-index:999;box-shadow:0 8px 24px rgba(0,0,0,.4);overflow:hidden;">
+          <button id="editorTab" onclick="switchTab('editor',this);closeToolsDropdown()" class="hidden" style="width:100%;text-align:left;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text2);padding:12px 16px;background:none;border:none;border-bottom:1px solid var(--border);cursor:pointer;display:flex;align-items:center;gap:10px;transition:background .12s;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='none'">⚙ Editor</button>
+          <button id="promoTab" onclick="switchTab('promotions',this);closeToolsDropdown()" class="hidden" style="width:100%;text-align:left;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text2);padding:12px 16px;background:none;border:none;border-bottom:1px solid var(--border);cursor:pointer;display:flex;align-items:center;gap:10px;transition:background .12s;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='none'">▲ Promotions</button>
+          <button id="editLogTab" onclick="switchTab('editlog',this);closeToolsDropdown()" class="hidden" style="width:100%;text-align:left;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text2);padding:12px 16px;background:none;border:none;border-bottom:1px solid var(--border);cursor:pointer;display:flex;align-items:center;gap:10px;transition:background .12s;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='none'">📋 Edit Log</button>
+          <button id="historyBtn" onclick="openHistoryModal();closeToolsDropdown()" class="hidden" style="width:100%;text-align:left;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--blue);padding:12px 16px;background:none;border:none;border-bottom:1px solid var(--border);cursor:pointer;display:flex;align-items:center;gap:10px;transition:background .12s;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='none'">⟳ History</button>
+          <button id="saTab" onclick="switchTab('superadmin',this);closeToolsDropdown()" class="hidden" style="width:100%;text-align:left;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--purple);padding:12px 16px;background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:10px;transition:background .12s;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='none'">⬡ Super Admin</button>
+        </div>
+      </div>
     </nav>
   </header>
 
@@ -1469,6 +1472,9 @@ function loadDemo(){
   document.getElementById('membersTab').classList.remove('hidden');
   document.getElementById('editorTab').classList.remove('hidden');
   document.getElementById('promoTab').classList.remove('hidden');
+  document.getElementById('toolsDropdownWrap').classList.remove('hidden');
+  document.getElementById('historyBtn').classList.remove('hidden');
+  document.getElementById('editLogTab').classList.remove('hidden');
   document.getElementById('demoBanner').style.display='flex';
 
   renderAll();
@@ -1878,6 +1884,20 @@ async function loadDepartment(userId){
   nextTraineeId = trainees.length>0 ? Math.max(...trainees.map(t=>t.id||0))+1 : 1;
 }
 
+function toggleToolsDropdown(){
+  const d=document.getElementById('toolsDropdown');
+  d.style.display=d.style.display==='none'?'block':'none';
+}
+function closeToolsDropdown(){
+  const d=document.getElementById('toolsDropdown');
+  if(d) d.style.display='none';
+}
+// Close dropdown when clicking outside
+document.addEventListener('click',function(e){
+  const wrap=document.getElementById('toolsDropdownWrap');
+  if(wrap && !wrap.contains(e.target)) closeToolsDropdown();
+});
+
 function scheduleSave(){
   clearTimeout(saveTimer);
   saveTimer = setTimeout(()=>{
@@ -2115,6 +2135,7 @@ async function onLoginSuccess(user){
   document.getElementById('editorTab').classList.remove('hidden');
   document.getElementById('promoTab').classList.remove('hidden');
   document.getElementById('editLogTab').classList.remove('hidden');
+  document.getElementById('toolsDropdownWrap').classList.remove('hidden');
   document.getElementById('addMemberBtn').classList.remove('hidden');
   document.getElementById('addTraineeBtn').classList.remove('hidden');
   document.getElementById('shareBtn').classList.remove('hidden');
@@ -2159,7 +2180,7 @@ async function doLogout(){
 
   document.getElementById('appPage').style.display='none';
   const lp2=document.getElementById('landingPage'); lp2.style.display='flex'; lp2.style.visibility='visible'; lp2.style.height=''; lp2.style.overflow='';
-  ['saTab','rosterTab','traineesTab','membersTab','editorTab','promoTab','adminPill','addMemberBtn','addTraineeBtn','shareBtn','saveRosterPdfBtn','historyBtn','loginFromPublicBtn'].forEach(id=>{
+  ['saTab','rosterTab','traineesTab','membersTab','editorTab','promoTab','adminPill','addMemberBtn','addTraineeBtn','shareBtn','saveRosterPdfBtn','historyBtn','loginFromPublicBtn','editLogTab','toolsDropdownWrap'].forEach(id=>{
     const el=document.getElementById(id);
     if(el) el.classList.add('hidden');
   });
@@ -3576,6 +3597,18 @@ async function demoteSecondaryMember(rosterId, memberId){
 function switchTab(name, btn){
   document.querySelectorAll('.tab-panel').forEach(p=>{p.style.display='none';p.classList.remove('active');});
   document.querySelectorAll('.nav-tab').forEach(b=>b.classList.remove('active'));
+  // Highlight the Tools dropdown button when a tool tab is active
+  const toolsBtn=document.getElementById('toolsDropdownBtn');
+  const toolTabs=['editor','promotions','editlog','superadmin'];
+  if(toolsBtn){
+    if(toolTabs.includes(name)){
+      toolsBtn.style.color='var(--accent)';
+      toolsBtn.style.borderBottomColor='var(--accent)';
+    } else {
+      toolsBtn.style.color='';
+      toolsBtn.style.borderBottomColor='';
+    }
+  }
   const panel = document.getElementById('tab-'+name);
   if(panel){panel.style.display='block';panel.classList.add('active');}
   if(btn) btn.classList.add('active');
