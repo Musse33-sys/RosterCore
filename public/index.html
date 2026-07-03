@@ -98,20 +98,24 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 @keyframes grad-sweep{0%{background-position:200% 50%}100%{background-position:0% 50%}}
 #appPage{display:none;flex-direction:column;min-height:100vh;position:fixed;inset:0;z-index:5;background:var(--bg);overflow-y:auto;}
 
-.app-header{background:var(--bg);border-bottom:1px solid var(--border2);}
-.header-inner{display:flex;align-items:stretch;min-height:80px;}
-.header-rail{width:4px;background:linear-gradient(180deg,var(--accent),var(--green));flex-shrink:0;}
-.header-identity{display:flex;flex-direction:column;justify-content:center;padding:14px 20px;border-right:1px solid var(--border);min-width:180px;max-width:220px;}
-.header-rc{font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:3px;color:var(--text3);margin-bottom:4px;}
-.header-name{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:3px;color:var(--text);line-height:1.1;}
-.header-sub{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--green);display:flex;align-items:center;gap:5px;margin-top:5px;}
-.header-sub-dot{width:5px;height:5px;border-radius:50%;background:var(--green);flex-shrink:0;}
+.app-header{background:var(--bg);border-bottom:1px solid var(--border2);position:relative;overflow:hidden;}
+.header-accent-bar{height:2px;background:linear-gradient(90deg,transparent 0%,var(--accent) 30%,var(--green) 70%,transparent 100%);}
+.header-inner{display:flex;align-items:center;justify-content:space-between;padding:14px 28px;}
+.header-identity{display:flex;flex-direction:column;}
+.header-rail{display:none;}
+.header-rc{display:none;}
+.header-name{font-family:'Bebas Neue',sans-serif;font-size:30px;letter-spacing:4px;color:var(--text);line-height:1;}
+.header-sub{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3);margin-top:3px;font-style:italic;}
 .header-center{display:none;}
 .header-seal{display:none;}
-.header-right{display:flex;align-items:center;gap:8px;margin-left:auto;padding:0 24px;border-left:1px solid var(--border);}
+.header-right{display:flex;align-items:center;gap:8px;}
 .admin-pill{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;background:rgba(201,168,76,.1);border:1px solid var(--accent3);color:var(--accent);padding:4px 10px;border-radius:var(--radius);}
 .logout-btn{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;background:transparent;border:1px solid var(--red2);color:var(--red);padding:6px 12px;border-radius:var(--radius);cursor:pointer;transition:all .15s;}
 .logout-btn:hover{background:rgba(248,113,113,.1);}
+.header-tools-row{display:flex;align-items:center;padding:6px 28px;border-bottom:1px solid var(--border);gap:6px;background:var(--bg2);}
+.tools-label{font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:2px;color:var(--text3);text-transform:uppercase;margin-right:4px;}
+.tool-pill{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1px;padding:4px 11px;border-radius:4px;cursor:pointer;border:1px solid;background:transparent;transition:all .15s;text-transform:uppercase;}
+.tool-pill:hover{filter:brightness(1.3);}
 
 .app-nav{display:flex;align-items:center;padding:0 32px;overflow-x:auto;}
 .nav-tab{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text2);padding:13px 18px;cursor:pointer;background:none;border:none;border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap;}
@@ -699,17 +703,14 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 <!-- ══════════ APP ══════════ -->
 <div id="appPage" style="display:none;flex-direction:column;min-height:100vh;">
   <header class="app-header">
+    <div class="header-accent-bar"></div>
     <div class="header-inner">
-      <div class="header-rail"></div>
       <div class="header-identity">
-        <div class="header-rc">ROSTERCORE.SPACE</div>
         <div class="header-name" id="headerName">My Department</div>
-        <div class="header-sub">
-          <div class="header-sub-dot"></div>
-          <span id="onlineCount"></span>
-        </div>
+        <div class="header-sub">Personnel Management System</div>
       </div>
       <div class="header-right">
+        <span id="onlineCount" style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--green);display:flex;align-items:center;gap:5px;margin-right:4px;"></span>
         <span class="admin-pill hidden" id="adminPill">⬡ Admin</span>
         <button class="btn btn-ghost btn-sm hidden" id="loginFromPublicBtn" onclick="showAuthModal()" style="font-size:10px;">Admin Login</button>
         <button class="btn btn-outline btn-sm hidden" id="shareBtn" onclick="openShareModal()">Share</button>
@@ -717,28 +718,24 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
         <button class="logout-btn" onclick="doLogout()">Logout</button>
       </div>
     </div>
+    <div class="header-tools-row hidden" id="toolsRow">
+      <span class="tools-label">Tools</span>
+      <button id="membersTab" onclick="switchTab('members',this)" class="tool-pill hidden" style="color:var(--accent);border-color:color-mix(in srgb,var(--accent) 40%,transparent);background:color-mix(in srgb,var(--accent) 10%,transparent);">Members</button>
+      <button id="editorTab" onclick="switchTab('editor',this)" class="tool-pill hidden" style="color:#a78bfa;border-color:rgba(167,139,250,.4);background:rgba(167,139,250,.1);">⚙ Editor</button>
+      <button id="promoTab" onclick="switchTab('promotions',this)" class="tool-pill hidden" style="color:#4ade80;border-color:rgba(74,222,128,.4);background:rgba(74,222,128,.1);">▲ Promotions</button>
+      <button id="editLogTab" onclick="switchTab('editlog',this)" class="tool-pill hidden" style="color:#fbbf24;border-color:rgba(251,191,36,.4);background:rgba(251,191,36,.1);">📋 Edit Log</button>
+      <button id="historyBtn" onclick="openHistoryModal()" class="tool-pill hidden" style="color:#22d3ee;border-color:rgba(34,211,238,.4);background:rgba(34,211,238,.1);">⟳ History</button>
+      <button id="saTab" onclick="switchTab('superadmin',this)" class="tool-pill hidden" style="color:#a78bfa;border-color:rgba(167,139,250,.4);background:rgba(167,139,250,.1);">⬡ Super Admin</button>
+    </div>
     <div id="demoBanner" style="display:none;background:rgba(167,139,250,.12);border-bottom:1px solid rgba(167,139,250,.3);padding:8px 32px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--purple);letter-spacing:1px;align-items:center;justify-content:space-between;">
       <span>▶ DEMO MODE — Changes are temporary and will reset on refresh.</span>
       <button onclick="doLogout()" style="background:transparent;border:1px solid rgba(167,139,250,.4);color:var(--purple);font-family:'JetBrains Mono',monospace;font-size:10px;padding:4px 10px;cursor:pointer;border-radius:var(--radius);">Exit Demo</button>
     </div>
-    <nav class="nav-bar" style="display:flex;align-items:stretch;position:relative;">
-      <!-- Roster tabs — always visible -->
+    <nav class="nav-bar" style="display:flex;align-items:stretch;padding:0 28px;">
       <button class="nav-tab hidden" id="rosterTab" onclick="switchTab('roster',this)">Main Roster</button>
       <button class="nav-tab hidden" id="traineesTab" onclick="switchTab('trainees',this)">Trainee Roster</button>
       <span id="secondaryRosterTabs"></span>
       <button class="nav-tab hidden" id="addRosterTab" onclick="openCreateSecondaryRoster()" style="color:var(--accent);font-weight:700;" title="Create a new roster">+ Roster</button>
-      <button class="nav-tab hidden" id="membersTab" onclick="switchTab('members',this)">All Members</button>
-      <!-- Tools dropdown -->
-      <div id="toolsDropdownWrap" class="hidden" style="position:relative;display:flex;align-items:stretch;margin-left:auto;">
-        <button id="toolsDropdownBtn" onclick="toggleToolsDropdown()" style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text2);padding:13px 18px;cursor:pointer;background:none;border:none;border-bottom:2px solid transparent;border-left:1px solid var(--border);white-space:nowrap;display:flex;align-items:center;gap:8px;transition:all .15s;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text2)'">⋯ Tools</button>
-        <div id="toolsDropdown" style="display:none;position:absolute;top:100%;right:0;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius);min-width:180px;z-index:999;box-shadow:0 8px 24px rgba(0,0,0,.4);overflow:hidden;">
-          <button id="editorTab" onclick="switchTab('editor',this);closeToolsDropdown()" class="hidden" style="width:100%;text-align:left;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text2);padding:12px 16px;background:none;border:none;border-bottom:1px solid var(--border);cursor:pointer;display:flex;align-items:center;gap:10px;transition:background .12s;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='none'">⚙ Editor</button>
-          <button id="promoTab" onclick="switchTab('promotions',this);closeToolsDropdown()" class="hidden" style="width:100%;text-align:left;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text2);padding:12px 16px;background:none;border:none;border-bottom:1px solid var(--border);cursor:pointer;display:flex;align-items:center;gap:10px;transition:background .12s;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='none'">▲ Promotions</button>
-          <button id="editLogTab" onclick="switchTab('editlog',this);closeToolsDropdown()" class="hidden" style="width:100%;text-align:left;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text2);padding:12px 16px;background:none;border:none;border-bottom:1px solid var(--border);cursor:pointer;display:flex;align-items:center;gap:10px;transition:background .12s;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='none'">📋 Edit Log</button>
-          <button id="historyBtn" onclick="openHistoryModal();closeToolsDropdown()" class="hidden" style="width:100%;text-align:left;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--blue);padding:12px 16px;background:none;border:none;border-bottom:1px solid var(--border);cursor:pointer;display:flex;align-items:center;gap:10px;transition:background .12s;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='none'">⟳ History</button>
-          <button id="saTab" onclick="switchTab('superadmin',this);closeToolsDropdown()" class="hidden" style="width:100%;text-align:left;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--purple);padding:12px 16px;background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:10px;transition:background .12s;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='none'">⬡ Super Admin</button>
-        </div>
-      </div>
     </nav>
   </header>
 
@@ -1470,7 +1467,7 @@ function loadDemo(){
   document.getElementById('membersTab').classList.remove('hidden');
   document.getElementById('editorTab').classList.remove('hidden');
   document.getElementById('promoTab').classList.remove('hidden');
-  document.getElementById('toolsDropdownWrap').classList.remove('hidden');
+  document.getElementById('toolsRow').classList.remove('hidden');
   document.getElementById('historyBtn').classList.remove('hidden');
   document.getElementById('editLogTab').classList.remove('hidden');
   document.getElementById('demoBanner').style.display='flex';
@@ -1882,19 +1879,8 @@ async function loadDepartment(userId){
   nextTraineeId = trainees.length>0 ? Math.max(...trainees.map(t=>t.id||0))+1 : 1;
 }
 
-function toggleToolsDropdown(){
-  const d=document.getElementById('toolsDropdown');
-  d.style.display=d.style.display==='none'?'block':'none';
-}
-function closeToolsDropdown(){
-  const d=document.getElementById('toolsDropdown');
-  if(d) d.style.display='none';
-}
-// Close dropdown when clicking outside
-document.addEventListener('click',function(e){
-  const wrap=document.getElementById('toolsDropdownWrap');
-  if(wrap && !wrap.contains(e.target)) closeToolsDropdown();
-});
+function toggleToolsDropdown(){ /* no-op — tools are now always visible pills */ }
+function closeToolsDropdown(){ /* no-op */ }
 
 function scheduleSave(){
   clearTimeout(saveTimer);
@@ -2137,7 +2123,7 @@ async function onLoginSuccess(user){
   document.getElementById('editorTab').classList.remove('hidden');
   document.getElementById('promoTab').classList.remove('hidden');
   document.getElementById('editLogTab').classList.remove('hidden');
-  document.getElementById('toolsDropdownWrap').classList.remove('hidden');
+  document.getElementById('toolsRow').classList.remove('hidden');
   document.getElementById('addMemberBtn').classList.remove('hidden');
   document.getElementById('addTraineeBtn').classList.remove('hidden');
   document.getElementById('shareBtn').classList.remove('hidden');
@@ -2182,7 +2168,7 @@ async function doLogout(){
 
   document.getElementById('appPage').style.display='none';
   const lp2=document.getElementById('landingPage'); lp2.style.display='flex'; lp2.style.visibility='visible'; lp2.style.height=''; lp2.style.overflow='';
-  ['saTab','rosterTab','traineesTab','membersTab','editorTab','promoTab','adminPill','addMemberBtn','addTraineeBtn','shareBtn','saveRosterPdfBtn','historyBtn','loginFromPublicBtn','editLogTab','toolsDropdownWrap'].forEach(id=>{
+  ['saTab','rosterTab','traineesTab','membersTab','editorTab','promoTab','adminPill','addMemberBtn','addTraineeBtn','shareBtn','saveRosterPdfBtn','historyBtn','loginFromPublicBtn','editLogTab','toolsRow'].forEach(id=>{
     const el=document.getElementById(id);
     if(el) el.classList.add('hidden');
   });
@@ -3631,19 +3617,7 @@ async function demoteSecondaryMember(rosterId, memberId){
 
 function switchTab(name, btn){
   document.querySelectorAll('.tab-panel').forEach(p=>{p.style.display='none';p.classList.remove('active');});
-  document.querySelectorAll('.nav-tab').forEach(b=>b.classList.remove('active'));
-  // Highlight the Tools dropdown button when a tool tab is active
-  const toolsBtn=document.getElementById('toolsDropdownBtn');
-  const toolTabs=['editor','promotions','editlog','superadmin'];
-  if(toolsBtn){
-    if(toolTabs.includes(name)){
-      toolsBtn.style.color='var(--accent)';
-      toolsBtn.style.borderBottomColor='var(--accent)';
-    } else {
-      toolsBtn.style.color='';
-      toolsBtn.style.borderBottomColor='';
-    }
-  }
+  document.querySelectorAll('.nav-tab,.tool-pill').forEach(b=>b.classList.remove('active'));
   const panel = document.getElementById('tab-'+name);
   if(panel){panel.style.display='block';panel.classList.add('active');}
   if(btn) btn.classList.add('active');
