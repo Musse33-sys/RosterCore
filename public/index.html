@@ -100,8 +100,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 
 .app-header{background:var(--bg);border-bottom:1px solid var(--border2);}
 .header-accent-bar{height:2px;background:linear-gradient(90deg,transparent 0%,var(--accent) 30%,var(--green) 70%,transparent 100%);}
-.header-inner{display:flex;align-items:center;justify-content:space-between;padding:14px 28px;}
-.header-identity{display:flex;flex-direction:column;}
+.header-inner{display:flex;align-items:center;justify-content:space-between;padding:14px 28px;gap:16px;}
+.header-identity{display:flex;flex-direction:column;flex:1;}
 .header-rail{display:none;}
 .header-rc{display:none;}
 .header-name{font-family:'Bebas Neue',sans-serif;font-size:30px;letter-spacing:4px;color:var(--text);line-height:1;}
@@ -4485,17 +4485,18 @@ function renderDeptLogoPreview(){
 }
 function renderHeaderLogo(){
   const existing = document.getElementById('headerLogoImg');
-  const nameEl = document.getElementById('headerName');
-  if(!nameEl) return;
+  const identity = document.querySelector('.header-identity');
+  if(!identity) return;
   if(deptLogo){
     if(!existing){
       const img = document.createElement('img');
       img.id = 'headerLogoImg';
       img.src = deptLogo;
-      img.style.cssText = 'height:40px;width:40px;object-fit:contain;border-radius:6px;border:1px solid var(--border);flex-shrink:0;';
-      nameEl.parentElement.insertBefore(img, nameEl);
+      img.style.cssText = 'height:56px;width:56px;object-fit:contain;flex-shrink:0;';
+      identity.parentElement.insertBefore(img, identity);
     } else {
       existing.src = deptLogo;
+      existing.style.cssText = 'height:56px;width:56px;object-fit:contain;flex-shrink:0;';
     }
   } else {
     if(existing) existing.remove();
