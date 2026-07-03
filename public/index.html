@@ -1997,7 +1997,10 @@ async function reloadRosterFromServer(){
   nextTraineeId = trainees.length>0?Math.max(...trainees.map(t=>t.id||0))+1:1;
   lastKnownUpdatedAt = rd.updated_at;
   renderAll();
-  if(currentUser && currentUser.email !== 'shared') loadSecondaryRosters();
+  // Only reload the currently active secondary roster if there is one
+  if(activeSecondaryId && currentUser && currentUser.email!=='shared'){
+    reloadSecondaryRoster(activeSecondaryId);
+  }
 }
 
 async function saveSnapshot(){
@@ -3001,6 +3004,15 @@ function nextSecondaryCallsign(sr, groupName, excludeMemberId=null){
   return '';
 }
 
+async function reloadSecondaryRoster(id){
+  const {data,error}=await sb.from('secondary_rosters').select('*').eq('id',id).single();
+  if(error||!data) return;
+  const idx=secondaryRosters.findIndex(s=>s.id===id);
+  if(idx>=0) secondaryRosters[idx]=data;
+  else secondaryRosters.push(data);
+  if(activeSecondaryId===id) renderSecondaryRoster(id);
+}
+
 function syncAutoPopulatedRosters(){
   secondaryRosters.forEach(async sr=>{
     if(!sr.source_subdivision) return;
@@ -3077,7 +3089,12 @@ function syncAutoPopulatedRosters(){
 
     if(changed){
       sr.members=filtered;
-      await sb.from('secondary_rosters').update({members:filtered, updated_at:new Date().toISOString()}).eq('id',sr.id);
+      // Only update members — never write rank_groups or other fields here
+      // to avoid overwriting changes made elsewhere
+      await sb.from('secondary_rosters').update({
+        members: filtered,
+        updated_at: new Date().toISOString()
+      }).eq('id',sr.id);
       if(activeSecondaryId===sr.id) renderSecondaryRoster(sr.id);
     }
   });
@@ -3335,7 +3352,7 @@ function sr_removeGroup(id,i){
   saveSecondaryRoster(sr);
 }
 
-function addSecondaryRankGroup(id){
+async function addSecondaryRankGroup(id){
   const sr=getSR(id); if(!sr) return;
   const name=document.getElementById('srNewGroupName').value.trim();
   const from=document.getElementById('srNewGroupFrom').value.trim();
@@ -3349,11 +3366,10 @@ function addSecondaryRankGroup(id){
   document.getElementById('srNewGroupFrom').value='';
   document.getElementById('srNewGroupTo').value='';
   renderSecondaryRankGroupList(id);
-  // Save immediately and re-render after confirmation
-  saveSecondaryRoster(sr).then(()=>{
-    renderSecondaryRankGroupList(id);
-    if(activeSecondaryId===sr.id) renderSecondaryRoster(sr.id);
-  });
+  // Save immediately and reload from server to confirm rank groups persisted
+  await saveSecondaryRoster(sr);
+  await reloadSecondaryRoster(id);
+  renderSecondaryRankGroupList(id);
 }
 
 async function saveSecondaryRosterEdits(id){
