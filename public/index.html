@@ -1997,6 +1997,7 @@ async function reloadRosterFromServer(){
   nextTraineeId = trainees.length>0?Math.max(...trainees.map(t=>t.id||0))+1:1;
   lastKnownUpdatedAt = rd.updated_at;
   renderAll();
+  if(currentUser && currentUser.email !== 'shared') loadSecondaryRosters();
 }
 
 async function saveSnapshot(){
@@ -3319,6 +3320,7 @@ function sr_removeGroup(id,i){
   const sr=getSR(id); if(!sr) return;
   sr.rank_groups.splice(i,1);
   renderSecondaryRankGroupList(id);
+  saveSecondaryRoster(sr);
 }
 
 function addSecondaryRankGroup(id){
@@ -3327,13 +3329,16 @@ function addSecondaryRankGroup(id){
   const from=document.getElementById('srNewGroupFrom').value.trim();
   const to=document.getElementById('srNewGroupTo').value.trim();
   if(!name){ showToast('⚠ Group name required.', true); return; }
-  if(!sr.use_roster_callsign && (!from||!to)){ showToast('⚠ Fill in From and To callsigns.', true); return; }
+  const rosterMode = document.getElementById('srEditUseRosterCS')?.checked || sr.use_roster_callsign;
+  if(!rosterMode && (!from||!to)){ showToast('⚠ Fill in From and To callsigns.', true); return; }
   if(!sr.rank_groups) sr.rank_groups=[];
   sr.rank_groups.push({name, from:from||'', to:to||'', position:''});
   document.getElementById('srNewGroupName').value='';
   document.getElementById('srNewGroupFrom').value='';
   document.getElementById('srNewGroupTo').value='';
   renderSecondaryRankGroupList(id);
+  // Save immediately so rank groups persist even if modal is closed without Save
+  saveSecondaryRoster(sr);
 }
 
 async function saveSecondaryRosterEdits(id){
@@ -5304,7 +5309,7 @@ document.addEventListener('keydown',e=>{
     return;
   }
 
-  // Check for saved staff session in localStorage
+  // Check for saved staff session
   const savedStaff = localStorage.getItem('rc_staff_session');
   if(savedStaff){
     try{
@@ -5347,6 +5352,7 @@ document.addEventListener('keydown',e=>{
   // No session found — show landing page
   document.getElementById('landingPage').style.display='flex';
   loadLandingStats();
+
 })();
 </script>
 <button class="mobile-fab hidden" id="mobileFab" onclick="onMobileFab()">+</button>
