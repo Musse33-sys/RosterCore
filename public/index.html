@@ -1751,6 +1751,7 @@ let trainees = [];
 let secondaryRosters = [];
 let activeSecondaryId = null;
 let nextMemberId = 1;
+let nextPromoId = Date.now();
 let nextTraineeId = 1;
 
 let editingMemberId = null;
@@ -1909,43 +1910,44 @@ async function saveRoster(){
   if(currentUser?.email === 'demo'){ showToast('▶ Demo mode — changes are not saved.'); return; }
   if(!rosterDataId){ showToast('⚠ No roster ID — try logging out and back in.',true); return; }
   isSyncing = true;
-  const newTimestamp = new Date().toISOString();
+  try {
+    const newTimestamp = new Date().toISOString();
 
-  let updateQuery = sb.from('roster_data').update({
-    rank_groups: rankGroups, subdivisions: subdivisions,
-    positions: positions, trainee_format: traineeFormat, trainee_format_to: traineeFormatTo, custom_tags: customTags, promotions: promotions, custom_themes: customThemes, show_insignia: showInsignia, always_show_insignia: alwaysShowInsignia, use_roster_callsign: useRosterCallsign,
-    theme: activeTheme, members: members, trainees: trainees,
-    updated_at: newTimestamp
-  }).eq('id', rosterDataId);
+    let updateQuery = sb.from('roster_data').update({
+      rank_groups: rankGroups, subdivisions: subdivisions,
+      positions: positions, trainee_format: traineeFormat, trainee_format_to: traineeFormatTo, custom_tags: customTags, promotions: promotions, custom_themes: customThemes, show_insignia: showInsignia, always_show_insignia: alwaysShowInsignia, use_roster_callsign: useRosterCallsign,
+      theme: activeTheme, members: members, trainees: trainees,
+      updated_at: newTimestamp
+    }).eq('id', rosterDataId);
 
-  // Optimistic lock: only write if no one else has saved since we last loaded
-  if(lastKnownUpdatedAt) updateQuery = updateQuery.eq('updated_at', lastKnownUpdatedAt);
+    if(lastKnownUpdatedAt) updateQuery = updateQuery.eq('updated_at', lastKnownUpdatedAt);
 
-  const {data: writtenRows, error:e1} = await updateQuery.select('id');
+    const {data: writtenRows, error:e1} = await updateQuery.select('id');
 
-  if(currentUser && currentUser.email !== 'shared' && currentUser.email !== 'staff' && deptId){
-    await sb.from('departments').update({name: deptName}).eq('id', deptId);
+    if(currentUser && currentUser.email !== 'shared' && currentUser.email !== 'staff' && deptId){
+      await sb.from('departments').update({name: deptName}).eq('id', deptId);
+    }
+
+    if(e1){
+      showToast('⚠ Save failed: '+e1.message,true);
+    } else if(lastKnownUpdatedAt && (!writtenRows || writtenRows.length===0)){
+      if(saveTimer){ clearTimeout(saveTimer); saveTimer=null; }
+      showToast('⚠ Roster was updated by someone else — reloading. Do not edit until the page refreshes.', true);
+      logEdit('save_conflict_detected', { note: 'Local save blocked because roster changed elsewhere; reloaded fresh data instead of overwriting.' });
+      document.body.style.pointerEvents='none';
+      await reloadRosterFromServer();
+      document.body.style.pointerEvents='';
+      showToast('✓ Roster reloaded — you can continue editing.');
+    } else {
+      lastKnownUpdatedAt = newTimestamp;
+      showToast('✓ Saved.');
+      saveSnapshot();
+    }
+  } catch(e) {
+    showToast('⚠ Save error: '+e.message, true);
+  } finally {
+    setTimeout(()=>{ isSyncing = false; }, 3000);
   }
-
-  if(e1){
-    console.error('Save error:', e1);
-    showToast('⚠ Save failed: '+e1.message,true);
-  } else if(lastKnownUpdatedAt && (!writtenRows || writtenRows.length===0)){
-    // Conflict detected — someone else saved in between. Cancel any pending saves and reload.
-    if(saveTimer){ clearTimeout(saveTimer); saveTimer=null; }
-    showToast('⚠ Roster was updated by someone else — reloading. Do not edit until the page refreshes.', true);
-    logEdit('save_conflict_detected', { note: 'Local save blocked because roster changed elsewhere; reloaded fresh data instead of overwriting.' });
-    // Disable editing briefly so no actions fire while we reload
-    document.body.style.pointerEvents='none';
-    await reloadRosterFromServer();
-    document.body.style.pointerEvents='';
-    showToast('✓ Roster reloaded — you can continue editing.');
-  } else {
-    lastKnownUpdatedAt = newTimestamp;
-    showToast('✓ Saved.');
-    saveSnapshot();
-  }
-  setTimeout(()=>{ isSyncing = false; }, 3000);
 }
 
 async function reloadRosterFromServer(){
@@ -1953,6 +1955,12 @@ async function reloadRosterFromServer(){
   if(saveTimer){ clearTimeout(saveTimer); saveTimer=null; } // cancel any pending save
   const {data:rd} = await sb.from('roster_data').select('*').eq('id', rosterDataId).single();
   if(!rd) return;
+  // Guard: don't overwrite existing members with an empty array from server
+  // unless we also currently have no members (genuine empty roster)
+  if((!rd.members || rd.members.length === 0) && members.length > 0){
+    showToast('⚠ Server returned empty roster — reload aborted to protect your data.', true);
+    return;
+  }
   members = rd.members||[];
   trainees = rd.trainees||[];
   rankGroups = rd.rank_groups||[];
@@ -3206,11 +3214,14 @@ function confirmDeleteSecondaryRoster(id){
 }
 
 async function deleteSecondaryRoster(id){
+  isSyncing = true;
   await sb.from('secondary_rosters').delete().eq('id',id);
   document.getElementById('tab-sr-'+id)?.remove();
   document.getElementById('srTab_'+id)?.remove();
   secondaryRosters=secondaryRosters.filter(s=>s.id!==id);
+  if(activeSecondaryId===id) activeSecondaryId=null;
   switchTab('roster', document.getElementById('rosterTab'));
+  setTimeout(()=>{ isSyncing=false; }, 1000);
   showToast('✓ Roster deleted.');
 }
 
@@ -3987,7 +3998,7 @@ function promote(id){
   else { const pd=getPosData(m.position); if(pd&&pd.callsign) m.position=''; }
 
   promotions.push({
-    id: Date.now(),
+    id: nextPromoId++,
     name: m.name,
     fromGroup: oldGroup,
     toGroup: newGroup,
@@ -4142,7 +4153,7 @@ function saveMember(){
       if(newGroupIdx<oldGroupIdx){
         // Promoted to higher rank group — log it
         promotions.push({
-          id:Date.now(),
+          id: nextPromoId++,
           name:data.name,
           fromGroup:old.rankGroup,
           toGroup:data.rankGroup,
@@ -4160,7 +4171,7 @@ function saveMember(){
         if(newNum<oldNum){
           // Lower callsign number = higher rank within group — log it
           promotions.push({
-            id:Date.now(),
+            id: nextPromoId++,
             name:data.name,
             fromGroup:old.rankGroup,
             toGroup:data.rankGroup,
