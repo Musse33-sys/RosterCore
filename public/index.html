@@ -5304,7 +5304,7 @@ document.addEventListener('keydown',e=>{
     return;
   }
 
-  // Check for saved staff session
+  // Check for saved staff session in localStorage
   const savedStaff = localStorage.getItem('rc_staff_session');
   if(savedStaff){
     try{
@@ -5347,7 +5347,6 @@ document.addEventListener('keydown',e=>{
   // No session found — show landing page
   document.getElementById('landingPage').style.display='flex';
   loadLandingStats();
-
 })();
 </script>
 <button class="mobile-fab hidden" id="mobileFab" onclick="onMobileFab()">+</button>
