@@ -2705,7 +2705,8 @@ function generateInactiveCard(){
   fitInactiveCardToModal();
 }
 
-function fitInactiveCardToModal(){
+function fitInactiveCardToModal(retries){
+  retries = retries || 0;
   const wrap = document.getElementById('inactiveCard');
   const frames = wrap ? wrap.querySelectorAll('.inactive-page-frame') : [];
   if(!wrap || !frames.length) return;
@@ -2721,7 +2722,11 @@ function fitInactiveCardToModal(){
     const availWidth = parent.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
     const firstInner = frames[0].querySelector('.inactive-doc-page');
     const naturalWidth = firstInner.offsetWidth || 794;
-    const scale = Math.min(1, availWidth / naturalWidth);
+    if(availWidth <= 0 && retries < 10){
+      requestAnimationFrame(()=>fitInactiveCardToModal(retries+1));
+      return;
+    }
+    const scale = Math.min(1, Math.max(0.1, availWidth / naturalWidth || 1));
     frames.forEach(f=>{
       const inner=f.querySelector('.inactive-doc-page');
       const h = inner.offsetHeight;
@@ -2752,19 +2757,53 @@ async function downloadInactiveImage(){
       document.head.appendChild(script);
       await new Promise(r=>script.onload=r);
     }
+    if(pages.length>1 && !window.JSZip){
+      const zipScript=document.createElement('script');
+      zipScript.src='https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+      document.head.appendChild(zipScript);
+      await new Promise(r=>zipScript.onload=r);
+    }
     showToast(pages.length>1?`Generating ${pages.length} images…`:'Generating image…');
+
+    const canvases=[];
     for(let i=0;i<pages.length;i++){
       frames.forEach((f,idx)=>{ f.style.display = idx===i ? '' : 'none'; });
       await new Promise(r=>requestAnimationFrame(r));
-      const canvas=await html2canvas(pages[i],{backgroundColor:'#0a0808',scale:2,useCORS:true,logging:false,width:794});
-      const link=document.createElement('a');
-      const suffix=pages.length>1?`-Page${i+1}of${pages.length}`:'';
-      link.download=deptName.replace(/\s+/g,'-')+'-Inactive-List'+suffix+'.png';
-      link.href=canvas.toDataURL('image/png');
-      link.click();
-      if(i<pages.length-1) await new Promise(r=>setTimeout(r,350));
+      await new Promise(r=>requestAnimationFrame(r));
+      const naturalHeight=pages[i].offsetHeight;
+      const canvas=await html2canvas(pages[i],{
+        backgroundColor:'#0a0808',
+        scale:2,
+        useCORS:true,
+        logging:false,
+        width:794,
+        height:naturalHeight,
+        windowWidth:794,
+        windowHeight:naturalHeight
+      });
+      canvases.push(canvas);
     }
-    showToast(pages.length>1?'✓ Images downloaded!':'✓ Image downloaded!');
+
+    const baseName=deptName.replace(/\s+/g,'-')+'-Inactive-List';
+    if(canvases.length>1){
+      const zip=new JSZip();
+      for(let i=0;i<canvases.length;i++){
+        const blob=await new Promise(res=>canvases[i].toBlob(res,'image/png'));
+        zip.file(`${baseName}-Page${i+1}of${canvases.length}.png`, blob);
+      }
+      const zipBlob=await zip.generateAsync({type:'blob'});
+      const link=document.createElement('a');
+      link.download=baseName+'.zip';
+      link.href=URL.createObjectURL(zipBlob);
+      link.click();
+      showToast('✓ ZIP downloaded!');
+    } else {
+      const link=document.createElement('a');
+      link.download=baseName+'.png';
+      link.href=canvases[0].toDataURL('image/png');
+      link.click();
+      showToast('✓ Image downloaded!');
+    }
   }catch(e){
     showToast('⚠ Download failed. Try screenshot instead.',true);
   } finally {
@@ -3076,7 +3115,8 @@ function generatePromoAnnouncement(){
   fitPromoCardToModal();
 }
 
-function fitPromoCardToModal(){
+function fitPromoCardToModal(retries){
+  retries = retries || 0;
   const wrap = document.getElementById('promoCard');
   const frames = wrap ? wrap.querySelectorAll('.promo-page-frame') : [];
   if(!wrap || !frames.length) return;
@@ -3092,7 +3132,13 @@ function fitPromoCardToModal(){
     const availWidth = parent.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
     const firstInner = frames[0].querySelector('.promo-doc-page');
     const naturalWidth = firstInner.offsetWidth || 794;
-    const scale = Math.min(1, availWidth / naturalWidth);
+    // Parent may not have finished laying out yet (e.g. modal just became visible) — retry
+    // a few times rather than applying a bogus zero/negative scale.
+    if(availWidth <= 0 && retries < 10){
+      requestAnimationFrame(()=>fitPromoCardToModal(retries+1));
+      return;
+    }
+    const scale = Math.min(1, Math.max(0.1, availWidth / naturalWidth || 1));
     frames.forEach(f=>{
       const inner=f.querySelector('.promo-doc-page');
       const h = inner.offsetHeight;
@@ -3123,26 +3169,54 @@ async function downloadPromoImage(){
       document.head.appendChild(script);
       await new Promise(r=>script.onload=r);
     }
+    if(pages.length>1 && !window.JSZip){
+      const zipScript=document.createElement('script');
+      zipScript.src='https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+      document.head.appendChild(zipScript);
+      await new Promise(r=>zipScript.onload=r);
+    }
     showToast(pages.length>1?`Generating ${pages.length} images…`:'Generating image…');
+
+    const canvases=[];
     for(let i=0;i<pages.length;i++){
       // Hide every other page so html2canvas has nothing else in the layout to pick up
       frames.forEach((f,idx)=>{ f.style.display = idx===i ? '' : 'none'; });
       await new Promise(r=>requestAnimationFrame(r));
+      await new Promise(r=>requestAnimationFrame(r));
+      const naturalHeight=pages[i].offsetHeight;
       const canvas=await html2canvas(pages[i],{
         backgroundColor:'#0a0c0f',
         scale:2,
         useCORS:true,
         logging:false,
-        width:794
+        width:794,
+        height:naturalHeight,
+        windowWidth:794,
+        windowHeight:naturalHeight
       });
-      const link=document.createElement('a');
-      const suffix=pages.length>1?`-Page${i+1}of${pages.length}`:'';
-      link.download=deptName.replace(/\s+/g,'-')+'-Promotions'+suffix+'.png';
-      link.href=canvas.toDataURL('image/png');
-      link.click();
-      if(i<pages.length-1) await new Promise(r=>setTimeout(r,350));
+      canvases.push(canvas);
     }
-    showToast(pages.length>1?'✓ Images downloaded!':'✓ Image downloaded!');
+
+    const baseName=deptName.replace(/\s+/g,'-')+'-Promotions';
+    if(canvases.length>1){
+      const zip=new JSZip();
+      for(let i=0;i<canvases.length;i++){
+        const blob=await new Promise(res=>canvases[i].toBlob(res,'image/png'));
+        zip.file(`${baseName}-Page${i+1}of${canvases.length}.png`, blob);
+      }
+      const zipBlob=await zip.generateAsync({type:'blob'});
+      const link=document.createElement('a');
+      link.download=baseName+'.zip';
+      link.href=URL.createObjectURL(zipBlob);
+      link.click();
+      showToast('✓ ZIP downloaded!');
+    } else {
+      const link=document.createElement('a');
+      link.download=baseName+'.png';
+      link.href=canvases[0].toDataURL('image/png');
+      link.click();
+      showToast('✓ Image downloaded!');
+    }
   } catch(e){
     showToast('⚠ Download failed. Try screenshot instead.',true);
   } finally {
