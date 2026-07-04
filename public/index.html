@@ -2818,8 +2818,17 @@ function generatePromoAnnouncement(){
     </div>`;
   }
 
+  function mixHex(hex, pct, baseHex){
+    const h2rgb = h => { h=h.replace('#',''); if(h.length===3) h=h.split('').map(c=>c+c).join(''); const n=parseInt(h,16); return [(n>>16)&255,(n>>8)&255,n&255]; };
+    const [r1,g1,b1]=h2rgb(hex), [r2,g2,b2]=h2rgb(baseHex);
+    const r=Math.round(r1*pct/100 + r2*(1-pct/100));
+    const g=Math.round(g1*pct/100 + g2*(1-pct/100));
+    const b=Math.round(b1*pct/100 + b2*(1-pct/100));
+    return `rgb(${r},${g},${b})`;
+  }
+
   function buildGroup(name, entries, color, isFirst){
-    return `<div style="display:flex;align-items:center;gap:10px;padding:11px 16px;background:color-mix(in srgb, ${color} 10%, #10131c);border:1px solid color-mix(in srgb, ${color} 30%, #242938);${isFirst?'':'margin-top:16px;'}">
+    return `<div style="display:flex;align-items:center;gap:10px;padding:11px 16px;background:${mixHex(color,10,'#10131c')};border:1px solid ${mixHex(color,30,'#242938')};${isFirst?'':'margin-top:16px;'}">
       <span style="width:8px;height:8px;border-radius:50%;background:${color};flex-shrink:0;"></span>
       <span style="font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:2px;color:${color};font-weight:700;">${name.toUpperCase()}</span>
       <span style="margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:10.5px;color:#5a6b8f;">${entries.length} promotion${entries.length===1?'':'s'}</span>
