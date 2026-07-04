@@ -822,7 +822,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   </div>
 </div>
     <div class="modal-overlay hidden" id="promoModal" onclick="if(event.target===this)this.classList.add('hidden')">
-      <div class="modal" style="max-width:560px;">
+      <div class="modal" style="width:680px;max-width:96vw;">
         <div class="modal-title">Promotion Announcement</div>
         <div class="modal-sub">Download as image to post in Discord.</div>
         <div id="promoCard" style="background:#0a0c10;border:1px solid #2a2f3d;border-radius:6px;overflow:hidden;font-family:'JetBrains Mono',monospace;margin-bottom:16px;"></div>
@@ -2896,10 +2896,39 @@ function generatePromoAnnouncement(){
 
   document.getElementById('promoCard').innerHTML=cardHtml;
   document.getElementById('promoModal').classList.remove('hidden');
+  fitPromoCardToModal();
 }
+
+function fitPromoCardToModal(){
+  const wrap = document.getElementById('promoCard');
+  const inner = document.getElementById('promoCardInner');
+  if(!wrap || !inner) return;
+  // Reset any prior scaling before measuring
+  inner.style.transform = 'none';
+  wrap.style.width = '';
+  wrap.style.height = '';
+  requestAnimationFrame(()=>{
+    const parent = wrap.parentElement;
+    const cs = getComputedStyle(parent);
+    const availWidth = parent.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+    const naturalWidth = inner.offsetWidth || 794;
+    const naturalHeight = inner.offsetHeight;
+    const scale = Math.min(1, availWidth / naturalWidth);
+    inner.style.transform = `scale(${scale})`;
+    inner.style.transformOrigin = 'top left';
+    wrap.style.width = (naturalWidth*scale)+'px';
+    wrap.style.height = (naturalHeight*scale)+'px';
+    wrap.style.margin = '0 auto';
+  });
+}
+window.addEventListener('resize', ()=>{ if(!document.getElementById('promoModal').classList.contains('hidden')) fitPromoCardToModal(); });
 
 async function downloadPromoImage(){
   const card=document.getElementById('promoCardInner')||document.getElementById('promoCard');
+  const wrap=document.getElementById('promoCard');
+  const prevTransform=card.style.transform, prevW=wrap.style.width, prevH=wrap.style.height;
+  card.style.transform='none';
+  wrap.style.width=''; wrap.style.height='';
   try {
     if(!window.html2canvas){
       const script=document.createElement('script');
@@ -2922,6 +2951,9 @@ async function downloadPromoImage(){
     showToast('✓ Image downloaded!');
   } catch(e){
     showToast('⚠ Download failed. Try screenshot instead.',true);
+  } finally {
+    card.style.transform=prevTransform; wrap.style.width=prevW; wrap.style.height=prevH;
+    fitPromoCardToModal();
   }
 }
 
