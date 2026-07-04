@@ -2742,6 +2742,7 @@ async function downloadInactiveImage(){
   const pages=frames.map(f=>f.querySelector('.inactive-doc-page'));
   const prevTransforms=pages.map(p=>p.style.transform);
   const prevFrameSizes=frames.map(f=>({w:f.style.width,h:f.style.height}));
+  const prevDisplay=frames.map(f=>f.style.display);
   pages.forEach(p=>p.style.transform='none');
   frames.forEach(f=>{f.style.width='';f.style.height='';});
   try{
@@ -2753,6 +2754,8 @@ async function downloadInactiveImage(){
     }
     showToast(pages.length>1?`Generating ${pages.length} images…`:'Generating image…');
     for(let i=0;i<pages.length;i++){
+      frames.forEach((f,idx)=>{ f.style.display = idx===i ? '' : 'none'; });
+      await new Promise(r=>requestAnimationFrame(r));
       const canvas=await html2canvas(pages[i],{backgroundColor:'#0a0808',scale:2,useCORS:true,logging:false,width:794});
       const link=document.createElement('a');
       const suffix=pages.length>1?`-Page${i+1}of${pages.length}`:'';
@@ -2765,6 +2768,7 @@ async function downloadInactiveImage(){
   }catch(e){
     showToast('⚠ Download failed. Try screenshot instead.',true);
   } finally {
+    frames.forEach((f,i)=>{ f.style.display=prevDisplay[i]; });
     pages.forEach((p,i)=>{ p.style.transform=prevTransforms[i]; });
     frames.forEach((f,i)=>{ f.style.width=prevFrameSizes[i].w; f.style.height=prevFrameSizes[i].h; });
     fitInactiveCardToModal();
@@ -3109,6 +3113,7 @@ async function downloadPromoImage(){
   const pages=frames.map(f=>f.querySelector('.promo-doc-page'));
   const prevTransforms=pages.map(p=>p.style.transform);
   const prevFrameSizes=frames.map(f=>({w:f.style.width,h:f.style.height}));
+  const prevDisplay=frames.map(f=>f.style.display);
   pages.forEach(p=>p.style.transform='none');
   frames.forEach(f=>{f.style.width='';f.style.height='';});
   try {
@@ -3120,6 +3125,9 @@ async function downloadPromoImage(){
     }
     showToast(pages.length>1?`Generating ${pages.length} images…`:'Generating image…');
     for(let i=0;i<pages.length;i++){
+      // Hide every other page so html2canvas has nothing else in the layout to pick up
+      frames.forEach((f,idx)=>{ f.style.display = idx===i ? '' : 'none'; });
+      await new Promise(r=>requestAnimationFrame(r));
       const canvas=await html2canvas(pages[i],{
         backgroundColor:'#0a0c0f',
         scale:2,
@@ -3138,6 +3146,7 @@ async function downloadPromoImage(){
   } catch(e){
     showToast('⚠ Download failed. Try screenshot instead.',true);
   } finally {
+    frames.forEach((f,i)=>{ f.style.display=prevDisplay[i]; });
     pages.forEach((p,i)=>{ p.style.transform=prevTransforms[i]; });
     frames.forEach((f,i)=>{ f.style.width=prevFrameSizes[i].w; f.style.height=prevFrameSizes[i].h; });
     fitPromoCardToModal();
