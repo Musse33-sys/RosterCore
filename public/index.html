@@ -724,8 +724,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
         </div>
       </div>
       <div class="header-right">
-        <span id="onlineCount" style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--green);display:none;align-items:center;gap:6px;border:1px solid var(--green2);background:rgba(74,222,128,.08);padding:7px 12px;border-radius:8px;"></span>
-        <span class="admin-pill hidden" id="adminPill">⬡ Admin</span>
         <button class="btn btn-ghost btn-sm hidden" id="loginFromPublicBtn" onclick="showAuthModal()" style="font-size:10px;border-radius:8px;">Login</button>
         <button class="btn btn-outline btn-sm hidden" id="shareBtn" onclick="openShareModal()" style="border-radius:8px;">Share</button>
         <button class="btn btn-ghost btn-sm hidden" id="saveRosterPdfBtn" onclick="downloadRosterPDF()" style="border-color:var(--green2);color:var(--green);font-size:10px;border-radius:8px;">↑ Save Roster</button>
@@ -1453,9 +1451,6 @@ function loadDemo(){
   window.scrollTo(0,0);
   document.getElementById('headerName').textContent = deptName;
   setAvatar('Demo');
-  document.getElementById('adminPill').style.background = 'rgba(167,139,250,.1)';
-  document.getElementById('adminPill').style.borderColor = 'rgba(167,139,250,.4)';
-  document.getElementById('adminPill').style.color = 'var(--purple)';
   document.getElementById('addMemberBtn').classList.remove('hidden');
   document.getElementById('addTraineeBtn').classList.remove('hidden');
   document.getElementById('rosterTab').classList.remove('hidden');
@@ -2112,7 +2107,6 @@ async function onLoginSuccess(user){
 
   if(isSuperAdmin){
     document.getElementById('saTab').classList.remove('hidden');
-    document.getElementById('adminPill').classList.remove('hidden');
     ['tab-roster','tab-trainees','tab-members'].forEach(id=>{
       const el=document.getElementById(id);
       if(el){el.style.display='none';el.classList.remove('active');}
@@ -2183,7 +2177,7 @@ async function doLogout(){
 
   document.getElementById('appPage').style.display='none';
   const lp2=document.getElementById('landingPage'); lp2.style.display='flex'; lp2.style.visibility='visible'; lp2.style.height=''; lp2.style.overflow='';
-  ['saTab','rosterTab','traineesTab','membersTab','editorTab','promoTab','adminPill','addMemberBtn','addTraineeBtn','shareBtn','saveRosterPdfBtn','historyBtn','loginFromPublicBtn','editLogTab','toolsRow'].forEach(id=>{
+  ['saTab','rosterTab','traineesTab','membersTab','editorTab','promoTab','addMemberBtn','addTraineeBtn','shareBtn','saveRosterPdfBtn','historyBtn','loginFromPublicBtn','editLogTab','toolsRow'].forEach(id=>{
     const el=document.getElementById(id);
     if(el) el.classList.add('hidden');
   });
