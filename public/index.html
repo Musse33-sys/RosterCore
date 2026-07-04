@@ -478,184 +478,192 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   </div>
 
   <!-- HERO -->
-  <div style="text-align:center;padding:90px 24px 70px;width:100%;max-width:900px;display:flex;flex-direction:column;align-items:center;position:relative;">
-    <div style="position:fixed;inset:0;background-image:radial-gradient(circle,#2a2a2a 1px,transparent 1px);background-size:24px 24px;opacity:0.5;pointer-events:none;z-index:0;top:60px;"></div>
-    <h1 style="font-family:'Inter',sans-serif;font-size:clamp(36px,6vw,62px);font-weight:800;line-height:1.1;color:var(--text);margin-bottom:14px;letter-spacing:-2px;position:relative;z-index:1;">The Roster System Your<br>Department <span id="deserves" style="font-style:italic;">Deserves.</span></h1>
-    <style>
-      @keyframes rgb-sweep{0%{background-position:200% 50%}100%{background-position:0% 50%}}
-      #deserves{background:linear-gradient(90deg,#3b82f6,#a78bfa,#f87171,#fbbf24,#4ade80,#3b82f6,#a78bfa,#f87171);background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:rgb-sweep 3s linear infinite;}
-    </style>
-    <p style="font-family:'Inter',sans-serif;font-size:16px;color:var(--text2);max-width:520px;margin:0 auto 36px;line-height:1.8;position:relative;z-index:1;">Stop managing your department in Google Sheets. RosterCore gives serious FiveM servers a real roster system built from the ground up.</p>
-    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:60px;position:relative;z-index:1;">
-      <button class="btn btn-primary" style="font-size:12px;padding:14px 36px;" onclick="showAuthModal()">GET STARTED FREE</button>
-      <button class="btn btn-ghost" style="font-size:12px;padding:14px 36px;" onclick="document.getElementById('howitworks').scrollIntoView({behavior:'smooth'})">HOW IT WORKS</button>
-      <button class="btn" style="font-size:12px;padding:14px 36px;background:rgba(167,139,250,.1);color:var(--purple);border:1px solid rgba(167,139,250,.3);" onmouseover="this.style.background='rgba(167,139,250,.2)'" onmouseout="this.style.background='rgba(167,139,250,.1)'" onclick="loadDemo()">&#x25B6; TRY DEMO</button>
-    </div>
-    <div class="landing-stats-bar" style="display:flex;border:1px solid #1e1e1e;width:100%;max-width:640px;position:relative;z-index:1;overflow-x:auto;-webkit-overflow-scrolling:touch;">
-      <div style="flex:1;padding:18px;text-align:center;border-right:1px solid #1e1e1e;">
-        <div style="font-family:'Inter',sans-serif;font-size:26px;font-weight:800;color:var(--accent);" id="statDepts">—</div>
-        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--text3);margin-top:3px;">DEPARTMENTS</div>
+  <div style="width:100%;border-bottom:1px solid #1e1e1e;">
+    <div style="display:grid;grid-template-columns:1.1fr 1fr;gap:48px;align-items:center;padding:80px 40px;max-width:1200px;margin:0 auto;">
+      <div>
+        <div style="display:inline-block;background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.3);color:var(--blue);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;padding:6px 14px;border-radius:20px;margin-bottom:20px;">BUILT FOR FIVEM DEPARTMENTS</div>
+        <h1 style="font-family:'Inter',sans-serif;font-size:clamp(32px,4.5vw,48px);font-weight:800;line-height:1.1;color:var(--text);margin-bottom:20px;letter-spacing:-1.5px;">Stop running your department out of a <span id="deserves" style="font-style:italic;">spreadsheet.</span></h1>
+        <style>
+          @keyframes rgb-sweep{0%{background-position:200% 50%}100%{background-position:0% 50%}}
+          #deserves{background:linear-gradient(90deg,#3b82f6,#a78bfa,#f87171,#fbbf24,#4ade80,#3b82f6,#a78bfa,#f87171);background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:rgb-sweep 3s linear infinite;}
+        </style>
+        <p style="font-family:'Inter',sans-serif;font-size:16px;color:var(--text2);line-height:1.8;margin-bottom:32px;max-width:460px;">RosterCore replaces Google Sheets and Discord bots with a real roster system — callsigns, ranks, promotions and version history, all synced live.</p>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;">
+          <button class="btn btn-primary" style="font-size:12px;padding:14px 32px;" onclick="showAuthModal()">GET STARTED FREE</button>
+          <button class="btn btn-ghost" style="font-size:12px;padding:14px 32px;" onclick="document.getElementById('howitworks').scrollIntoView({behavior:'smooth'})">HOW IT WORKS</button>
+          <button class="btn" style="font-size:12px;padding:14px 32px;background:rgba(167,139,250,.1);color:var(--purple);border:1px solid rgba(167,139,250,.3);" onmouseover="this.style.background='rgba(167,139,250,.2)'" onmouseout="this.style.background='rgba(167,139,250,.1)'" onclick="loadDemo()">&#x25B6; TRY DEMO</button>
+        </div>
+        <div style="display:flex;gap:32px;margin-top:44px;flex-wrap:wrap;">
+          <div><div style="font-family:'Inter',sans-serif;font-size:24px;font-weight:800;color:var(--accent);" id="statDepts">—</div><div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--text3);margin-top:3px;">DEPARTMENTS</div></div>
+          <div><div style="font-family:'Inter',sans-serif;font-size:24px;font-weight:800;color:var(--blue);" id="statMembers">—</div><div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--text3);margin-top:3px;">MEMBERS TRACKED</div></div>
+          <div><div style="font-family:'Inter',sans-serif;font-size:24px;font-weight:800;color:var(--green);" id="statTrainees">—</div><div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--text3);margin-top:3px;">TRAINEES</div></div>
+          <div><div style="font-family:'Inter',sans-serif;font-size:24px;font-weight:800;color:var(--purple);">48HR</div><div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--text3);margin-top:3px;">VERSION HISTORY</div></div>
+        </div>
       </div>
-      <div style="flex:1;padding:18px;text-align:center;border-right:1px solid #1e1e1e;">
-        <div style="font-family:'Inter',sans-serif;font-size:26px;font-weight:800;color:var(--blue);" id="statMembers">—</div>
-        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--text3);margin-top:3px;">MEMBERS TRACKED</div>
-      </div>
-      <div style="flex:1;padding:18px;text-align:center;border-right:1px solid #1e1e1e;">
-        <div style="font-family:'Inter',sans-serif;font-size:26px;font-weight:800;color:var(--green);" id="statTrainees">—</div>
-        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--text3);margin-top:3px;">TRAINEES</div>
-      </div>
-      <div style="flex:1;padding:18px;text-align:center;">
-        <div style="font-family:'Inter',sans-serif;font-size:26px;font-weight:800;color:var(--purple);">48HR</div>
-        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--text3);margin-top:3px;">VERSION HISTORY</div>
+      <div style="position:relative;">
+        <div style="background:#0a0c0f;border:1px solid #242938;border-radius:10px;overflow:hidden;">
+          <div style="display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid #1e222e;">
+            <div style="width:34px;height:34px;border-radius:50%;border:1.5px solid var(--accent);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--accent);flex-shrink:0;">LS</div>
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;color:var(--text);">LOS SANTOS POLICE DEPARTMENT</div>
+          </div>
+          <div style="padding:14px 18px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+            <div style="background:#12161f;border:1px solid #242938;border-radius:6px;padding:8px 10px;"><div style="font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--text3);letter-spacing:1px;">TOTAL</div><div style="font-family:'Inter',sans-serif;font-size:16px;font-weight:700;color:var(--accent);">14</div></div>
+            <div style="background:#12161f;border:1px solid #242938;border-radius:6px;padding:8px 10px;"><div style="font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--text3);letter-spacing:1px;">ACTIVE</div><div style="font-family:'Inter',sans-serif;font-size:16px;font-weight:700;color:var(--green);">14</div></div>
+            <div style="background:#12161f;border:1px solid #242938;border-radius:6px;padding:8px 10px;"><div style="font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--text3);letter-spacing:1px;">TRAINEES</div><div style="font-family:'Inter',sans-serif;font-size:16px;font-weight:700;color:var(--purple);">9</div></div>
+          </div>
+          <div style="padding:0 18px 18px;">
+            <div style="display:flex;align-items:center;gap:10px;padding:9px 14px;background:rgb(19,31,51);border:1px solid rgb(39,72,116);border-radius:6px;margin-bottom:6px;">
+              <span style="width:7px;height:7px;border-radius:50%;background:var(--accent);flex-shrink:0;"></span>
+              <span style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;color:#9db4ff;font-weight:700;">DEPARTMENT OVERSEER</span>
+            </div>
+            <div style="display:flex;align-items:center;padding:8px 14px;font-size:12px;color:var(--text2);gap:12px;">
+              <span style="color:var(--accent);font-weight:700;font-family:'JetBrains Mono',monospace;">1L-01</span><span style="font-weight:600;color:var(--text);font-family:'Inter',sans-serif;">M.Land</span><span style="margin-left:auto;background:rgba(74,222,128,.1);color:var(--green);padding:2px 8px;border-radius:4px;font-size:9px;font-family:'JetBrains Mono',monospace;">ACTIVE</span>
+            </div>
+          </div>
+        </div>
+        <div style="position:absolute;top:-16px;right:-16px;width:80px;height:80px;border:2px solid var(--purple);border-radius:50%;opacity:.15;pointer-events:none;"></div>
       </div>
     </div>
   </div>
 
-  <!-- ANNOUNCEMENTS PREVIEW -->
-  <div style="width:100%;padding:60px 40px;border-top:1px solid #1e1e1e;display:flex;flex-direction:column;gap:56px;max-width:900px;">
-
-    <!-- PROMO: card left, text right -->
-    <div style="display:flex;align-items:center;gap:48px;flex-wrap:wrap;">
-      <div style="flex:1;min-width:260px;max-width:340px;">
-        <div style="background:#0a0c10;border:1px solid #2a2f3d;border-top:3px solid var(--accent);overflow:hidden;">
-          <div style="padding:14px 18px;border-bottom:1px solid #1a1e28;">
-            <div style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:3px;color:var(--accent3);margin-bottom:2px;">OFFICIAL ANNOUNCEMENT</div>
-            <div style="font-family:'Inter',sans-serif;font-size:15px;font-weight:700;color:var(--text);">Blaine County Sheriff's Office</div>
-            <div style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:2px;color:var(--accent);margin-top:2px;">PROMOTION LIST — MAY 2026</div>
-          </div>
-          <div style="padding:10px 18px;">
-            <div style="background:rgba(251,191,36,.08);border-left:3px solid var(--yellow);padding:6px 10px;margin-bottom:6px;"><span style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:2px;color:var(--yellow);font-weight:700;">HIGH COMMAND</span></div>
-            <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #1a1e28;font-family:'JetBrains Mono',monospace;font-size:11px;">
-              <span style="color:var(--green);font-weight:700;min-width:50px;">1W-07</span>
-              <span style="color:var(--text);flex:1;font-family:'Inter',sans-serif;">D.Martinez</span>
-              <span style="color:var(--red);font-size:10px;">1W-45</span>
-              <span style="color:var(--text3);font-size:10px;">→</span>
-              <span style="color:var(--green);font-size:10px;">1W-07</span>
-            </div>
-            <div style="background:rgba(96,165,250,.08);border-left:3px solid var(--blue);padding:6px 10px;margin:6px 0;"><span style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:2px;color:var(--blue);font-weight:700;">SR. GAME WARDEN</span></div>
-            <div style="display:flex;align-items:center;gap:8px;padding:6px 0;font-family:'JetBrains Mono',monospace;font-size:11px;">
-              <span style="color:var(--green);font-weight:700;min-width:50px;">1W-61</span>
-              <span style="color:var(--text);flex:1;font-family:'Inter',sans-serif;">K.Novak</span>
-              <span style="color:var(--red);font-size:10px;">1W-82</span>
-              <span style="color:var(--text3);font-size:10px;">→</span>
-              <span style="color:var(--green);font-size:10px;">1W-61</span>
-            </div>
-          </div>
-          <div style="padding:8px 18px;border-top:1px solid #1a1e28;display:flex;justify-content:space-between;">
-            <span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3);">Signed by <span style="color:var(--accent);">Musse</span></span>
-            <span style="font-family:'JetBrains Mono',monospace;font-size:8px;color:#2a2f3d;letter-spacing:2px;">ROSTERCORE</span>
+  <!-- COMPARISON -->
+  <div style="width:100%;padding:60px 24px;border-bottom:1px solid #1e1e1e;background:#0c0c0c;display:flex;flex-direction:column;align-items:center;">
+    <div style="width:100%;max-width:900px;">
+      <div style="text-align:center;margin-bottom:36px;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--accent);margin-bottom:8px;">WHY SWITCH</div>
+        <h2 style="font-family:'Inter',sans-serif;font-size:28px;font-weight:700;color:var(--text);">Sheets was never built for this</h2>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--border);border-radius:10px;overflow:hidden;">
+        <div style="padding:28px;border-right:1px solid var(--border);">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--text3);margin-bottom:16px;">GOOGLE SHEETS + DISCORD BOTS</div>
+          <div style="display:flex;flex-direction:column;gap:12px;font-family:'Inter',sans-serif;font-size:13px;color:var(--text2);">
+            <div>&#10005; Manual callsign tracking, easy to duplicate</div>
+            <div>&#10005; No real permission system for staff</div>
+            <div>&#10005; One bad edit and the whole sheet breaks</div>
+            <div>&#10005; Promotions announced by hand, inconsistent format</div>
           </div>
         </div>
-      </div>
-      <div style="flex:1;min-width:220px;">
-        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--accent);margin-bottom:10px;">PROMOTION LIST</div>
-        <h3 style="font-family:'Inter',sans-serif;font-size:22px;font-weight:700;color:var(--text);margin-bottom:10px;line-height:1.3;">Announce promotions in style</h3>
-        <p style="font-family:'Inter',sans-serif;font-size:14px;color:var(--text2);line-height:1.8;margin:0;">Every promotion is automatically logged. When you're ready, generate a clean styled card showing who got promoted, their new callsign and rank — ready to post directly in Discord.</p>
-      </div>
-    </div>
-
-    <!-- INACTIVE: text left, card right -->
-    <div style="display:flex;align-items:center;gap:48px;flex-wrap:wrap;">
-      <div style="flex:1;min-width:220px;">
-        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--red);margin-bottom:10px;">INACTIVE LIST</div>
-        <h3 style="font-family:'Inter',sans-serif;font-size:22px;font-weight:700;color:var(--text);margin-bottom:10px;line-height:1.3;">Know who's falling behind</h3>
-        <p style="font-family:'Inter',sans-serif;font-size:14px;color:var(--text2);line-height:1.8;margin:0;">Instantly generate a list of all inactive members and trainees. Clean, styled and ready to post — so your command team always knows who needs a check-in.</p>
-      </div>
-      <div style="flex:1;min-width:260px;max-width:340px;">
-        <div style="background:#0e0808;border:1px solid #3d2222;border-top:3px solid var(--red);overflow:hidden;">
-          <div style="padding:14px 18px;border-bottom:1px solid #2d1515;">
-            <div style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:3px;color:#7f1d1d;margin-bottom:2px;">OFFICIAL NOTICE</div>
-            <div style="font-family:'Inter',sans-serif;font-size:15px;font-weight:700;color:var(--text);">Blaine County Sheriff's Office</div>
-            <div style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:2px;color:var(--red);margin-top:2px;">INACTIVE LIST — MAY 2026</div>
-          </div>
-          <div style="padding:10px 18px;">
-            <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #2d1515;">
-              <div style="width:2px;height:32px;background:var(--red);opacity:.7;flex-shrink:0;"></div>
-              <div style="flex:1;"><div style="font-family:'Inter',sans-serif;font-size:12px;color:var(--text);">R.Castillo</div><div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--red);margin-top:1px;">DEPUTY COMMISSIONER</div></div>
-              <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);">1W-08</span>
-            </div>
-            <div style="display:flex;align-items:center;gap:10px;padding:8px 0;">
-              <div style="width:2px;height:32px;background:var(--purple);opacity:.7;flex-shrink:0;"></div>
-              <div style="flex:1;"><div style="font-family:'Inter',sans-serif;font-size:12px;color:var(--text);">A.Petrov</div><div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--purple);margin-top:1px;">TRAINEE</div></div>
-              <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);">G-03</span>
-            </div>
-          </div>
-          <div style="padding:8px 18px;border-top:1px solid #2d1515;display:flex;justify-content:space-between;">
-            <span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3);">1 member · 1 trainee inactive</span>
-            <span style="font-family:'JetBrains Mono',monospace;font-size:8px;color:#3d2222;letter-spacing:2px;">ROSTERCORE</span>
+        <div style="padding:28px;background:rgba(59,130,246,.04);">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--accent);margin-bottom:16px;">ROSTERCORE</div>
+          <div style="display:flex;flex-direction:column;gap:12px;font-family:'Inter',sans-serif;font-size:13px;color:var(--text);">
+            <div style="color:var(--green);">&#10003; Auto-assigned callsigns per rank range</div>
+            <div style="color:var(--green);">&#10003; Staff accounts with real edit permissions</div>
+            <div style="color:var(--green);">&#10003; 48hr version history, restore any snapshot</div>
+            <div style="color:var(--green);">&#10003; One-click styled promotion and inactive announcements</div>
           </div>
         </div>
       </div>
     </div>
-
   </div>
 
-  <!-- FEATURES -->
-  <div id="features" style="width:100%;padding:60px 24px;border-top:1px solid #1e1e1e;display:flex;flex-direction:column;align-items:center;background:#0c0c0c;">
-    <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--accent);margin-bottom:8px;">WHAT YOU GET</div>
-    <h2 style="font-family:'Inter',sans-serif;font-size:28px;font-weight:700;color:var(--text);margin-bottom:4px;text-align:center;">Everything your department needs</h2>
-    <p style="font-family:'Inter',sans-serif;font-size:14px;color:var(--text3);margin-bottom:36px;text-align:center;">No more Google Sheets. No more Discord bots. One clean system.</p>
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;width:100%;max-width:800px;">
-      <div class="feat" style="border-top-color:var(--accent3);"><div class="feat-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h7"/><circle cx="17" cy="17" r="3"/><path d="M17 15v2l1 1"/></svg></div><div class="feat-title">Auto Callsigns</div><div class="feat-desc">Set a range per rank. New members get auto-assigned the lowest available slot.</div></div>
-      <div class="feat" style="border-top-color:#1d4e89;"><div class="feat-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="1.5" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><div class="feat-title" style="color:var(--blue);">Staff Accounts</div><div class="feat-desc">Create logins for your staff. They get full edit access — remove them instantly if needed.</div></div>
-      <div class="feat" style="border-top-color:#7f1d1d;"><div class="feat-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="1.5" stroke-linecap="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></div><div class="feat-title" style="color:var(--red);">Public Share Link</div><div class="feat-desc">One link your whole community can view. Read-only — no login needed to see the roster.</div></div>
-      <div class="feat" style="border-top-color:#4c1d95;"><div class="feat-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="1.5" stroke-linecap="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></div><div class="feat-title" style="color:var(--purple);">Trainee Roster</div><div class="feat-desc">Separate trainee tab with slots. Graduate to main roster in one click.</div></div>
-      <div class="feat" style="border-top-color:#14532d;"><div class="feat-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/><path d="M7.5 4.5L6 6M16.5 4.5L18 6"/></svg></div><div class="feat-title" style="color:var(--green);">Version History</div><div class="feat-desc">48hr snapshots. Restore any version if someone goes rogue.</div></div>
-      <div class="feat" style="border-top-color:#9a3412;"><div class="feat-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="9" stroke-dasharray="3 3"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2"/></svg></div><div class="feat-title" style="color:var(--orange);">Real-Time Sync</div><div class="feat-desc">Changes appear instantly for all logged-in users. No refresh needed.</div></div>
+  <!-- FEATURES (BENTO) -->
+  <div id="features" style="width:100%;padding:60px 24px;border-bottom:1px solid #1e1e1e;display:flex;flex-direction:column;align-items:center;">
+    <div style="width:100%;max-width:900px;">
+      <div style="text-align:center;margin-bottom:36px;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--accent);margin-bottom:8px;">WHAT YOU GET</div>
+        <h2 style="font-family:'Inter',sans-serif;font-size:28px;font-weight:700;color:var(--text);">Everything your department needs</h2>
+        <p style="font-family:'Inter',sans-serif;font-size:14px;color:var(--text3);margin-top:6px;">No more Google Sheets. No more Discord bots. One clean system.</p>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);grid-auto-rows:140px;gap:12px;">
+        <div style="grid-column:span 2;grid-row:span 2;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:22px;display:flex;flex-direction:column;justify-content:space-between;">
+          <div>
+            <div style="width:38px;height:38px;border-radius:8px;background:rgba(59,130,246,.1);display:flex;align-items:center;justify-content:center;margin-bottom:14px;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h7"/><circle cx="17" cy="17" r="3"/><path d="M17 15v2l1 1"/></svg>
+            </div>
+            <div style="font-family:'Inter',sans-serif;font-size:16px;font-weight:700;color:var(--text);margin-bottom:6px;">Auto Callsigns</div>
+            <div style="font-family:'Inter',sans-serif;font-size:13px;color:var(--text2);line-height:1.6;">Set a range per rank. New members get auto-assigned the lowest available slot — no more duplicates or manual tracking.</div>
+          </div>
+        </div>
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:18px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="1.5" stroke-linecap="round" style="margin-bottom:10px;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <div style="font-family:'Inter',sans-serif;font-size:13px;font-weight:700;margin-bottom:4px;color:var(--blue);">Staff Accounts</div>
+          <div style="font-family:'Inter',sans-serif;font-size:11px;color:var(--text3);line-height:1.5;">Full edit access, revocable instantly.</div>
+        </div>
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:18px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="1.5" stroke-linecap="round" style="margin-bottom:10px;"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+          <div style="font-family:'Inter',sans-serif;font-size:13px;font-weight:700;margin-bottom:4px;color:var(--red);">Public Share Link</div>
+          <div style="font-family:'Inter',sans-serif;font-size:11px;color:var(--text3);line-height:1.5;">Read-only, no login needed.</div>
+        </div>
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:18px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="1.5" stroke-linecap="round" style="margin-bottom:10px;"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+          <div style="font-family:'Inter',sans-serif;font-size:13px;font-weight:700;margin-bottom:4px;color:var(--purple);">Trainee Roster</div>
+          <div style="font-family:'Inter',sans-serif;font-size:11px;color:var(--text3);line-height:1.5;">Graduate to main roster in one click.</div>
+        </div>
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:18px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="1.5" stroke-linecap="round" style="margin-bottom:10px;"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>
+          <div style="font-family:'Inter',sans-serif;font-size:13px;font-weight:700;margin-bottom:4px;color:var(--green);">Version History</div>
+          <div style="font-family:'Inter',sans-serif;font-size:11px;color:var(--text3);line-height:1.5;">48hr snapshots, restore anytime.</div>
+        </div>
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:18px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="1.5" stroke-linecap="round" style="margin-bottom:10px;"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="9" stroke-dasharray="3 3"/></svg>
+          <div style="font-family:'Inter',sans-serif;font-size:13px;font-weight:700;margin-bottom:4px;color:var(--orange);">Real-Time Sync</div>
+          <div style="font-family:'Inter',sans-serif;font-size:11px;color:var(--text3);line-height:1.5;">Changes appear instantly, no refresh.</div>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- HOW IT WORKS -->
-  <div id="howitworks" style="width:100%;padding:60px 24px;border-top:1px solid #1e1e1e;display:flex;flex-direction:column;align-items:center;">
-    <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--accent);margin-bottom:8px;">PROCESS</div>
-    <h2 style="font-family:'Inter',sans-serif;font-size:28px;font-weight:700;color:var(--text);margin-bottom:4px;text-align:center;">Up and running in minutes</h2>
-    <p style="font-family:'Inter',sans-serif;font-size:14px;color:var(--text3);margin-bottom:36px;text-align:center;">Simple setup, powerful results.</p>
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;width:100%;max-width:800px;">
-      <div style="background:var(--bg2);border:1px solid var(--border);border-top:2px solid var(--accent);padding:22px;">
-        <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--accent);margin-bottom:8px;">STEP 1</div>
-        <div style="font-family:'Inter',sans-serif;font-size:16px;font-weight:700;color:var(--text);margin-bottom:8px;">Get an Account</div>
-        <p style="font-size:13px;color:var(--text2);line-height:1.7;">Contact <span style="color:var(--accent);font-family:'JetBrains Mono',monospace;">musse_33</span> on Discord. Each department gets their own private roster.</p>
+  <!-- HOW IT WORKS (TIMELINE) -->
+  <div id="howitworks" style="width:100%;padding:60px 24px;border-bottom:1px solid #1e1e1e;background:#0c0c0c;display:flex;flex-direction:column;align-items:center;">
+    <div style="width:100%;max-width:900px;">
+      <div style="text-align:center;margin-bottom:48px;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--accent);margin-bottom:8px;">PROCESS</div>
+        <h2 style="font-family:'Inter',sans-serif;font-size:28px;font-weight:700;color:var(--text);">Up and running in minutes</h2>
       </div>
-      <div style="background:var(--bg2);border:1px solid var(--border);border-top:2px solid var(--blue);padding:22px;">
-        <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--blue);margin-bottom:8px;">STEP 2</div>
-        <div style="font-family:'Inter',sans-serif;font-size:16px;font-weight:700;color:var(--text);margin-bottom:8px;">Build Your Roster</div>
-        <p style="font-size:13px;color:var(--text2);line-height:1.7;">Set up rank groups, callsign ranges, positions, subdivisions and custom tags in the Editor.</p>
-      </div>
-      <div style="background:var(--bg2);border:1px solid var(--border);border-top:2px solid var(--purple);padding:22px;">
-        <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--purple);margin-bottom:8px;">STEP 3</div>
-        <div style="font-family:'Inter',sans-serif;font-size:16px;font-weight:700;color:var(--text);margin-bottom:8px;">Add Your Staff</div>
-        <p style="font-size:13px;color:var(--text2);line-height:1.7;">Create staff accounts. They sign in with their username on the same login screen and get full edit access to your roster only.</p>
-      </div>
-      <div style="background:var(--bg2);border:1px solid var(--border);border-top:2px solid var(--green);padding:22px;">
-        <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--green);margin-bottom:8px;">STEP 4</div>
-        <div style="font-family:'Inter',sans-serif;font-size:16px;font-weight:700;color:var(--text);margin-bottom:8px;">Share Publicly</div>
-        <p style="font-size:13px;color:var(--text2);line-height:1.7;">Copy the public link and post it in your Discord so your whole community can view the roster.</p>
+      <div style="position:relative;display:grid;grid-template-columns:repeat(4,1fr);gap:16px;">
+        <div style="position:absolute;top:19px;left:12.5%;right:12.5%;height:1px;background:var(--border);"></div>
+        <div style="text-align:center;position:relative;">
+          <div style="width:38px;height:38px;border-radius:50%;background:var(--accent);color:#04203f;font-family:'Inter',sans-serif;font-weight:800;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;position:relative;z-index:1;">1</div>
+          <div style="font-family:'Inter',sans-serif;font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px;">Get an Account</div>
+          <div style="font-family:'Inter',sans-serif;font-size:12px;color:var(--text3);line-height:1.6;padding:0 4px;"><span style="color:var(--accent2);border:1px dashed var(--accent3);padding:1px 5px;font-family:'JetBrains Mono',monospace;font-size:9.5px;white-space:nowrap;">[ CONTACT INFO HERE ]</span><br>Each department gets a private roster.</div>
+        </div>
+        <div style="text-align:center;position:relative;">
+          <div style="width:38px;height:38px;border-radius:50%;background:var(--bg2);border:2px solid var(--blue);color:var(--blue);font-family:'Inter',sans-serif;font-weight:800;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;position:relative;z-index:1;">2</div>
+          <div style="font-family:'Inter',sans-serif;font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px;">Build Your Roster</div>
+          <div style="font-family:'Inter',sans-serif;font-size:12px;color:var(--text3);line-height:1.6;padding:0 4px;">Rank groups, callsigns, positions and tags in the Editor.</div>
+        </div>
+        <div style="text-align:center;position:relative;">
+          <div style="width:38px;height:38px;border-radius:50%;background:var(--bg2);border:2px solid var(--purple);color:var(--purple);font-family:'Inter',sans-serif;font-weight:800;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;position:relative;z-index:1;">3</div>
+          <div style="font-family:'Inter',sans-serif;font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px;">Add Your Staff</div>
+          <div style="font-family:'Inter',sans-serif;font-size:12px;color:var(--text3);line-height:1.6;padding:0 4px;">They sign in on the same login screen with scoped edit access.</div>
+        </div>
+        <div style="text-align:center;position:relative;">
+          <div style="width:38px;height:38px;border-radius:50%;background:var(--bg2);border:2px solid var(--green);color:var(--green);font-family:'Inter',sans-serif;font-weight:800;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;position:relative;z-index:1;">4</div>
+          <div style="font-family:'Inter',sans-serif;font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px;">Share Publicly</div>
+          <div style="font-family:'Inter',sans-serif;font-size:12px;color:var(--text3);line-height:1.6;padding:0 4px;">Post the public link in your Discord for the whole community.</div>
+        </div>
       </div>
     </div>
   </div>
 
   <!-- FAQ -->
-  <div id="faq" style="width:100%;padding:60px 24px;border-top:1px solid #1e1e1e;display:flex;flex-direction:column;align-items:center;background:#0c0c0c;">
-    <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--accent);margin-bottom:8px;">FAQ</div>
-    <h2 style="font-family:'Inter',sans-serif;font-size:28px;font-weight:700;color:var(--text);margin-bottom:36px;text-align:center;">Common Questions</h2>
-    <div style="display:flex;flex-direction:column;gap:8px;width:100%;max-width:680px;">
-      <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--accent);padding:18px 22px;"><div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);margin-bottom:6px;">How do I get access?</div><p style="font-family:'Inter',sans-serif;font-size:13px;color:var(--text2);line-height:1.7;margin:0;">Contact <span style="color:var(--accent);font-family:'JetBrains Mono',monospace;">musse_33</span> on Discord. Only approved departments get an account.</p></div>
-      <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--blue);padding:18px 22px;"><div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--blue);margin-bottom:6px;">Can my staff edit the roster?</div><p style="font-family:'Inter',sans-serif;font-size:13px;color:var(--text2);line-height:1.7;margin:0;">Yes. Create staff accounts and they get full edit access to your roster only.</p></div>
-      <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--red);padding:18px 22px;"><div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--red);margin-bottom:6px;">What if someone goes rogue?</div><p style="font-family:'Inter',sans-serif;font-size:13px;color:var(--text2);line-height:1.7;margin:0;">Remove their account instantly. Use Version History to restore the roster to any previous state.</p></div>
-      <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--purple);padding:18px 22px;"><div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--purple);margin-bottom:6px;">Is the roster public?</div><p style="font-family:'Inter',sans-serif;font-size:13px;color:var(--text2);line-height:1.7;margin:0;">Read-only public — anyone with the link can view it. Only logged-in staff can make changes.</p></div>
-      <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--green);padding:18px 22px;"><div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--green);margin-bottom:6px;">Does data save automatically?</div><p style="font-family:'Inter',sans-serif;font-size:13px;color:var(--text2);line-height:1.7;margin:0;">Yes. Every change saves to the cloud within seconds and syncs instantly to all logged-in users.</p></div>
-    </div>
-  </div>
-
-  <!-- CTA -->
-  <div style="width:100%;padding:60px 24px;border-top:1px solid #1e1e1e;text-align:center;display:flex;flex-direction:column;align-items:center;">
-    <h2 style="font-family:'Inter',sans-serif;font-size:28px;font-weight:700;color:var(--text);margin-bottom:6px;">Ready to level up your roster?</h2>
-    <p style="font-family:'Inter',sans-serif;font-size:14px;color:var(--text2);margin-bottom:24px;">Contact me on Discord and I'll have you set up within 24 hours.</p>
-    <div style="display:inline-flex;align-items:center;gap:12px;background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--accent);padding:16px 28px;">
-      <span style="font-size:22px;">&#x1F4AC;</span>
-      <div style="text-align:left;">
-        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--text3);margin-bottom:3px;">DISCORD</div>
-        <div style="font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:700;color:var(--accent);">musse_33</div>
+  <div id="faq" style="width:100%;padding:60px 24px;display:flex;flex-direction:column;align-items:center;">
+    <div style="width:100%;max-width:700px;">
+      <div style="text-align:center;margin-bottom:32px;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--accent);margin-bottom:8px;">FAQ</div>
+        <h2 style="font-family:'Inter',sans-serif;font-size:28px;font-weight:700;color:var(--text);">Common Questions</h2>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:1px;background:var(--border);border-radius:10px;overflow:hidden;border:1px solid var(--border);">
+        <div style="background:var(--bg2);padding:16px 20px;">
+          <div style="font-family:'Inter',sans-serif;font-size:13px;font-weight:700;color:var(--accent);margin-bottom:6px;">How do I get access?</div>
+          <p style="font-family:'Inter',sans-serif;font-size:13px;color:var(--text2);line-height:1.7;margin:0;"><span style="color:var(--accent2);border:1px dashed var(--accent3);padding:1px 6px;font-family:'JetBrains Mono',monospace;font-size:11px;">[ CONTACT INFO HERE ]</span> — only approved departments get an account.</p>
+        </div>
+        <div style="background:var(--bg2);padding:16px 20px;">
+          <div style="font-family:'Inter',sans-serif;font-size:13px;font-weight:700;color:var(--blue);margin-bottom:6px;">Can my staff edit the roster?</div>
+          <p style="font-family:'Inter',sans-serif;font-size:13px;color:var(--text2);line-height:1.7;margin:0;">Yes. Create staff accounts and they get full edit access to your roster only.</p>
+        </div>
+        <div style="background:var(--bg2);padding:16px 20px;">
+          <div style="font-family:'Inter',sans-serif;font-size:13px;font-weight:700;color:var(--red);margin-bottom:6px;">What if someone goes rogue?</div>
+          <p style="font-family:'Inter',sans-serif;font-size:13px;color:var(--text2);line-height:1.7;margin:0;">Remove their account instantly. Use Version History to restore the roster to any previous state.</p>
+        </div>
+        <div style="background:var(--bg2);padding:16px 20px;">
+          <div style="font-family:'Inter',sans-serif;font-size:13px;font-weight:700;color:var(--purple);margin-bottom:6px;">Is the roster public?</div>
+          <p style="font-family:'Inter',sans-serif;font-size:13px;color:var(--text2);line-height:1.7;margin:0;">Read-only public — anyone with the link can view it. Only logged-in staff can make changes.</p>
+        </div>
+        <div style="background:var(--bg2);padding:16px 20px;">
+          <div style="font-family:'Inter',sans-serif;font-size:13px;font-weight:700;color:var(--green);margin-bottom:6px;">Does data save automatically?</div>
+          <p style="font-family:'Inter',sans-serif;font-size:13px;color:var(--text2);line-height:1.7;margin:0;">Yes. Every change saves to the cloud within seconds and syncs instantly to all logged-in users.</p>
+        </div>
       </div>
     </div>
   </div>
@@ -1424,7 +1432,7 @@ function loadDemo(){
   customThemes = [{name:'Custom 1',accent:'#c9a84c',bg:'#0a0c10'},{name:'Custom 2',accent:'#60a5fa',bg:'#080c14'}];
 
   members = [
-    {id:1,name:'Musse',callsign:'1W-01',rankGroup:'Administration',position:'SAGW Director',discord:'123456789',doh:'2025-01-15',subdivs:['Internal Affairs'],status:'Active',strikes:0,notes:'',tags:['FTO']},
+    {id:1,name:'D.Reyes',callsign:'1W-01',rankGroup:'Administration',position:'SAGW Director',discord:'123456789',doh:'2025-01-15',subdivs:['Internal Affairs'],status:'Active',strikes:0,notes:'',tags:['FTO']},
     {id:2,name:'J.Smith',callsign:'1W-02',rankGroup:'Administration',position:'',discord:'987654321',doh:'2025-02-01',subdivs:[],status:'Active',strikes:0,notes:'',tags:[]},
     {id:3,name:'R.Williams',callsign:'1W-07',rankGroup:'High Command',position:'',discord:'111222333',doh:'2025-03-10',subdivs:['K9'],status:'Active',strikes:0,notes:'',tags:['FTO']},
     {id:4,name:'T.Johnson',callsign:'1W-08',rankGroup:'High Command',position:'',discord:'444555666',doh:'2025-03-15',subdivs:[],status:'LOA',strikes:1,notes:'On medical leave',tags:[]},
