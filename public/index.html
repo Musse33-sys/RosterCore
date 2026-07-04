@@ -473,8 +473,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
       <a href="#faq" style="color:var(--text3);text-decoration:none;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text3)'">FAQ</a>
     </div>
     <div style="display:flex;gap:8px;">
-      <button class="btn btn-ghost btn-sm" onclick="showStaffLoginModal()">Member Login</button>
-      <button class="btn btn-primary btn-sm" onclick="showAuthModal()">Dept Head Login</button>
+      <button class="btn btn-primary btn-sm" onclick="showAuthModal()">Login</button>
     </div>
   </div>
 
@@ -625,7 +624,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
       <div style="background:var(--bg2);border:1px solid var(--border);border-top:2px solid var(--purple);padding:22px;">
         <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--purple);margin-bottom:8px;">STEP 3</div>
         <div style="font-family:'Inter',sans-serif;font-size:16px;font-weight:700;color:var(--text);margin-bottom:8px;">Add Your Staff</div>
-        <p style="font-size:13px;color:var(--text2);line-height:1.7;">Create staff accounts. They log in with Member Login and get full edit access to your roster only.</p>
+        <p style="font-size:13px;color:var(--text2);line-height:1.7;">Create staff accounts. They sign in with their username on the same login screen and get full edit access to your roster only.</p>
       </div>
       <div style="background:var(--bg2);border:1px solid var(--border);border-top:2px solid var(--green);padding:22px;">
         <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--green);margin-bottom:8px;">STEP 4</div>
@@ -700,13 +699,12 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
     <div style="flex:1;padding:36px 28px;margin-top:2px;">
       <!-- LOGIN FORM -->
       <div id="authLoginForm">
-        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--accent);margin-bottom:6px;" id="authSub">DEPT HEAD ACCESS</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--accent);margin-bottom:6px;" id="authSub">ACCOUNT ACCESS</div>
         <div style="font-family:'Inter',sans-serif;font-size:22px;font-weight:700;color:var(--text);margin-bottom:24px;" id="authTitle">Sign In</div>
         <div class="form-error hidden" id="authError"></div>
-        <div class="form-group"><label class="form-label">Email</label><input class="form-input" type="email" id="authEmail" placeholder="you@example.com" autocomplete="off"></div>
+        <div class="form-group"><label class="form-label">Email or Username</label><input class="form-input" type="text" id="authEmail" placeholder="you@example.com or username" autocomplete="off"></div>
         <div class="form-group"><label class="form-label">Password</label><input class="form-input" type="password" id="authPassword" placeholder="••••••••"></div>
         <button class="btn btn-primary" style="width:100%;padding:14px;font-size:11px;letter-spacing:3px;margin-top:8px;" onclick="doLogin()" id="authSubmitBtn">SIGN IN →</button>
-        <div style="text-align:center;margin-top:16px;font-family:'JetBrains Mono',monospace;font-size:9px;color:#404040;letter-spacing:1px;">Member? <span style="color:var(--accent);cursor:pointer;" onclick="closeAuthModal();showStaffLoginModal()">Login here →</span></div>
       </div>
       <!-- FORCE PASSWORD CHANGE -->
     </div>
@@ -728,7 +726,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
       <div class="header-right">
         <span id="onlineCount" style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--green);display:none;align-items:center;gap:6px;border:1px solid var(--green2);background:rgba(74,222,128,.08);padding:7px 12px;border-radius:8px;"></span>
         <span class="admin-pill hidden" id="adminPill">⬡ Admin</span>
-        <button class="btn btn-ghost btn-sm hidden" id="loginFromPublicBtn" onclick="showAuthModal()" style="font-size:10px;border-radius:8px;">Admin Login</button>
+        <button class="btn btn-ghost btn-sm hidden" id="loginFromPublicBtn" onclick="showAuthModal()" style="font-size:10px;border-radius:8px;">Login</button>
         <button class="btn btn-outline btn-sm hidden" id="shareBtn" onclick="openShareModal()" style="border-radius:8px;">Share</button>
         <button class="btn btn-ghost btn-sm hidden" id="saveRosterPdfBtn" onclick="downloadRosterPDF()" style="border-color:var(--green2);color:var(--green);font-size:10px;border-radius:8px;">↑ Save Roster</button>
         <button class="logout-btn" onclick="doLogout()">Logout</button>
@@ -1369,43 +1367,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="document.getElementById('editPermsModal').classList.add('hidden')">Cancel</button>
       <button class="btn btn-primary" onclick="saveProfilePerms()">Save</button>
-    </div>
-  </div>
-</div>
-
-<!-- MEMBER LOGIN MODAL -->
-<div class="modal-overlay hidden" id="staffLoginModal" onclick="if(event.target===this)this.classList.add('hidden')">
-  <div style="background:#0c0c0c;border:1px solid #1e1e1e;width:520px;max-width:96vw;box-shadow:0 24px 80px rgba(0,0,0,.95);overflow:hidden;display:flex;flex-direction:row;position:relative;">
-    <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#a78bfa,#3b82f6,#f87171,#a78bfa);background-size:200%;animation:grad-sweep 3s linear infinite;z-index:2;"></div>
-    <div style="position:absolute;top:0;left:0;width:20px;height:20px;border-top:1px solid #a78bfa;border-left:1px solid #a78bfa;"></div>
-    <div style="position:absolute;bottom:0;right:0;width:20px;height:20px;border-bottom:1px solid #a78bfa;border-right:1px solid #a78bfa;"></div>
-
-    <!-- SIDE PANEL -->
-    <div style="background:#080808;border-right:1px solid #1e1e1e;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;gap:16px;width:150px;flex-shrink:0;">
-      <div style="width:56px;height:56px;border-radius:50%;border:1.5px solid var(--purple);display:flex;align-items:center;justify-content:center;flex-direction:column;">
-        <span style="font-family:'Arial Black',Arial,sans-serif;font-size:16px;font-weight:900;color:var(--text);line-height:1;">R</span>
-        <span style="font-family:'Arial Black',Arial,sans-serif;font-size:16px;font-weight:900;color:var(--purple);line-height:1;">C</span>
-      </div>
-      <div style="text-align:center;">
-        <div style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--text);letter-spacing:2px;">ROSTER</div>
-        <div style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--purple);letter-spacing:2px;">CORE</div>
-      </div>
-      <div style="width:1px;height:40px;background:linear-gradient(180deg,transparent,#2a2a2a,transparent);"></div>
-      <div style="text-align:center;font-family:'JetBrains Mono',monospace;font-size:9px;color:#404040;letter-spacing:1px;line-height:2;">ENTER YOUR<br/>CREDENTIALS<br/>TO ACCESS<br/>YOUR ROSTER</div>
-    </div>
-
-    <!-- FORM PANEL -->
-    <div style="flex:1;padding:36px 28px;margin-top:2px;">
-      <!-- LOGIN FORM -->
-      <div id="staffLoginForm">
-        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--purple);margin-bottom:6px;" id="staffLoginSub">MEMBER ACCESS</div>
-        <div style="font-family:'Inter',sans-serif;font-size:22px;font-weight:700;color:var(--text);margin-bottom:24px;" id="staffLoginTitle">Sign In</div>
-        <div class="form-error hidden" id="staffLoginError"></div>
-        <div class="form-group"><label class="form-label" style="color:var(--purple);">Username</label><input class="form-input" id="staffUsername" placeholder="your.username" autocomplete="off"></div>
-        <div class="form-group"><label class="form-label" style="color:var(--purple);">Password</label><input class="form-input" type="password" id="staffPassword" placeholder="••••••••"></div>
-        <button class="btn" style="width:100%;padding:14px;font-size:11px;letter-spacing:3px;margin-top:8px;background:var(--purple);color:#080808;font-weight:700;font-family:'JetBrains Mono',monospace;" onclick="doStaffLogin()">SIGN IN →</button>
-        <div style="text-align:center;margin-top:16px;font-family:'JetBrains Mono',monospace;font-size:9px;color:#404040;letter-spacing:1px;">Dept head? <span style="color:var(--purple);cursor:pointer;" onclick="switchToOwnerLogin()">Login here →</span></div>
-      </div>
     </div>
   </div>
 </div>
@@ -2107,16 +2068,30 @@ function closeAuthModal(){
 let _pendingDeptUser = null;
 
 async function doLogin(){
-  const email = document.getElementById('authEmail').value.trim();
+  const identifier = document.getElementById('authEmail').value.trim();
   const pwd = document.getElementById('authPassword').value;
   const errEl = document.getElementById('authError');
   errEl.classList.add('hidden');
-  document.getElementById('authSubmitBtn').textContent='Signing in…';
-  const {data,error} = await sb.auth.signInWithPassword({email,password:pwd});
-  document.getElementById('authSubmitBtn').textContent='SIGN IN →';
-  if(error){ errEl.textContent='⚠ '+error.message; errEl.classList.remove('hidden'); return; }
+  if(!identifier || !pwd){ errEl.textContent='⚠ Enter your email/username and password.'; errEl.classList.remove('hidden'); return; }
 
-  await onLoginSuccess(data.user);
+  document.getElementById('authSubmitBtn').textContent='Signing in…';
+
+  if(identifier.includes('@')){
+    // Looks like an email — dept head account via Supabase Auth
+    const {data,error} = await sb.auth.signInWithPassword({email:identifier, password:pwd});
+    document.getElementById('authSubmitBtn').textContent='SIGN IN →';
+    if(error){ errEl.textContent='⚠ '+error.message; errEl.classList.remove('hidden'); return; }
+    await onLoginSuccess(data.user);
+  } else {
+    // Looks like a username — member/staff account
+    const username = identifier.toLowerCase();
+    const hash = btoa(unescape(encodeURIComponent(pwd+'_rc_salt_'+username)));
+    const {data:profile, error} = await sb.from('roster_profiles').select('*').eq('username',username).eq('password_hash',hash).single();
+    document.getElementById('authSubmitBtn').textContent='SIGN IN →';
+    if(error || !profile){ errEl.textContent='⚠ Invalid username or password.'; errEl.classList.remove('hidden'); return; }
+    closeAuthModal();
+    await completeStaffLogin(profile);
+  }
 }
 
 async function onLoginSuccess(user){
@@ -2363,35 +2338,7 @@ async function removeProfile(id, name){
   showToast(`✓ ${name}'s account removed.`);
 }
 
-function showStaffLoginModal(){
-  document.getElementById('staffLoginModal').classList.remove('hidden');
-  document.getElementById('staffLoginError').classList.add('hidden');
-  document.getElementById('staffUsername').value='';
-  document.getElementById('staffPassword').value='';
-  setTimeout(()=>document.getElementById('staffUsername').focus(),50);
-}
-
-function switchToOwnerLogin(){
-  document.getElementById('staffLoginModal').classList.add('hidden');
-  showAuthModal();
-}
-
 let _pendingProfile = null;
-
-async function doStaffLogin(){
-  const username=document.getElementById('staffUsername').value.trim().toLowerCase();
-  const password=document.getElementById('staffPassword').value;
-  const errEl=document.getElementById('staffLoginError');
-  errEl.classList.add('hidden');
-  if(!username||!password){errEl.textContent='⚠ Enter username and password.';errEl.classList.remove('hidden');return;}
-
-  const hash=btoa(unescape(encodeURIComponent(password+'_rc_salt_'+username)));
-  const {data:profile,error}=await sb.from('roster_profiles').select('*').eq('username',username).eq('password_hash',hash).single();
-
-  if(error||!profile){errEl.textContent='⚠ Invalid username or password.';errEl.classList.remove('hidden');return;}
-
-  await completeStaffLogin(profile);
-}
 
 async function completeStaffLogin(profile){
   const {data:rd}=await sb.from('roster_data').select('*').eq('id',profile.roster_id).single();
@@ -2431,7 +2378,6 @@ async function completeStaffLogin(profile){
     }
   };
 
-  document.getElementById('staffLoginModal').classList.add('hidden');
   document.getElementById('landingPage').style.display='none';
   document.getElementById('appPage').style.display='flex'; document.getElementById('appPage').style.flexDirection='column';
   window.scrollTo(0,0);
@@ -5658,7 +5604,6 @@ function showToast(msg, warn=false){
 
 document.addEventListener('keydown',e=>{
   if(e.key==='Enter'&&!document.getElementById('authModal').classList.contains('hidden')) doLogin();
-  if(e.key==='Enter'&&!document.getElementById('staffLoginModal').classList.contains('hidden')) doStaffLogin();
 });
 
 (async()=>{
