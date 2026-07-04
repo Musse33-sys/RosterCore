@@ -1239,7 +1239,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 
 <!-- INACTIVE CARD MODAL -->
 <div class="modal-overlay hidden" id="inactiveCardModal" onclick="if(event.target===this)this.classList.add('hidden')">
-  <div class="modal" style="max-width:560px;">
+  <div class="modal" style="width:680px;max-width:96vw;">
     <div class="modal-title" style="color:var(--red);">Inactive List</div>
     <div class="modal-sub">Download as image to post in Discord.</div>
     <div id="inactiveCard" style="background:#0e0808;border:1px solid #3d2222;border-radius:6px;overflow:hidden;font-family:'JetBrains Mono',monospace;margin-bottom:16px;"></div>
@@ -2559,55 +2559,150 @@ function generateInactiveCard(){
   const inactiveMembers=members.filter(m=>m.status==='Inactive')
     .sort((a,b)=>rgIndex(a.rankGroup)-rgIndex(b.rankGroup));
   const inactiveTrainees=trainees.filter(t=>t.status==='Inactive');
-  const total=[...inactiveMembers,...inactiveTrainees];
-  if(!total.length){showToast('⚠ No inactive members or trainees.',true);return;}
+  if(!inactiveMembers.length && !inactiveTrainees.length){showToast('⚠ No inactive members or trainees.',true);return;}
 
   const today=new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}).toUpperCase();
-  const PER_COL=15;
+  const docRef='RC-'+new Date().getFullYear()+'-'+String(new Date().getMonth()+1).padStart(2,'0')+'-INA';
+  const totalCount=inactiveMembers.length+inactiveTrainees.length;
 
-  function buildEntry(name, position, callsign, color){
-    return `<div style="display:flex;align-items:center;justify-content:space-between;border-left:2px solid ${color};padding:7px 8px 7px 10px;border-bottom:1px solid #2d1515;">
-      <div style="flex:1;min-width:0;">
-        <div style="color:#e8e4da;font-size:12px;font-weight:700;font-family:'JetBrains Mono',monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${name}</div>
-        <div style="color:${color};font-size:9px;letter-spacing:1px;text-transform:uppercase;margin-top:1px;font-family:'JetBrains Mono',monospace;">${position}</div>
-      </div>
-      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#686460;flex-shrink:0;margin-left:6px;">${callsign||'—'}</div>
+  // Group inactive members by rank, then append trainees as a final group
+  const groupOrder=[];
+  const groupMap={};
+  inactiveMembers.forEach(m=>{
+    const key=m.rankGroup||'—';
+    if(!groupMap[key]){ groupMap[key]=[]; groupOrder.push(key); }
+    const g=rankGroups.find(rg=>rg.name===m.rankGroup);
+    groupMap[key].push({name:m.name, title:m.position||g?.position||m.rankGroup, callsign:m.callsign});
+  });
+  if(inactiveTrainees.length){
+    groupOrder.push('Trainees');
+    groupMap['Trainees']=inactiveTrainees.map(t=>({name:t.name, title:'Trainee', callsign:t.callsign}));
+  }
+
+  function mixHex(hex, pct, baseHex){
+    const h2rgb = h => { h=h.replace('#',''); if(h.length===3) h=h.split('').map(c=>c+c).join(''); const n=parseInt(h,16); return [(n>>16)&255,(n>>8)&255,n&255]; };
+    const [r1,g1,b1]=h2rgb(hex), [r2,g2,b2]=h2rgb(baseHex);
+    const r=Math.round(r1*pct/100 + r2*(1-pct/100));
+    const g=Math.round(g1*pct/100 + g2*(1-pct/100));
+    const b=Math.round(b1*pct/100 + b2*(1-pct/100));
+    return `rgb(${r},${g},${b})`;
+  }
+
+  function buildRow(p){
+    return `<div style="display:grid;grid-template-columns:76px 1fr auto;align-items:center;padding:13px 16px;border-bottom:1px solid #1f1a1a;gap:14px;background:#120d0d;">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:#f87171;letter-spacing:.5px;">${p.callsign||'—'}</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:#e8ecf4;letter-spacing:0.4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name.toUpperCase()}</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#8f6a6a;text-align:right;white-space:nowrap;">${(p.title||'—').toUpperCase()}</div>
     </div>`;
   }
 
-  const allEntries=[
-    ...inactiveMembers.map(m=>{
-      const g=rankGroups.find(rg=>rg.name===m.rankGroup);
-      return buildEntry(m.name, m.position||g?.position||m.rankGroup, m.callsign, '#f87171');
-    }),
-    ...inactiveTrainees.map(t=>buildEntry(t.name,'Trainee',t.callsign,'#a78bfa'))
-  ];
-
-  // Split into columns of PER_COL and lay them side by side
-  let colsHtml='';
-  for(let i=0;i<allEntries.length;i+=PER_COL){
-    const col=allEntries.slice(i,i+PER_COL);
-    colsHtml+=`<div style="flex:1;min-width:0;">${col.join('')}</div>`;
+  function buildGroup(name, entries, color, isFirst){
+    return `<div style="display:flex;align-items:center;gap:10px;padding:11px 16px;background:${mixHex(color,10,'#1a1010')};border:1px solid ${mixHex(color,30,'#3a2020')};${isFirst?'':'margin-top:16px;'}">
+      <span style="width:8px;height:8px;border-radius:50%;background:${color};flex-shrink:0;"></span>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:2px;color:${color};font-weight:700;">${name.toUpperCase()}</span>
+      <span style="margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:10.5px;color:#8f6a6a;">${entries.length} inactive</span>
+    </div>
+    <div style="border:1px solid #3a2020;border-top:none;">${entries.map(buildRow).join('')}</div>`;
   }
+
+  const INACTIVE_PALETTE=['#f87171','#fb923c','#facc15','#a78bfa','#f472b6','#fb7185'];
+  const groupsHtml=groupOrder.map((name,gi)=>buildGroup(name, groupMap[name], INACTIVE_PALETTE[gi%INACTIVE_PALETTE.length], gi===0)).join('');
+
+  const topGroupName = rankGroups[0]?.name;
+  const leaderMember = topGroupName
+    ? members.filter(m=>m.rankGroup===topGroupName).sort((a,b)=>(a.callsign||'').localeCompare(b.callsign||''))[0]
+    : null;
+  const signatoryName = leaderMember?.name || currentUser?.name || deptName;
+  const signatoryTitle = leaderMember?.position || topGroupName || 'Authorized Signatory';
 
   const cardHtml=`
-    <div style="background:#180f0f;border-bottom:3px solid #f87171;padding:20px 22px 14px;">
-      <div style="font-size:9px;letter-spacing:4px;color:#7f1d1d;margin-bottom:3px;font-family:'JetBrains Mono',monospace;">OFFICIAL NOTICE</div>
-      <div style="font-size:22px;font-weight:700;color:#e8e4da;letter-spacing:1px;font-family:sans-serif;">${deptName}</div>
-      <div style="font-size:10px;letter-spacing:3px;color:#f87171;margin-top:3px;font-family:'JetBrains Mono',monospace;">INACTIVE LIST — ${today}</div>
+  <div id="inactiveCardInner" style="width:794px;min-height:1123px;background:#0a0808;font-family:'JetBrains Mono',monospace;padding:60px 64px;position:relative;border:1px solid #3a2020;">
+    <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#f87171,#fb923c);"></div>
+    <div style="position:absolute;top:24px;left:20px;width:24px;height:24px;border-top:1px solid #5a3838;border-left:1px solid #5a3838;"></div>
+    <div style="position:absolute;top:24px;right:20px;width:24px;height:24px;border-top:1px solid #5a3838;border-right:1px solid #5a3838;"></div>
+    <div style="position:absolute;bottom:20px;left:20px;width:24px;height:24px;border-bottom:1px solid #5a3838;border-left:1px solid #5a3838;"></div>
+    <div style="position:absolute;bottom:20px;right:20px;width:24px;height:24px;border-bottom:1px solid #5a3838;border-right:1px solid #5a3838;"></div>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:36px;margin-top:12px;">
+      <div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:3px;color:#8f6a6a;">DOCUMENT REF — ${docRef}</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:3px;color:#8f6a6a;margin-top:4px;">CLASSIFICATION — OFFICIAL PERSONNEL NOTICE</div>
+      </div>
+      <div style="width:68px;height:68px;border:1.5px solid #f87171;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;color:#f87171;overflow:hidden;flex-shrink:0;">${deptLogo?`<img src="${deptLogo}" style="width:100%;height:100%;object-fit:contain;">`:'⬡'}</div>
     </div>
-    <div style="background:#0e0808;padding:14px 18px;display:flex;gap:14px;">${colsHtml}</div>
-    <div style="padding:10px 22px;border-top:1px solid #2d1515;background:#0e0808;display:flex;align-items:center;justify-content:space-between;">
-      <span style="font-size:10px;color:#686460;font-family:'JetBrains Mono',monospace;">${inactiveMembers.length} member${inactiveMembers.length!==1?'s':''} · ${inactiveTrainees.length} trainee${inactiveTrainees.length!==1?'s':''} inactive</span>
-      <span style="font-size:9px;color:#3d2222;letter-spacing:2px;font-family:'JetBrains Mono',monospace;">ROSTERCORE.SPACE</span>
-    </div>`;
+
+    <div style="border-top:1px solid #3a2020;border-bottom:1px solid #3a2020;padding:24px 0;margin-bottom:36px;display:grid;grid-template-columns:1fr auto;gap:20px;align-items:center;">
+      <div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:52px;letter-spacing:4px;color:#f2f4f8;line-height:1;">${deptName}</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:4px;color:#8f6a6a;margin-top:8px;">DEPARTMENT INACTIVE LIST</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:3px;color:#8f6a6a;">EFFECTIVE DATE</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:16px;color:#e8cccc;margin-top:4px;letter-spacing:1px;">${today}</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:3px;color:#8f6a6a;margin-top:16px;">TOTAL INACTIVE</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:16px;color:#e8cccc;margin-top:4px;">${totalCount}</div>
+      </div>
+    </div>
+
+    <div style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:3px;color:#f87171;margin-bottom:16px;display:flex;align-items:center;gap:12px;font-weight:700;">
+      <div style="flex:1;height:1px;background:#2e1a1a;"></div>
+      INACTIVE LIST
+      <div style="flex:1;height:1px;background:#2e1a1a;"></div>
+    </div>
+
+    ${groupsHtml}
+
+    <div style="margin-top:40px;display:grid;grid-template-columns:1fr auto 1fr;align-items:end;gap:20px;">
+      <div>
+        <div style="width:180px;border-bottom:1px solid #6b4a4a;margin-bottom:6px;"></div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:#f2f4f8;letter-spacing:0.5px;">${signatoryName.toUpperCase()}</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#8f6a6a;letter-spacing:1.5px;margin-top:3px;">${signatoryTitle.toUpperCase()} · AUTHORIZED SIGNATORY</div>
+      </div>
+      <div style="text-align:center;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:48px;color:#f87171;line-height:1;">${String(totalCount).padStart(2,'0')}</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:3px;color:#8f6a6a;">INACTIVE</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:3px;color:#8f6a6a;margin-bottom:4px;">POWERED BY</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#a08080;">ROSTERCORE.SPACE</div>
+      </div>
+    </div>
+  </div>`;
 
   document.getElementById('inactiveCard').innerHTML=cardHtml;
   document.getElementById('inactiveCardModal').classList.remove('hidden');
+  fitInactiveCardToModal();
 }
 
+function fitInactiveCardToModal(){
+  const wrap = document.getElementById('inactiveCard');
+  const inner = document.getElementById('inactiveCardInner');
+  if(!wrap || !inner) return;
+  inner.style.transform = 'none';
+  wrap.style.width = '';
+  wrap.style.height = '';
+  requestAnimationFrame(()=>{
+    const parent = wrap.parentElement;
+    const cs = getComputedStyle(parent);
+    const availWidth = parent.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+    const naturalWidth = inner.offsetWidth || 794;
+    const naturalHeight = inner.offsetHeight;
+    const scale = Math.min(1, availWidth / naturalWidth);
+    inner.style.transform = `scale(${scale})`;
+    inner.style.transformOrigin = 'top left';
+    wrap.style.width = (naturalWidth*scale)+'px';
+    wrap.style.height = (naturalHeight*scale)+'px';
+    wrap.style.margin = '0 auto';
+  });
+}
+window.addEventListener('resize', ()=>{ if(!document.getElementById('inactiveCardModal').classList.contains('hidden')) fitInactiveCardToModal(); });
+
 async function downloadInactiveImage(){
-  const card=document.getElementById('inactiveCard');
+  const card=document.getElementById('inactiveCardInner')||document.getElementById('inactiveCard');
+  const wrap=document.getElementById('inactiveCard');
+  const prevTransform=card.style.transform, prevW=wrap.style.width, prevH=wrap.style.height;
+  card.style.transform='none';
+  wrap.style.width=''; wrap.style.height='';
   try{
     if(!window.html2canvas){
       const script=document.createElement('script');
@@ -2616,7 +2711,7 @@ async function downloadInactiveImage(){
       await new Promise(r=>script.onload=r);
     }
     showToast('Generating image…');
-    const canvas=await html2canvas(card,{backgroundColor:'#0e0808',scale:2,useCORS:true,logging:false});
+    const canvas=await html2canvas(card,{backgroundColor:'#0a0808',scale:2,useCORS:true,logging:false,width:794});
     const link=document.createElement('a');
     link.download=deptName.replace(/\s+/g,'-')+'-Inactive-List.png';
     link.href=canvas.toDataURL('image/png');
@@ -2624,6 +2719,9 @@ async function downloadInactiveImage(){
     showToast('✓ Image downloaded!');
   }catch(e){
     showToast('⚠ Download failed. Try screenshot instead.',true);
+  } finally {
+    card.style.transform=prevTransform; wrap.style.width=prevW; wrap.style.height=prevH;
+    fitInactiveCardToModal();
   }
 }
 
@@ -2845,18 +2943,16 @@ function generatePromoAnnouncement(){
     <div style="position:absolute;top:24px;right:20px;width:24px;height:24px;border-top:1px solid #384258;border-right:1px solid #384258;"></div>
     <div style="position:absolute;bottom:20px;left:20px;width:24px;height:24px;border-bottom:1px solid #384258;border-left:1px solid #384258;"></div>
     <div style="position:absolute;bottom:20px;right:20px;width:24px;height:24px;border-bottom:1px solid #384258;border-right:1px solid #384258;"></div>
-    <div style="position:absolute;bottom:50px;left:50%;transform:translateX(-50%);font-family:'Bebas Neue',sans-serif;font-size:60px;color:#12161f;letter-spacing:6px;white-space:nowrap;pointer-events:none;">ROSTERCORE</div>
 
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:36px;margin-top:12px;">
       <div>
         <div style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:3px;color:#5a6b8f;">DOCUMENT REF — ${docRef}</div>
         <div style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:3px;color:#5a6b8f;margin-top:4px;">CLASSIFICATION — OFFICIAL PERSONNEL NOTICE</div>
       </div>
-      <div style="width:52px;height:52px;border:1.5px solid #2f8fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;color:#2f8fff;overflow:hidden;flex-shrink:0;">${deptLogo?`<img src="${deptLogo}" style="width:100%;height:100%;object-fit:contain;">`:'⬡'}</div>
+      <div style="width:68px;height:68px;border:1.5px solid #2f8fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;color:#2f8fff;overflow:hidden;flex-shrink:0;">${deptLogo?`<img src="${deptLogo}" style="width:100%;height:100%;object-fit:contain;">`:'⬡'}</div>
     </div>
 
-    <div style="border-top:1px solid #242938;border-bottom:1px solid #242938;padding:24px 0;margin-bottom:36px;display:grid;grid-template-columns:${deptLogo?'auto ':''} 1fr auto;gap:20px;align-items:center;">
-      ${deptLogo?`<img src="${deptLogo}" style="height:72px;width:72px;object-fit:contain;border-radius:10px;border:1px solid #242938;">`:''}
+    <div style="border-top:1px solid #242938;border-bottom:1px solid #242938;padding:24px 0;margin-bottom:36px;display:grid;grid-template-columns:1fr auto;gap:20px;align-items:center;">
       <div>
         <div style="font-family:'Bebas Neue',sans-serif;font-size:52px;letter-spacing:4px;color:#f2f4f8;line-height:1;">${deptName}</div>
         <div style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:4px;color:#5a6b8f;margin-top:8px;">DEPARTMENT PROMOTION ORDER</div>
