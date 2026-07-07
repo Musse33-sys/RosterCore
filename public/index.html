@@ -1511,6 +1511,19 @@ function isSuperAdminEmail(email){
   return h === 'bXVzc2UzM3N5c0BnbWFpbC5jb20=';
 }
 
+// Escapes user-controlled text before it's inserted into HTML, to prevent stored XSS.
+// Always call this on any member/trainee/department/profile field before interpolating
+// it into an innerHTML template — never trust text people typed into a form field.
+function escapeHtml(str){
+  if(str===null || str===undefined) return '';
+  return String(str)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#39;');
+}
+
 let currentUser = null;
 let isSuperAdmin = false;
 let deptId = null;
@@ -1542,20 +1555,20 @@ let realtimeChannel = null;
 let isSyncing = false;
 
 function buildMemberRow(m, gi){
-  const tags=(m.tags||[]).map(tag=>{const t=customTags.find(ct=>ct.name===tag);const c=t?t.color:'#7ec8e3';return`<span style="font-family:'JetBrains Mono',monospace;font-size:9px;background:${c}18;border:1px solid ${c}55;color:${c};padding:1px 6px;border-radius:2px;">${tag}</span>`;}).join('');
+  const tags=(m.tags||[]).map(tag=>{const t=customTags.find(ct=>ct.name===tag);const c=t?t.color:'#7ec8e3';return`<span style="font-family:'JetBrains Mono',monospace;font-size:9px;background:${c}18;border:1px solid ${c}55;color:${c};padding:1px 6px;border-radius:2px;">${escapeHtml(tag)}</span>`;}).join('');
   const g=rankGroups[gi]||{};
   const pd=getPosData(m.position);
   const displayCS=(pd&&pd.callsign)?pd.callsign:(m.callsign||'—');
   return `<tr class="row-filled" data-member-id="${m.id}">
-    <td class="cs-cell"><span class="cs-filled">${displayCS}</span></td>
+    <td class="cs-cell"><span class="cs-filled">${escapeHtml(displayCS)}</span></td>
     ${showInsignia?`<td class="ins-cell" style="text-align:center;vertical-align:middle;">${getRankInsignia(gi,m.position,m.callsign)}</td>`:''}
-    <td class="name-td"><div class="member-name">${m.name}${onlineUsers.has(m.name)?'<span class="online-dot" title="Online now"></span>':''} ${tags}</div>${(m.position||g.position)?`<div class="member-pos">${m.position||g.position}</div>`:''}</td>
+    <td class="name-td"><div class="member-name">${escapeHtml(m.name)}${onlineUsers.has(m.name)?'<span class="online-dot" title="Online now"></span>':''} ${tags}</div>${(m.position||g.position)?`<div class="member-pos">${escapeHtml(m.position||g.position)}</div>`:''}</td>
     <td>${sdBadges(m.subdivs)}</td>
     <td>${statusPill(m.status)}</td>
     <td class="col-doh" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);">${fmtDate(m.doh)}</td>
-    <td class="col-discord" style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${m.discord||''}">${m.discord||'—'}</td>
+    <td class="col-discord" style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escapeHtml(m.discord||'')}">${escapeHtml(m.discord||'—')}</td>
     <td>${strikeBadge(m.strikes||0)}</td>
-    <td class="col-notes" style="font-size:11px;color:var(--text2);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${m.notes||''}">${m.notes||'—'}</td>
+    <td class="col-notes" style="font-size:11px;color:var(--text2);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escapeHtml(m.notes||'')}">${escapeHtml(m.notes||'—')}</td>
     ${currentUser?`<td><div class="row-acts">
       ${gi>0&&hasPerm('promote')?`<button class="btn-promote btn" onclick="promote(${m.id})">▲</button>`:''}
       ${gi<rankGroups.length-1&&hasPerm('promote')?`<button class="btn-demote btn" onclick="demote(${m.id})">▼</button>`:''}
@@ -2019,7 +2032,7 @@ async function openHistoryModal(){
         <div>
           <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text);font-weight:600;">${getTimeAgo(d)}</div>
           <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);margin-top:3px;">${d.toLocaleString()} · ${snap.members?.length||0} members · ${snap.trainees?.length||0} trainees</div>
-          <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);margin-top:2px;">Saved by ${s.created_by}</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);margin-top:2px;">Saved by ${escapeHtml(s.created_by)}</div>
         </div>
         ${i===0?`<span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--green);border:1px solid var(--green2);padding:2px 8px;border-radius:2px;letter-spacing:1px;">CURRENT</span>`:''}
       </div>
@@ -2287,7 +2300,7 @@ async function loadProfileList(){
     <div style="background:var(--bg3);border:1px solid var(--border);padding:10px 14px;border-radius:var(--radius);margin-bottom:4px;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
         <div>
-          <div style="font-weight:600;color:var(--text);font-size:13px;">👤 ${p.name}</div>
+          <div style="font-weight:600;color:var(--text);font-size:13px;">👤 ${escapeHtml(p.name)}</div>
           <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);margin-top:2px;">@${p.username} · ${new Date(p.created_at).toLocaleDateString()}${p.must_change_password?` · <span style="color:var(--yellow);">Awaiting first login</span>`:''}</div>
         </div>
         <div style="display:flex;gap:6px;">
@@ -2436,14 +2449,14 @@ function renderPromotions(){
     colorIdx++;
     const rows=promos.map(p=>`
       <div style="display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--border);">
-        <div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--accent);min-width:70px;">${p.toCS||'—'}</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--accent);min-width:70px;">${escapeHtml(p.toCS||'—')}</div>
         <div style="flex:1;">
-          <span style="font-weight:600;color:var(--text);font-size:13px;">${p.name}</span>
+          <span style="font-weight:600;color:var(--text);font-size:13px;">${escapeHtml(p.name)}</span>
         </div>
         <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);">
-          <span style="color:var(--red);">${p.fromCS||'—'}</span>
+          <span style="color:var(--red);">${escapeHtml(p.fromCS||'—')}</span>
           <span style="color:var(--text3);margin:0 6px;">→</span>
-          <span style="color:var(--green);">${p.toCS||'—'}</span>
+          <span style="color:var(--green);">${escapeHtml(p.toCS||'—')}</span>
         </div>
         <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);min-width:80px;text-align:right;">${fmtDate(p.date.split('T')[0])}</div>
         <button class="btn btn-ghost btn-xs" onclick="openEditPromo(${p.id})">Edit</button>
@@ -2454,7 +2467,7 @@ function renderPromotions(){
       <div style="margin-bottom:14px;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;">
         <div style="background:${color}18;border-bottom:1px solid ${color}44;padding:10px 16px;display:flex;align-items:center;gap:10px;">
           <div style="width:10px;height:10px;border-radius:50%;background:${color};flex-shrink:0;"></div>
-          <span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:${color};">${group}</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:${color};">${escapeHtml(group)}</span>
           <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);margin-left:auto;">${promos.length} promotion${promos.length>1?'s':''}</span>
         </div>
         ${rows}
@@ -2541,16 +2554,16 @@ function generateInactiveCard(){
 
   function buildRow(p){
     return `<div style="display:grid;grid-template-columns:76px 1fr auto;align-items:center;padding:13px 16px;border-bottom:1px solid #1f1a1a;gap:14px;background:#120d0d;">
-      <div style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:#f87171;letter-spacing:.5px;">${p.callsign||'—'}</div>
-      <div style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:#e8ecf4;letter-spacing:0.4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name.toUpperCase()}</div>
-      <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#8f6a6a;text-align:right;white-space:nowrap;">${(p.title||'—').toUpperCase()}</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:#f87171;letter-spacing:.5px;">${escapeHtml(p.callsign||'—')}</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:#e8ecf4;letter-spacing:0.4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(p.name.toUpperCase())}</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#8f6a6a;text-align:right;white-space:nowrap;">${escapeHtml((p.title||'—').toUpperCase())}</div>
     </div>`;
   }
 
   function buildGroupSection(name, entries, color, isFirst, isContinuation){
     return `<div style="display:flex;align-items:center;gap:10px;padding:11px 16px;background:${mixHex(color,10,'#1a1010')};border:1px solid ${mixHex(color,30,'#3a2020')};${isFirst?'':'margin-top:16px;'}">
       <span style="width:8px;height:8px;border-radius:50%;background:${color};flex-shrink:0;"></span>
-      <span style="font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:2px;color:${color};font-weight:700;">${name.toUpperCase()}${isContinuation?' (CONT.)':''}</span>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:2px;color:${color};font-weight:700;">${escapeHtml(name).toUpperCase()}${isContinuation?' (CONT.)':''}</span>
       <span style="margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:10.5px;color:#8f6a6a;">${entries.length} inactive</span>
     </div>
     <div style="border:1px solid #3a2020;border-top:none;">${entries.map(buildRow).join('')}</div>`;
@@ -2592,8 +2605,8 @@ function generateInactiveCard(){
     <div style="margin-top:40px;display:grid;grid-template-columns:1fr auto 1fr;align-items:end;gap:20px;">
       <div>
         <div style="width:180px;border-bottom:1px solid #6b4a4a;margin-bottom:6px;"></div>
-        <div style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:#f2f4f8;letter-spacing:0.5px;">${signatoryName.toUpperCase()}</div>
-        <div style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#8f6a6a;letter-spacing:1.5px;margin-top:3px;">${signatoryTitle.toUpperCase()} · AUTHORIZED SIGNATORY</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:#f2f4f8;letter-spacing:0.5px;">${escapeHtml(signatoryName).toUpperCase()}</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#8f6a6a;letter-spacing:1.5px;margin-top:3px;">${escapeHtml(signatoryTitle).toUpperCase()} · AUTHORIZED SIGNATORY</div>
       </div>
       <div style="text-align:center;">
         <div style="font-family:'Bebas Neue',sans-serif;font-size:48px;color:#f87171;line-height:1;">${String(totalCount).padStart(2,'0')}</div>
@@ -2625,7 +2638,7 @@ function generateInactiveCard(){
 
       <div style="border-top:1px solid #3a2020;border-bottom:1px solid #3a2020;padding:24px 0;margin-bottom:36px;display:grid;grid-template-columns:1fr auto;gap:20px;align-items:center;">
         <div>
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:52px;letter-spacing:4px;color:#f2f4f8;line-height:1;">${deptName}</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:52px;letter-spacing:4px;color:#f2f4f8;line-height:1;">${escapeHtml(deptName)}</div>
           <div style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:4px;color:#8f6a6a;margin-top:8px;">DEPARTMENT INACTIVE LIST</div>
         </div>
         <div style="text-align:right;">
@@ -2949,9 +2962,9 @@ function generatePromoAnnouncement(){
 
   function buildRow(p){
     return `<div style="display:grid;grid-template-columns:76px 1fr auto;align-items:center;padding:13px 16px;border-bottom:1px solid #1a1f2b;gap:14px;background:#0d1018;">
-      <div style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:#3ee878;letter-spacing:.5px;">${p.toCS||'—'}</div>
-      <div style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:#e8ecf4;letter-spacing:0.4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name.toUpperCase()}</div>
-      <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#5a6b8f;text-align:right;white-space:nowrap;">${p.fromCS||'—'} <span style="color:#384258;">→</span> <span style="color:#3ee878;">${p.toCS||'—'}</span></div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:#3ee878;letter-spacing:.5px;">${escapeHtml(p.toCS||'—')}</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:#e8ecf4;letter-spacing:0.4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(p.name.toUpperCase())}</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#5a6b8f;text-align:right;white-space:nowrap;">${escapeHtml(p.fromCS||'—')} <span style="color:#384258;">→</span> <span style="color:#3ee878;">${escapeHtml(p.toCS||'—')}</span></div>
     </div>`;
   }
 
@@ -2967,7 +2980,7 @@ function generatePromoAnnouncement(){
   function buildGroupSection(name, entries, color, isFirst, isContinuation){
     return `<div style="display:flex;align-items:center;gap:10px;padding:11px 16px;background:${mixHex(color,10,'#10131c')};border:1px solid ${mixHex(color,30,'#242938')};${isFirst?'':'margin-top:16px;'}">
       <span style="width:8px;height:8px;border-radius:50%;background:${color};flex-shrink:0;"></span>
-      <span style="font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:2px;color:${color};font-weight:700;">${name.toUpperCase()}${isContinuation?' (CONT.)':''}</span>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:2px;color:${color};font-weight:700;">${escapeHtml(name).toUpperCase()}${isContinuation?' (CONT.)':''}</span>
       <span style="margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:10.5px;color:#5a6b8f;">${entries.length} promotion${entries.length===1?'':'s'}</span>
     </div>
     <div style="border:1px solid #242938;border-top:none;">${entries.map(buildRow).join('')}</div>`;
@@ -3002,8 +3015,8 @@ function generatePromoAnnouncement(){
     <div style="margin-top:40px;display:grid;grid-template-columns:1fr auto 1fr;align-items:end;gap:20px;">
       <div>
         <div style="width:180px;border-bottom:1px solid #4a5875;margin-bottom:6px;"></div>
-        <div style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:#f2f4f8;letter-spacing:0.5px;">${signatoryName.toUpperCase()}</div>
-        <div style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#5a6b8f;letter-spacing:1.5px;margin-top:3px;">${signatoryTitle.toUpperCase()} · AUTHORIZED SIGNATORY</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:#f2f4f8;letter-spacing:0.5px;">${escapeHtml(signatoryName).toUpperCase()}</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#5a6b8f;letter-spacing:1.5px;margin-top:3px;">${escapeHtml(signatoryTitle).toUpperCase()} · AUTHORIZED SIGNATORY</div>
       </div>
       <div style="text-align:center;">
         <div style="font-family:'Bebas Neue',sans-serif;font-size:48px;color:#2f8fff;line-height:1;">${String(sorted.length).padStart(2,'0')}</div>
@@ -3035,7 +3048,7 @@ function generatePromoAnnouncement(){
 
       <div style="border-top:1px solid #242938;border-bottom:1px solid #242938;padding:24px 0;margin-bottom:36px;display:grid;grid-template-columns:1fr auto;gap:20px;align-items:center;">
         <div>
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:52px;letter-spacing:4px;color:#f2f4f8;line-height:1;">${deptName}</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:52px;letter-spacing:4px;color:#f2f4f8;line-height:1;">${escapeHtml(deptName)}</div>
           <div style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:4px;color:#5a6b8f;margin-top:8px;">DEPARTMENT PROMOTION ORDER</div>
         </div>
         <div style="text-align:right;">
@@ -3200,7 +3213,7 @@ function openCreateSecondaryRoster(){
   document.getElementById('srName').value='';
   document.getElementById('srCreateError').classList.add('hidden');
   const sel=document.getElementById('srSourceSubdiv');
-  sel.innerHTML='<option value="">— Manual (add members yourself) —</option>'+subdivisions.map(s=>`<option value="${s.name}">${s.name}</option>`).join('');
+  sel.innerHTML='<option value="">— Manual (add members yourself) —</option>'+subdivisions.map(s=>`<option value="${escapeHtml(s.name)}">${escapeHtml(s.name)}</option>`).join('');
   document.getElementById('createSecRosterModal').classList.remove('hidden');
 }
 
@@ -3247,7 +3260,7 @@ function renderSecondaryRosterTabs(){
   document.querySelectorAll('.secondary-roster-panel').forEach(el=>el.remove());
 
   wrap.innerHTML = secondaryRosters.map(sr=>
-    `<button class="nav-tab" id="srTab_${sr.id}" onclick="switchToSecondaryRoster('${sr.id}')">${sr.name}</button>`
+    `<button class="nav-tab" id="srTab_${sr.id}" onclick="switchToSecondaryRoster('${sr.id}')">${escapeHtml(sr.name)}</button>`
   ).join('');
 
   // Build a tab-panel for each, inserted right after tab-trainees
@@ -3415,7 +3428,7 @@ function _renderSecondaryRosterInner(id, sr){
   const fg=fgEl?.value||'';
   if(fgEl){
     const cur=fgEl.value;
-    fgEl.innerHTML='<option value="">All Groups</option>'+rankGroupsLocal.map(g=>`<option value="${g.name}">${g.name}</option>`).join('');
+    fgEl.innerHTML='<option value="">All Groups</option>'+rankGroupsLocal.map(g=>`<option value="${escapeHtml(g.name)}">${escapeHtml(g.name)}</option>`).join('');
     fgEl.value=cur;
   }
 
@@ -3459,19 +3472,19 @@ function _renderSecondaryRosterInner(id, sr){
     const colCount = canEdit ? 9 : 8;
 
     const memberRow = (m) => `<tr class="row-filled">
-          <td class="cs-cell"><span class="cs-filled">${m.callsign||'—'}</span></td>
+          <td class="cs-cell"><span class="cs-filled">${escapeHtml(m.callsign||'—')}</span></td>
           <td class="name-td">
-            <div class="member-name">${m.name}
-              ${(m.tags||[]).map(tag=>{const t=customTags.find(ct=>ct.name===tag);const c=t?t.color:'#7ec8e3';return`<span style="font-family:'JetBrains Mono',monospace;font-size:9px;background:${c}18;border:1px solid ${c}55;color:${c};padding:1px 6px;border-radius:2px;">${tag}</span>`;}).join('')}
+            <div class="member-name">${escapeHtml(m.name)}
+              ${(m.tags||[]).map(tag=>{const t=customTags.find(ct=>ct.name===tag);const c=t?t.color:'#7ec8e3';return`<span style="font-family:'JetBrains Mono',monospace;font-size:9px;background:${c}18;border:1px solid ${c}55;color:${c};padding:1px 6px;border-radius:2px;">${escapeHtml(tag)}</span>`;}).join('')}
             </div>
-            ${m.position?`<div class="member-pos">${m.position}</div>`:''}
+            ${m.position?`<div class="member-pos">${escapeHtml(m.position)}</div>`:''}
           </td>
           <td>${sdBadges(m.subdivs)}</td>
           <td>${statusPill(m.status)}</td>
           <td class="col-doh" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);">${fmtDate(m.doh)}</td>
-          <td class="col-discord" style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${m.discord||''}">${m.discord||'—'}</td>
+          <td class="col-discord" style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escapeHtml(m.discord||'')}">${escapeHtml(m.discord||'—')}</td>
           <td>${strikeBadge(m.strikes||0)}</td>
-          <td class="col-notes" style="font-size:11px;color:var(--text2);">${m.notes||'—'}</td>
+          <td class="col-notes" style="font-size:11px;color:var(--text2);">${escapeHtml(m.notes||'—')}</td>
           ${canEdit?`<td><div class="row-acts">
             ${gi>0?`<button class="btn-promote btn" onclick="promoteSecondaryMember('${id}',${m.id})" title="Promote">▲</button>`:''}
             ${gi<rankGroupsLocal.length-1?`<button class="btn-demote btn" onclick="demoteSecondaryMember('${id}',${m.id})" title="Demote">▼</button>`:''}
@@ -3573,13 +3586,13 @@ function openEditSecondaryRoster(id){
   // Snapshot the original ranges so saveSecondaryRosterEdits can detect what changed
   window._srOriginalRanges = (sr.rank_groups||[]).map(g=>({name:g.name, from:g.from, to:g.to}));
   let html=`<div class="modal" style="max-width:520px;">
-    <div class="modal-title">⚙ Edit "${sr.name}"</div>
-    <div class="form-group"><label class="form-label">Roster Name</label><input class="form-input" id="srEditName" value="${sr.name}"></div>
+    <div class="modal-title">⚙ Edit "${escapeHtml(sr.name)}"</div>
+    <div class="form-group"><label class="form-label">Roster Name</label><input class="form-input" id="srEditName" value="${escapeHtml(sr.name)}"></div>
     <div class="form-group">
       <label class="form-label">Auto-Populate From</label>
       <select class="form-select" id="srEditSubdiv">
         <option value="">— Manual —</option>
-        ${subdivisions.map(s=>`<option value="${s.name}" ${sr.source_subdivision===s.name?'selected':''}>${s.name}</option>`).join('')}
+        ${subdivisions.map(s=>`<option value="${escapeHtml(s.name)}" ${sr.source_subdivision===s.name?'selected':''}>${escapeHtml(s.name)}</option>`).join('')}
       </select>
     </div>
     <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;margin-bottom:4px;">
@@ -3622,9 +3635,9 @@ function renderSecondaryRankGroupList(id){
   el.innerHTML=(sr.rank_groups||[]).map((g,i)=>`
     <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:8px 10px;margin-bottom:6px;">
       <div class="edit-row" style="grid-template-columns:1fr 90px 90px 28px;">
-        <input class="edit-input" value="${g.name}" oninput="sr_updateGroupField('${id}',${i},'name',this.value)">
-        <input class="edit-input" value="${g.from||''}" oninput="sr_updateGroupField('${id}',${i},'from',this.value)" placeholder="${rosterMode?'e.g. 1':'e.g. K9-01'}">
-        <input class="edit-input" value="${g.to||''}" oninput="sr_updateGroupField('${id}',${i},'to',this.value)" placeholder="${rosterMode?'e.g. 20':'e.g. K9-10'}">
+        <input class="edit-input" value="${escapeHtml(g.name)}" oninput="sr_updateGroupField('${id}',${i},'name',this.value)">
+        <input class="edit-input" value="${escapeHtml(g.from||'')}" oninput="sr_updateGroupField('${id}',${i},'from',this.value)" placeholder="${rosterMode?'e.g. 1':'e.g. K9-01'}">
+        <input class="edit-input" value="${escapeHtml(g.to||'')}" oninput="sr_updateGroupField('${id}',${i},'to',this.value)" placeholder="${rosterMode?'e.g. 20':'e.g. K9-10'}">
         <button class="del-btn" onclick="sr_removeGroup('${id}',${i})">×</button>
       </div>
     </div>`).join('');
@@ -3705,13 +3718,13 @@ function openAddSecondaryMember(id){
   const autoCS=nextSecondaryCallsign(sr, defGroup);
   let html=`<div class="modal" style="max-width:480px;">
     <div class="modal-title">Add Member</div>
-    <div class="modal-sub">Callsign auto-assigned from rank group format — ${sr.name}.</div>
+    <div class="modal-sub">Callsign auto-assigned from rank group format — ${escapeHtml(sr.name)}.</div>
     <div class="form-row">
       <div class="form-group"><label class="form-label">Full Name</label><input class="form-input" id="srmName" placeholder="John Smith"></div>
       <div class="form-group"><label class="form-label">Callsign</label><input class="form-input" id="srmCallsign" value="${autoCS}"></div>
     </div>
     <div class="form-row">
-      <div class="form-group"><label class="form-label">Rank Group</label><select class="form-select" id="srmGroup" onchange="onSrmGroupChange('${id}')">${sr.rank_groups.map(g=>`<option ${g.name===defGroup?'selected':''}>${g.name}</option>`).join('')}</select></div>
+      <div class="form-group"><label class="form-label">Rank Group</label><select class="form-select" id="srmGroup" onchange="onSrmGroupChange('${id}')">${sr.rank_groups.map(g=>`<option ${g.name===defGroup?'selected':''}>${escapeHtml(g.name)}</option>`).join('')}</select></div>
       <div class="form-group"><label class="form-label">Position</label><input class="form-input" id="srmPosition" placeholder="— None —"></div>
     </div>
     <div class="form-row">
@@ -3742,8 +3755,8 @@ function openAddSecondaryMember(id){
   else {
     subWrap.innerHTML=subdivisions.map(s=>`
       <label class="form-check">
-        <input type="checkbox" name="srmSubdivNew" value="${s.name}" style="accent-color:${s.color||'var(--accent)'};">
-        <span style="color:${s.color||'var(--text2)'};">${s.name}</span>
+        <input type="checkbox" name="srmSubdivNew" value="${escapeHtml(s.name)}" style="accent-color:${s.color||'var(--accent)'};">
+        <span style="color:${s.color||'var(--text2)'};">${escapeHtml(s.name)}</span>
       </label>`).join('');
   }
 
@@ -3751,8 +3764,8 @@ function openAddSecondaryMember(id){
   if(customTags.length){
     tagWrap.innerHTML=customTags.map(t=>`
       <label class="form-check">
-        <input type="checkbox" name="srmTagNew" value="${t.name}" style="accent-color:${t.color||'var(--accent)'};">
-        <span style="color:${t.color||'var(--text2)'};">${t.name}</span>
+        <input type="checkbox" name="srmTagNew" value="${escapeHtml(t.name)}" style="accent-color:${t.color||'var(--accent)'};">
+        <span style="color:${t.color||'var(--text2)'};">${escapeHtml(t.name)}</span>
       </label>`).join('');
   }
 }
@@ -3796,17 +3809,17 @@ function openEditSecondaryMember(rosterId, memberId){
   const m=sr.members.find(x=>x.id===memberId); if(!m) return;
   let html=`<div class="modal" style="max-width:480px;">
     <div class="modal-title">Edit Member</div>
-    <div class="modal-sub">Update personnel details — ${sr.name}.</div>
+    <div class="modal-sub">Update personnel details — ${escapeHtml(sr.name)}.</div>
     <div class="form-row">
-      <div class="form-group"><label class="form-label">Full Name</label><input class="form-input" id="srmEditName" value="${m.name}"></div>
-      <div class="form-group"><label class="form-label">Callsign</label><input class="form-input" id="srmEditCallsign" value="${m.callsign||''}"></div>
+      <div class="form-group"><label class="form-label">Full Name</label><input class="form-input" id="srmEditName" value="${escapeHtml(m.name)}"></div>
+      <div class="form-group"><label class="form-label">Callsign</label><input class="form-input" id="srmEditCallsign" value="${escapeHtml(m.callsign||'')}"></div>
     </div>
     <div class="form-row">
-      <div class="form-group"><label class="form-label">Rank Group</label><select class="form-select" id="srmEditGroup">${sr.rank_groups.map(g=>`<option ${g.name===m.rankGroup?'selected':''}>${g.name}</option>`).join('')}</select></div>
-      <div class="form-group"><label class="form-label">Position</label><input class="form-input" id="srmEditPosition" placeholder="e.g. Chief of Police" value="${m.position||''}"></div>
+      <div class="form-group"><label class="form-label">Rank Group</label><select class="form-select" id="srmEditGroup">${sr.rank_groups.map(g=>`<option ${g.name===m.rankGroup?'selected':''}>${escapeHtml(g.name)}</option>`).join('')}</select></div>
+      <div class="form-group"><label class="form-label">Position</label><input class="form-input" id="srmEditPosition" placeholder="e.g. Chief of Police" value="${escapeHtml(m.position||'')}"></div>
     </div>
     <div class="form-row">
-      <div class="form-group"><label class="form-label">ID</label><input class="form-input" id="srmEditDiscord" placeholder="123456789…" value="${m.discord||''}"></div>
+      <div class="form-group"><label class="form-label">ID</label><input class="form-input" id="srmEditDiscord" placeholder="123456789…" value="${escapeHtml(m.discord||'')}"></div>
       <div class="form-group"><label class="form-label">Date of Hire</label><input class="form-input" type="date" id="srmEditDOH" value="${m.doh||''}"></div>
     </div>
     <div class="form-group"><label class="form-label">Subdivisions</label><div id="srmSubdivsWrap" style="display:flex;flex-wrap:wrap;gap:12px;margin-top:4px;"></div></div>
@@ -3814,7 +3827,7 @@ function openEditSecondaryMember(rosterId, memberId){
       <div class="form-group"><label class="form-label">Status</label><select class="form-select" id="srmEditStatus">${['Active','Inactive','LOA','Part Time'].map(s=>`<option ${s===m.status?'selected':''}>${s}</option>`).join('')}</select></div>
       <div class="form-group"><label class="form-label">Strikes</label><input class="form-input" type="number" id="srmEditStrikes" value="${m.strikes||0}"></div>
     </div>
-    <div class="form-group"><label class="form-label">Notes</label><input class="form-input" id="srmEditNotes" placeholder="Optional…" value="${m.notes||''}"></div>
+    <div class="form-group"><label class="form-label">Notes</label><input class="form-input" id="srmEditNotes" placeholder="Optional…" value="${escapeHtml(m.notes||'')}"></div>
     <div id="srmTagsWrap" style="display:flex;flex-wrap:wrap;gap:12px;margin:6px 0 4px;"></div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="document.getElementById('srmEditModalOverlay').remove()">Cancel</button>
@@ -3835,8 +3848,8 @@ function openEditSecondaryMember(rosterId, memberId){
     const selectedSubdivs = m.subdivs||[];
     subWrap.innerHTML=subdivisions.map(s=>`
       <label class="form-check">
-        <input type="checkbox" name="srmSubdiv" value="${s.name}" ${selectedSubdivs.includes(s.name)?'checked':''} style="accent-color:${s.color||'var(--accent)'};">
-        <span style="color:${s.color||'var(--text2)'};">${s.name}</span>
+        <input type="checkbox" name="srmSubdiv" value="${escapeHtml(s.name)}" ${selectedSubdivs.includes(s.name)?'checked':''} style="accent-color:${s.color||'var(--accent)'};">
+        <span style="color:${s.color||'var(--text2)'};">${escapeHtml(s.name)}</span>
       </label>`).join('');
   }
 
@@ -3846,8 +3859,8 @@ function openEditSecondaryMember(rosterId, memberId){
     const selectedTags = m.tags||[];
     tagWrap.innerHTML=customTags.map(t=>`
       <label class="form-check">
-        <input type="checkbox" name="srmTag" value="${t.name}" ${selectedTags.includes(t.name)?'checked':''} style="accent-color:${t.color||'var(--accent)'};">
-        <span style="color:${t.color||'var(--text2)'};">${t.name}</span>
+        <input type="checkbox" name="srmTag" value="${escapeHtml(t.name)}" ${selectedTags.includes(t.name)?'checked':''} style="accent-color:${t.color||'var(--accent)'};">
+        <span style="color:${t.color||'var(--text2)'};">${escapeHtml(t.name)}</span>
       </label>`).join('');
   }
 }
@@ -3955,7 +3968,7 @@ function rgIndex(name){ return rankGroups.findIndex(g=>g.name===name); }
 function statusPill(s){
   const map={Active:'active',Inactive:'inactive',LOA:'loa','Part Time':'parttime'};
   const c=map[s]||'inactive';
-  return `<span class="status-pill s-${c}"><span class="s-dot"></span>${s}</span>`;
+  return `<span class="status-pill s-${c}"><span class="s-dot"></span>${escapeHtml(s)}</span>`;
 }
 function strikeBadge(n){
   const c=n===0?'s0':n===1?'s1':n===2?'s2':'s3';
@@ -3963,7 +3976,7 @@ function strikeBadge(n){
 }
 function sdBadges(arr){
   if(!arr||!arr.filter(Boolean).length) return `<span style="color:var(--border2);font-family:'JetBrains Mono',monospace;font-size:11px;">—</span>`;
-  return `<div class="subdiv-wrap">${arr.filter(Boolean).map(s=>{const c=sdColor(s);return`<span class="sdiv-badge" style="color:${c};background:${c}18;border-color:${c}55;">${s}</span>`;}).join('')}</div>`;
+  return `<div class="subdiv-wrap">${arr.filter(Boolean).map(s=>{const c=sdColor(s);return`<span class="sdiv-badge" style="color:${c};background:${c}18;border-color:${c}55;">${escapeHtml(s)}</span>`;}).join('')}</div>`;
 }
 function fmtDate(d){
   if(!d)return'—';
@@ -4012,11 +4025,11 @@ function renderRoster(){
 
   const fgEl = document.getElementById('filterGroup');
   const fgCur = fgEl.value;
-  fgEl.innerHTML='<option value="">All Groups</option>'+rankGroups.map(g=>`<option value="${g.name}">${g.name}</option>`).join('');
+  fgEl.innerHTML='<option value="">All Groups</option>'+rankGroups.map(g=>`<option value="${escapeHtml(g.name)}">${escapeHtml(g.name)}</option>`).join('');
   fgEl.value=fgCur;
   const fsEl=document.getElementById('filterSubdiv');
   const fsCur=fsEl.value;
-  fsEl.innerHTML='<option value="">All Subdivisions</option>'+subdivisions.map(s=>`<option value="${s.name}">${s.name}</option>`).join('');
+  fsEl.innerHTML='<option value="">All Subdivisions</option>'+subdivisions.map(s=>`<option value="${escapeHtml(s.name)}">${escapeHtml(s.name)}</option>`).join('');
   fsEl.value=fsCur;
 
   const wrap = document.getElementById('rosterWrap');
@@ -4048,21 +4061,21 @@ function renderRoster(){
       const pd = getPosData(m.position);
       const displayCS = (pd && pd.callsign) ? pd.callsign : (m.callsign||'—');
       return `<tr class="row-filled" data-member-id="${m.id}">
-              <td class="cs-cell"><span class="cs-filled">${displayCS}</span></td>
+              <td class="cs-cell"><span class="cs-filled">${escapeHtml(displayCS)}</span></td>
               ${showInsignia?`<td class="ins-cell" style="text-align:center;vertical-align:middle;">${getRankInsignia(gi,m.position,m.callsign)}</td>`:''}
               <td class="name-td">
-                <div class="member-name">${m.name}${onlineUsers.has(m.name)?'<span class="online-dot" title="Online now"></span>':''}
-                  ${(m.tags||[]).map(tag=>{const t=customTags.find(ct=>ct.name===tag);const c=t?t.color:'#7ec8e3';return`<span style="font-family:'JetBrains Mono',monospace;font-size:9px;background:${c}18;border:1px solid ${c}55;color:${c};padding:1px 6px;border-radius:2px;">${tag}</span>`;}).join('')}
+                <div class="member-name">${escapeHtml(m.name)}${onlineUsers.has(m.name)?'<span class="online-dot" title="Online now"></span>':''}
+                  ${(m.tags||[]).map(tag=>{const t=customTags.find(ct=>ct.name===tag);const c=t?t.color:'#7ec8e3';return`<span style="font-family:'JetBrains Mono',monospace;font-size:9px;background:${c}18;border:1px solid ${c}55;color:${c};padding:1px 6px;border-radius:2px;">${escapeHtml(tag)}</span>`;}).join('')}
                 </div>
-                ${(m.position||g.position)?`<div class="member-pos">${m.position||g.position}</div>`:''}
-                ${m.discord?`<div class="mobile-discord">${m.discord}</div>`:''}
+                ${(m.position||g.position)?`<div class="member-pos">${escapeHtml(m.position||g.position)}</div>`:''}
+                ${m.discord?`<div class="mobile-discord">${escapeHtml(m.discord)}</div>`:''}
               </td>
               <td>${sdBadges(m.subdivs)}</td>
               <td>${statusPill(m.status)}</td>
               <td class="col-doh" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);">${fmtDate(m.doh)}</td>
-              <td class="col-discord" style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${m.discord||''}">${m.discord||'—'}</td>
+              <td class="col-discord" style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escapeHtml(m.discord||'')}">${escapeHtml(m.discord||'—')}</td>
               <td>${strikeBadge(m.strikes||0)}</td>
-              <td class="col-notes" style="font-size:11px;color:var(--text2);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${m.notes||''}">${m.notes||'—'}</td>
+              <td class="col-notes" style="font-size:11px;color:var(--text2);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escapeHtml(m.notes||'')}">${escapeHtml(m.notes||'—')}</td>
               ${currentUser?`<td><div class="row-acts">
                 ${gi>0&&hasPerm('promote')?`<button class="btn-promote btn" onclick="promote(${m.id})">▲</button>`:''}
                 ${gi<rankGroups.length-1&&hasPerm('promote')?`<button class="btn-demote btn" onclick="demote(${m.id})">▼</button>`:''}
@@ -4139,13 +4152,13 @@ function renderTrainees(){
     const rows=slots.map(slot=>{
       const t=trainees.find(tr=>tr.callsign===slot);
       if(t) return`<tr class="row-filled">
-        <td><span class="cs-filled" style="color:var(--purple);">${t.callsign||'—'}</span></td>
-        <td><div class="member-name">${t.name}</div></td>
+        <td><span class="cs-filled" style="color:var(--purple);">${escapeHtml(t.callsign||'—')}</span></td>
+        <td><div class="member-name">${escapeHtml(t.name)}</div></td>
         <td>${statusPill(t.status)}</td>
         <td class="col-doh" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);">${fmtDate(t.doh)}</td>
-        <td class="col-discord" style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);">${t.discord||'—'}</td>
+        <td class="col-discord" style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);">${escapeHtml(t.discord||'—')}</td>
         <td>${strikeBadge(t.strikes||0)}</td>
-        <td class="col-notes" style="font-size:11px;color:var(--text2);">${t.notes||'—'}</td>
+        <td class="col-notes" style="font-size:11px;color:var(--text2);">${escapeHtml(t.notes||'—')}</td>
         ${currentUser?`<td><div class="row-acts" style="opacity:1;">
           <button class="btn btn-primary btn-xs" onclick="graduate(${t.id})">★ Graduate</button>
           <button class="btn btn-ghost btn-xs" onclick="openEditTrainee(${t.id})">Edit</button>
@@ -4172,13 +4185,13 @@ function renderTrainees(){
   }
   const rows = trainees.map(t=>`
     <tr class="row-filled">
-      <td><span class="cs-filled" style="color:var(--purple);">${t.callsign||'—'}</span></td>
-      <td><div class="member-name">${t.name}</div></td>
+      <td><span class="cs-filled" style="color:var(--purple);">${escapeHtml(t.callsign||'—')}</span></td>
+      <td><div class="member-name">${escapeHtml(t.name)}</div></td>
       <td>${statusPill(t.status)}</td>
       <td class="col-doh" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);">${fmtDate(t.doh)}</td>
-      <td class="col-discord" style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);">${t.discord||'—'}</td>
+      <td class="col-discord" style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);">${escapeHtml(t.discord||'—')}</td>
       <td>${strikeBadge(t.strikes||0)}</td>
-      <td class="col-notes" style="font-size:11px;color:var(--text2);">${t.notes||'—'}</td>
+      <td class="col-notes" style="font-size:11px;color:var(--text2);">${escapeHtml(t.notes||'—')}</td>
       ${currentUser?`<td><div class="row-acts" style="opacity:1;">
         <button class="btn btn-primary btn-xs" onclick="graduate(${t.id})">★ Graduate</button>
         <button class="btn btn-ghost btn-xs" onclick="openEditTrainee(${t.id})">Edit</button>
@@ -4294,7 +4307,7 @@ function renderAllMembers(){
     const tags=(m.tags||[]).map(tag=>{
       const t=customTags.find(ct=>ct.name===tag);
       const c=t?t.color:'#7ec8e3';
-      return`<span style="font-family:'JetBrains Mono',monospace;font-size:9px;background:${c}18;border:1px solid ${c}55;color:${c};padding:1px 5px;border-radius:2px;">${tag}</span>`;
+      return`<span style="font-family:'JetBrains Mono',monospace;font-size:9px;background:${c}18;border:1px solid ${c}55;color:${c};padding:1px 5px;border-radius:2px;">${escapeHtml(tag)}</span>`;
     }).join(' ');
 
     const menuId=`menu_${m._type}_${m.id}`;
@@ -4318,15 +4331,15 @@ function renderAllMembers(){
       </div>`:'-';
 
     return`<tr class="${isTrainee?'trainee-row':''}">
-      <td><span style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:${isTrainee?'var(--purple)':'var(--green)'};">${m.callsign||'—'}</span></td>
+      <td><span style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:${isTrainee?'var(--purple)':'var(--green)'};">${escapeHtml(m.callsign||'—')}</span></td>
       <td>
-        <div style="font-weight:600;color:var(--text);font-size:13px;display:flex;align-items:center;gap:4px;">${m.name}${onlineUsers.has(m.name)?'<span class="online-dot" title="Online now"></span>':''} ${tags}</div>
-        ${m.position?`<div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);margin-top:2px;">${m.position}</div>`:''}
+        <div style="font-weight:600;color:var(--text);font-size:13px;display:flex;align-items:center;gap:4px;">${escapeHtml(m.name)}${onlineUsers.has(m.name)?'<span class="online-dot" title="Online now"></span>':''} ${tags}</div>
+        ${m.position?`<div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);margin-top:2px;">${escapeHtml(m.position)}</div>`:''}
       </td>
-      <td><span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:${groupColor};">${group}</span></td>
+      <td><span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:${groupColor};">${escapeHtml(group)}</span></td>
       <td>${statusPill(m.status)}</td>
       <td class="col-doh" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);">${fmtDate(m.doh)}</td>
-      <td class="col-discord" style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);">${m.discord||'—'}</td>
+      <td class="col-discord" style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);">${escapeHtml(m.discord||'—')}</td>
       <td>${strikeBadge(m.strikes||0)}</td>
       <td>${menu}</td>
     </tr>`;
@@ -4670,7 +4683,7 @@ function renderThemesGrid(){
     return`<button class="theme-btn${t.id===activeTheme?' active-t':''}"
       style="background:${t.vars['--bg2']};color:${t.vars['--text']};border-color:${t.id===activeTheme?t.vars['--accent']:'transparent'};"
       onclick="selectTheme('${t.id}')">
-      <span class="t-name">${t.name}</span>
+      <span class="t-name">${escapeHtml(t.name)}</span>
       <div class="theme-swatches">${swatches.map(c=>`<div class="t-dot" style="background:${c};"></div>`).join('')}</div>
     </button>`;
   }).join('');
@@ -4892,9 +4905,9 @@ function updateTraineeFormatPreview(){
 function renderRGList(){
   document.getElementById('rgList').innerHTML=rankGroups.map((g,i)=>`
     <div class="edit-row" style="grid-template-columns:1fr 100px 100px 140px 44px 28px 28px 28px;">
-      <input class="edit-input" value="${g.name}" oninput="updateRGName(${i},this.value)" placeholder="Group name">
-      <input class="edit-input" value="${g.from||''}" oninput="updateRGFrom(${i},this.value)" onfocus="this.dataset.orig=this.value" onblur="rg_checkRangeChanged(${i},'from',this)" placeholder="${useRosterCallsign?'e.g. 1':'e.g. 1W-01'}">
-      <input class="edit-input" value="${g.to||''}" oninput="updateRGTo(${i},this.value)" onfocus="this.dataset.orig=this.value" onblur="rg_checkRangeChanged(${i},'to',this)" placeholder="${useRosterCallsign?'e.g. 20':'e.g. 1W-06'}">      <input class="edit-input" value="${g.position||''}" oninput="updateRGPos(${i},this.value)" placeholder="Position title">
+      <input class="edit-input" value="${escapeHtml(g.name)}" oninput="updateRGName(${i},this.value)" placeholder="Group name">
+      <input class="edit-input" value="${escapeHtml(g.from||'')}" oninput="updateRGFrom(${i},this.value)" onfocus="this.dataset.orig=this.value" onblur="rg_checkRangeChanged(${i},'from',this)" placeholder="${useRosterCallsign?'e.g. 1':'e.g. 1W-01'}">
+      <input class="edit-input" value="${escapeHtml(g.to||'')}" oninput="updateRGTo(${i},this.value)" onfocus="this.dataset.orig=this.value" onblur="rg_checkRangeChanged(${i},'to',this)" placeholder="${useRosterCallsign?'e.g. 20':'e.g. 1W-06'}">      <input class="edit-input" value="${escapeHtml(g.position||'')}" oninput="updateRGPos(${i},this.value)" placeholder="Position title">
       <div style="display:flex;align-items:center;justify-content:center;">
         ${g.insignia
           ? `<div class="ins-upload" onclick="removeRGInsignia(${i})" title="Click to remove insignia">
@@ -5013,7 +5026,7 @@ function addPosition(){
 function renderSDList(){
   document.getElementById('sdList').innerHTML=subdivisions.map((s,i)=>`
     <div class="edit-row" style="grid-template-columns:1fr 60px 28px;">
-      <input class="edit-input" value="${s.name}" oninput="updateSDName(${i},this.value)">
+      <input class="edit-input" value="${escapeHtml(s.name)}" oninput="updateSDName(${i},this.value)">
       <input type="color" class="color-input" value="${s.color}" oninput="updateSDColor(${i},this.value)">
       <button class="del-btn" onclick="deleteSD(${i})">×</button>
     </div>`).join('');
@@ -5034,7 +5047,7 @@ function renderTagList(){
   if(!el) return;
   el.innerHTML=customTags.map((t,i)=>`
     <div class="edit-row" style="grid-template-columns:1fr 60px 28px;">
-      <input class="edit-input" value="${t.name}" oninput="updateTagName(${i},this.value)" placeholder="Tag name">
+      <input class="edit-input" value="${escapeHtml(t.name)}" oninput="updateTagName(${i},this.value)" placeholder="Tag name">
       <input type="color" class="color-input" value="${t.color||'#7ec8e3'}" oninput="updateTagColor(${i},this.value)">
       <button class="del-btn" onclick="deleteTag(${i})">×</button>
     </div>`).join('');
@@ -5062,8 +5075,8 @@ function populateTagCheckboxes(selectedTags){
   if(!customTags.length){ wrap.innerHTML=''; return; }
   wrap.innerHTML=customTags.map(t=>`
     <label class="form-check">
-      <input type="checkbox" name="mmTag" value="${t.name}" ${(selectedTags||[]).includes(t.name)?'checked':''} style="accent-color:${t.color||'var(--accent)'};">
-      <span style="color:${t.color||'var(--text2)'};">${t.name}</span>
+      <input type="checkbox" name="mmTag" value="${escapeHtml(t.name)}" ${(selectedTags||[]).includes(t.name)?'checked':''} style="accent-color:${t.color||'var(--accent)'};">
+      <span style="color:${t.color||'var(--text2)'};">${escapeHtml(t.name)}</span>
     </label>`).join('');
 }
 
@@ -5073,8 +5086,8 @@ function populateSubdivCheckboxes(selectedSubdivs){
   if(!subdivisions.length){ wrap.innerHTML='<span style="font-size:11px;color:var(--text3);">No subdivisions set up yet.</span>'; return; }
   wrap.innerHTML=subdivisions.map(s=>`
     <label class="form-check">
-      <input type="checkbox" name="mmSubdiv" value="${s.name}" ${(selectedSubdivs||[]).includes(s.name)?'checked':''} style="accent-color:${s.color||'var(--accent)'};">
-      <span style="color:${s.color||'var(--text2)'};">${s.name}</span>
+      <input type="checkbox" name="mmSubdiv" value="${escapeHtml(s.name)}" ${(selectedSubdivs||[]).includes(s.name)?'checked':''} style="accent-color:${s.color||'var(--accent)'};">
+      <span style="color:${s.color||'var(--text2)'};">${escapeHtml(s.name)}</span>
     </label>`).join('');
 }
 
@@ -5195,8 +5208,8 @@ async function loadBugReports(){
     <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid ${r.status==='open'?'var(--red)':'var(--green)'};border-radius:var(--radius);padding:14px 16px;margin-bottom:8px;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
         <div>
-          <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text);font-weight:700;">${r.dept_name}</span>
-          <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);margin-left:10px;">by ${r.reported_by}</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text);font-weight:700;">${escapeHtml(r.dept_name)}</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);margin-left:10px;">by ${escapeHtml(r.reported_by)}</span>
           <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);margin-left:10px;">${new Date(r.created_at).toLocaleString()}</span>
         </div>
         <div style="display:flex;gap:6px;align-items:center;">
@@ -5205,7 +5218,7 @@ async function loadBugReports(){
           <button class="btn btn-danger" style="padding:3px 8px;font-size:9px;" onclick="deleteBugReport('${r.id}')">✕</button>
         </div>
       </div>
-      <div style="font-size:13px;color:var(--text2);line-height:1.6;">${r.message}</div>
+      <div style="font-size:13px;color:var(--text2);line-height:1.6;">${escapeHtml(r.message)}</div>
     </div>`).join('');
 }
 
@@ -5311,7 +5324,7 @@ async function loadSuperAdminDepts(){
     } else {
       serversList.innerHTML=servers.map(s=>`
         <div style="display:inline-flex;align-items:center;gap:8px;background:var(--bg3);border:1px solid var(--border);border-left:3px solid var(--accent);padding:6px 12px;border-radius:var(--radius);">
-          <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);font-weight:700;">${s.name}</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);font-weight:700;">${escapeHtml(s.name)}</span>
           <span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3);">${(depts||[]).filter(d=>d.server_id===s.id).length} dept${(depts||[]).filter(d=>d.server_id===s.id).length!==1?'s':''}</span>
           <button class="btn btn-danger" style="padding:1px 6px;font-size:9px;" onclick="deleteServer('${s.id}','${s.name}')">✕</button>
         </div>`).join('');
@@ -5321,7 +5334,7 @@ async function loadSuperAdminDepts(){
   // Server dropdown in create dept modal
   const cdServer=document.getElementById('cdServer');
   if(cdServer){
-    cdServer.innerHTML='<option value="">— No Server —</option>'+servers.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+    cdServer.innerHTML='<option value="">— No Server —</option>'+servers.map(s=>`<option value="${s.id}">${escapeHtml(s.name)}</option>`).join('');
   }
 
   const wrap=document.getElementById('deptsByServer');
@@ -5355,7 +5368,7 @@ async function loadSuperAdminDepts(){
             <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:border-color .15s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
               <div style="padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
                 <div>
-                  <div style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:var(--text);">${d.name}</div>
+                  <div style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:var(--text);">${escapeHtml(d.name)}</div>
                   <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);margin-top:2px;">${d.email||'—'}</div>
                 </div>
                 <span style="font-size:9px;letter-spacing:1px;padding:3px 8px;border-radius:3px;flex-shrink:0;${d.must_change_password?'background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.3);color:#fbbf24;':'background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.3);color:#4ade80;'}">${d.must_change_password?'TEMP PW':'ACTIVE'}</span>
@@ -5373,7 +5386,7 @@ async function loadSuperAdminDepts(){
               <div style="padding:6px 14px 10px;">
                 <select class="form-select" style="font-size:10px;padding:4px 8px;width:100%;" onchange="assignDeptServer('${d.id}',this.value)">
                   <option value="">— No Server —</option>
-                  ${servers.map(s=>`<option value="${s.id}" ${d.server_id===s.id?'selected':''}>${s.name}</option>`).join('')}
+                  ${servers.map(s=>`<option value="${s.id}" ${d.server_id===s.id?'selected':''}>${escapeHtml(s.name)}</option>`).join('')}
                 </select>
               </div>
             </div>`).join('')}
@@ -5477,11 +5490,11 @@ function renderEditLogList(targetEl, logs){
 
     return `<div style="background:var(--bg3);border:1px solid var(--border);border-left:3px solid ${color};border-radius:var(--radius);padding:10px 14px;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
-        <span style="font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;color:${color};letter-spacing:1px;">${label}</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;color:${color};letter-spacing:1px;">${escapeHtml(label)}</span>
         <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);">${d.toLocaleString()}</span>
       </div>
-      <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text2);margin-bottom:3px;word-break:break-word;">${detailLine}</div>
-      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--accent);">by ${l.actor}</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text2);margin-bottom:3px;word-break:break-word;">${escapeHtml(detailLine)}</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--accent);">by ${escapeHtml(l.actor)}</div>
     </div>`;
   }).join('');
 }
@@ -5547,11 +5560,11 @@ async function openDeptHistory(deptId, deptName){
         <div>
           <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text);font-weight:600;">${getTimeAgo(d)}</div>
           <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);margin-top:3px;">${d.toLocaleString()} · ${snap.members?.length||0} members · ${snap.trainees?.length||0} trainees</div>
-          <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);margin-top:2px;">Saved by ${s.created_by}</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);margin-top:2px;">Saved by ${escapeHtml(s.created_by)}</div>
         </div>
         ${i===0?`<span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--green);border:1px solid var(--green2);padding:2px 8px;border-radius:2px;letter-spacing:1px;">CURRENT</span>`:''}
       </div>
-      ${i===0?'':`<button class="btn btn-outline btn-sm" style="width:100%;margin-top:4px;" onclick="confirmDeptRestore('${s.id}','${deptName}','${rd.id}')">⟳ Restore this version for ${deptName}</button>`}
+      ${i===0?'':`<button class="btn btn-outline btn-sm" style="width:100%;margin-top:4px;" onclick="confirmDeptRestore('${s.id}','${deptName}','${rd.id}')">⟳ Restore this version for ${escapeHtml(deptName)}</button>`}
     </div>`;
   }).join('');
 }
