@@ -732,6 +732,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
         </div>
       </div>
       <div class="header-right">
+        <span id="syncStatus" class="hidden" style="font-family:'JetBrains Mono',monospace;font-size:9px;display:flex;align-items:center;gap:6px;padding:7px 12px;border-radius:8px;border:1px solid;white-space:nowrap;"></span>
         <button class="btn btn-ghost btn-sm hidden" id="loginFromPublicBtn" onclick="showAuthModal()" style="font-size:10px;border-radius:8px;">Login</button>
         <button class="btn btn-outline btn-sm hidden" id="shareBtn" onclick="openShareModal()" style="border-radius:8px;">Share</button>
         <button class="btn btn-ghost btn-sm hidden" id="saveRosterPdfBtn" onclick="downloadRosterPDF()" style="border-color:var(--green2);color:var(--green);font-size:10px;border-radius:8px;">↑ Save Roster</button>
@@ -1912,16 +1913,57 @@ async function loadDepartment(userId){
 function toggleToolsDropdown(){ /* no-op — tools are now always visible pills */ }
 function closeToolsDropdown(){ /* no-op */ }
 
+function setSyncStatus(state){
+  const el = document.getElementById('syncStatus');
+  if(!el) return;
+  if(state === 'idle'){ el.classList.add('hidden'); return; }
+  el.classList.remove('hidden');
+  const configs = {
+    pending: { text: '● Unsaved changes', color: 'var(--yellow,#fbbf24)' },
+    saving:  { text: '◐ Saving…', color: 'var(--accent)' },
+    saved:   { text: '✓ All changes saved', color: 'var(--green)' },
+    error:   { text: '⚠ Save failed — do not close this tab', color: 'var(--red)' }
+  };
+  const cfg = configs[state] || configs.saved;
+  el.textContent = cfg.text;
+  el.style.color = cfg.color;
+  el.style.borderColor = cfg.color;
+  el.style.background = cfg.color+'18';
+}
+
+// Warn before the user leaves/refreshes while a save is still pending or in flight —
+// this is the exact scenario that was causing edits to appear to "revert": the debounced
+// save (600ms) plus network round-trip hadn't finished yet when the page was reloaded.
+window.addEventListener('beforeunload', function(e){
+  if(saveTimer || isSyncing){
+    e.preventDefault();
+    e.returnValue = '';
+    return '';
+  }
+});
+
 function scheduleSave(){
   clearTimeout(saveTimer);
+  setSyncStatus('pending');
   saveTimer = setTimeout(()=>{
+    saveTimer = null;
     // Never fire if logged out or no roster loaded
-    if(!currentUser || !rosterDataId) return;
+    if(!currentUser || !rosterDataId){ setSyncStatus('idle'); return; }
     // Never save empty members if we had data when we last loaded
     // Guards against session expiry + re-auth wipe triggering a stale save
-    if(members.length === 0 && lastKnownUpdatedAt) return;
+    if(members.length === 0 && lastKnownUpdatedAt){ setSyncStatus('idle'); return; }
     saveRoster();
   }, 600);
+}
+
+// For discrete, deliberate actions (promote, add member, delete, etc.) — these aren't
+// continuous typing, so there's no reason to wait and batch them. Saves immediately.
+function saveNow(){
+  clearTimeout(saveTimer);
+  saveTimer = null;
+  if(!currentUser || !rosterDataId){ setSyncStatus('idle'); return; }
+  if(members.length === 0 && lastKnownUpdatedAt){ setSyncStatus('idle'); return; }
+  saveRoster();
 }
 
 async function logEdit(action, details){
@@ -1946,6 +1988,7 @@ async function saveRoster(){
   if(currentUser?.email === 'demo'){ showToast('▶ Demo mode — changes are not saved.'); return; }
   if(!rosterDataId){ showToast('⚠ No roster ID — try logging out and back in.',true); return; }
   isSyncing = true;
+  setSyncStatus('saving');
   try {
     const newTimestamp = new Date().toISOString();
 
@@ -1958,28 +2001,43 @@ async function saveRoster(){
 
     if(lastKnownUpdatedAt) updateQuery = updateQuery.eq('updated_at', lastKnownUpdatedAt);
 
-    const {data: writtenRows, error:e1} = await updateQuery.select('id');
+    // Run the roster save and the department-name sync in parallel — they touch
+    // different tables and don't depend on each other, so there's no reason to
+    // make the user wait for both sequentially.
+    const deptNameUpdate = (currentUser && currentUser.email !== 'shared' && currentUser.email !== 'staff' && deptId)
+      ? sb.from('departments').update({name: deptName}).eq('id', deptId)
+      : Promise.resolve();
 
-    if(currentUser && currentUser.email !== 'shared' && currentUser.email !== 'staff' && deptId){
-      await sb.from('departments').update({name: deptName}).eq('id', deptId);
-    }
+    const [{data: writtenRows, error:e1}] = await Promise.all([
+      updateQuery.select('id, updated_at'),
+      deptNameUpdate
+    ]);
 
     if(e1){
       // A real database error (permissions, network, etc.) — never touch local state.
       // The user's edits stay exactly as they are so they can retry.
       showToast('⚠ Save failed: '+e1.message,true);
       logEdit('save_error', { note: e1.message });
+      setSyncStatus('error');
     } else if(lastKnownUpdatedAt && (!writtenRows || writtenRows.length===0)){
       if(saveTimer){ clearTimeout(saveTimer); saveTimer=null; }
       pendingConflictTimestamp = newTimestamp;
+      setSyncStatus('error');
       await openSaveConflictModal();
     } else {
-      lastKnownUpdatedAt = newTimestamp;
+      // IMPORTANT: use the value the database actually stored, not the value we sent.
+      // If a trigger or default rewrites updated_at server-side, trusting our own
+      // locally-computed timestamp here would permanently desync us from the real
+      // value, causing every future save to fail this check forever.
+      lastKnownUpdatedAt = (writtenRows && writtenRows[0] && writtenRows[0].updated_at) || newTimestamp;
       showToast('✓ Saved.');
       saveSnapshot();
+      setSyncStatus('saved');
+      setTimeout(()=>{ if(!saveTimer && !isSyncing) setSyncStatus('idle'); }, 4000);
     }
   } catch(e) {
     showToast('⚠ Save error: '+e.message, true);
+    setSyncStatus('error');
   } finally {
     setTimeout(()=>{ isSyncing = false; }, 3000);
   }
@@ -2022,27 +2080,33 @@ async function resolveSaveConflict(choice){
     await reloadRosterFromServer();
     showToast('✓ Loaded the latest version — your previous local changes were discarded.');
     pendingConflictTimestamp = null;
+    setSyncStatus('idle');
     return;
   }
 
   // Overwrite: force the save through without the timestamp guard, using current
   // in-memory state (which still has the user's edits — nothing was lost).
+  setSyncStatus('saving');
   const newTimestamp = pendingConflictTimestamp || new Date().toISOString();
   const {data: writtenRows, error} = await sb.from('roster_data').update({
     rank_groups: rankGroups, subdivisions: subdivisions,
     positions: positions, trainee_format: traineeFormat, trainee_format_to: traineeFormatTo, custom_tags: customTags, promotions: promotions, custom_themes: customThemes, show_insignia: showInsignia, always_show_insignia: alwaysShowInsignia, use_roster_callsign: useRosterCallsign, dept_logo: deptLogo,
     theme: activeTheme, members: members, trainees: trainees,
     updated_at: newTimestamp
-  }).eq('id', rosterDataId).select('id');
+  }).eq('id', rosterDataId).select('id, updated_at');
 
   if(error){
     showToast('⚠ Overwrite failed: '+error.message+' — this confirms a permissions problem, not a conflict.', true);
+    setSyncStatus('error');
   } else if(!writtenRows || writtenRows.length===0){
     showToast('⚠ Overwrite still blocked. This confirms the save is being rejected by a server-side permission rule, not a real conflict. Your changes are still here locally — nothing is lost, but they cannot be saved until that permission is fixed.', true);
+    setSyncStatus('error');
   } else {
-    lastKnownUpdatedAt = newTimestamp;
+    lastKnownUpdatedAt = (writtenRows[0] && writtenRows[0].updated_at) || newTimestamp;
     showToast('✓ Your changes were saved, overwriting the previous version.');
     saveSnapshot();
+    setSyncStatus('saved');
+    setTimeout(()=>{ if(!saveTimer && !isSyncing) setSyncStatus('idle'); }, 4000);
   }
   pendingConflictTimestamp = null;
 }
