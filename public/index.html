@@ -4901,16 +4901,51 @@ function selectCustomTheme(i){
   showToast(`✓ ${customThemes[i].name} applied.`);
 }
 
-function uploadDeptLogo(input){
+// Uploaded images (dept logos, insignia badges) were being stored raw/uncompressed as
+// base64 directly inside the roster's JSON — a single photo straight off a phone could
+// add several MB to every single save, forever. This resizes to a sane max dimension
+// before storing, which is more than enough for a small badge/logo image.
+function resizeImageForUpload(file, maxDimension){
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        let { width, height } = img;
+        if(width > maxDimension || height > maxDimension){
+          if(width > height){
+            height = Math.round(height * (maxDimension / width));
+            width = maxDimension;
+          } else {
+            width = Math.round(width * (maxDimension / height));
+            height = maxDimension;
+          }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/png'));
+      };
+      img.onerror = () => reject(new Error('Could not load that image.'));
+      img.src = e.target.result;
+    };
+    reader.onerror = () => reject(new Error('Could not read that file.'));
+    reader.readAsDataURL(file);
+  });
+}
+
+async function uploadDeptLogo(input){
   const file = input.files[0]; if(!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    deptLogo = e.target.result;
+  try {
+    deptLogo = await resizeImageForUpload(file, 300);
     renderDeptLogoPreview();
     renderHeaderLogo();
     scheduleSave();
-  };
-  reader.readAsDataURL(file);
+  } catch(e) {
+    showToast('⚠ '+e.message, true);
+  }
 }
 function removeDeptLogo(){
   deptLogo = '';
@@ -4954,18 +4989,18 @@ function updateHeaderAvatarInitials(){
   }
 })();
 
-function uploadInsignia(i, input){
+async function uploadInsignia(i, input){
   const file = input.files[0];
   if(!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    rankGroups[i].insignia = e.target.result;
+  try {
+    rankGroups[i].insignia = await resizeImageForUpload(file, 120);
     renderRGList();
     renderRoster();
     scheduleSave();
     showToast('✓ Insignia uploaded.');
-  };
-  reader.readAsDataURL(file);
+  } catch(e) {
+    showToast('⚠ '+e.message, true);
+  }
 }
 
 function getPosData(posName){
@@ -5145,11 +5180,14 @@ function updatePosName(i,v){ const old=positions[i]?.name||positions[i]; positio
 function updatePosCS(i,v){ positions[i]={...posObj(i),callsign:v}; renderRoster(); scheduleSave(); }
 function posObj(i){ const p=positions[i]; return typeof p==='string'?{name:p,callsign:'',insignia:''}:p; }
 function migratePositions(arr){ return (arr||[]).map(p=>typeof p==='string'?{name:p,callsign:'',insignia:''}:p); }
-function uploadPosInsignia(i, input){
+async function uploadPosInsignia(i, input){
   const file=input.files[0]; if(!file)return;
-  const reader=new FileReader();
-  reader.onload=e=>{ positions[i]={...posObj(i),insignia:e.target.result}; renderPosList(); renderRoster(); scheduleSave(); showToast('✓ Insignia uploaded.'); };
-  reader.readAsDataURL(file);
+  try {
+    positions[i]={...posObj(i),insignia: await resizeImageForUpload(file, 120)};
+    renderPosList(); renderRoster(); scheduleSave(); showToast('✓ Insignia uploaded.');
+  } catch(e) {
+    showToast('⚠ '+e.message, true);
+  }
 }
 function removePosInsignia(i){ positions[i]={...posObj(i),insignia:''}; renderPosList(); renderRoster(); scheduleSave(); showToast('Insignia removed.'); }
 function deletePos(i){ positions.splice(i,1); renderPosList(); scheduleSave(); }
