@@ -1230,6 +1230,19 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 </div>
 
 <!-- VERSION HISTORY MODAL -->
+<!-- SAVE CONFLICT MODAL -->
+<div class="modal-overlay hidden" id="saveConflictModal">
+  <div class="modal" style="max-width:520px;border-top:2px solid var(--red);">
+    <div class="modal-title" style="color:var(--red);">⚠ Your save didn't go through</div>
+    <div class="modal-sub" id="saveConflictSub">We couldn't confirm it's safe to save your changes over what's on the server. Your edits are still here — nothing has been lost yet.</div>
+    <div id="saveConflictDetail" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;margin:12px 0;display:none;"></div>
+    <div class="modal-footer" style="flex-wrap:wrap;">
+      <button class="btn btn-ghost" onclick="resolveSaveConflict('discard')">Discard my changes, load latest</button>
+      <button class="btn btn-primary" onclick="resolveSaveConflict('overwrite')">Keep my changes, overwrite</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay hidden" id="historyModal" onclick="if(event.target===this)this.classList.add('hidden')">
   <div class="modal" style="max-width:580px;">
     <div class="modal-title">⟳ Version History</div>
@@ -1927,6 +1940,8 @@ async function logEdit(action, details){
   } catch(e) { /* never block UI on log failure */ }
 }
 
+let pendingConflictTimestamp = null;
+
 async function saveRoster(){
   if(currentUser?.email === 'demo'){ showToast('▶ Demo mode — changes are not saved.'); return; }
   if(!rosterDataId){ showToast('⚠ No roster ID — try logging out and back in.',true); return; }
@@ -1950,15 +1965,14 @@ async function saveRoster(){
     }
 
     if(e1){
+      // A real database error (permissions, network, etc.) — never touch local state.
+      // The user's edits stay exactly as they are so they can retry.
       showToast('⚠ Save failed: '+e1.message,true);
+      logEdit('save_error', { note: e1.message });
     } else if(lastKnownUpdatedAt && (!writtenRows || writtenRows.length===0)){
       if(saveTimer){ clearTimeout(saveTimer); saveTimer=null; }
-      showToast('⚠ Roster was updated by someone else — reloading. Do not edit until the page refreshes.', true);
-      logEdit('save_conflict_detected', { note: 'Local save blocked because roster changed elsewhere; reloaded fresh data instead of overwriting.' });
-      document.body.style.pointerEvents='none';
-      await reloadRosterFromServer();
-      document.body.style.pointerEvents='';
-      showToast('✓ Roster reloaded — you can continue editing.');
+      pendingConflictTimestamp = newTimestamp;
+      await openSaveConflictModal();
     } else {
       lastKnownUpdatedAt = newTimestamp;
       showToast('✓ Saved.');
@@ -1969,6 +1983,68 @@ async function saveRoster(){
   } finally {
     setTimeout(()=>{ isSyncing = false; }, 3000);
   }
+}
+
+async function openSaveConflictModal(){
+  const detailEl = document.getElementById('saveConflictDetail');
+  const subEl = document.getElementById('saveConflictSub');
+  detailEl.style.display = 'none';
+  subEl.textContent = 'Checking whether this is a real conflict or a permissions issue…';
+  document.getElementById('saveConflictModal').classList.remove('hidden');
+  document.body.style.pointerEvents = 'none';
+  document.getElementById('saveConflictModal').style.pointerEvents = 'auto';
+
+  // Distinguish a genuine conflict (someone else really did save) from a save that's
+  // being silently blocked (e.g. by a database permission rule) by checking what the
+  // server currently has for this roster.
+  const {data: current} = await sb.from('roster_data').select('updated_at,members').eq('id', rosterDataId).single();
+
+  if(!current){
+    subEl.textContent = "We couldn't even read this roster back from the server. This looks like a permissions problem, not a real conflict — your changes are safe here, but saving won't work until that's fixed.";
+  } else if(current.updated_at === lastKnownUpdatedAt){
+    // Server's timestamp never actually changed — the update was blocked for another reason
+    // (most likely a database permission rule), not a real edit-conflict.
+    subEl.textContent = "The server's copy hasn't actually changed since you loaded it — so this isn't really a conflict with someone else's edit. Your save is being blocked for another reason (most likely a permissions issue on the server side). Your changes are safe here for now.";
+    detailEl.style.display = 'block';
+    detailEl.textContent = 'Diagnostic: expected updated_at ' + lastKnownUpdatedAt + ', server still shows ' + current.updated_at + ' — save was rejected without any real change happening.';
+  } else {
+    subEl.textContent = "Someone else's changes reached the server after you loaded this roster. You can overwrite with your version, or discard your local changes and load the latest.";
+    detailEl.style.display = 'block';
+    detailEl.textContent = 'Diagnostic: your copy was based on ' + lastKnownUpdatedAt + ', server now has ' + current.updated_at + '.';
+  }
+}
+
+async function resolveSaveConflict(choice){
+  document.getElementById('saveConflictModal').classList.add('hidden');
+  document.body.style.pointerEvents = '';
+
+  if(choice === 'discard'){
+    await reloadRosterFromServer();
+    showToast('✓ Loaded the latest version — your previous local changes were discarded.');
+    pendingConflictTimestamp = null;
+    return;
+  }
+
+  // Overwrite: force the save through without the timestamp guard, using current
+  // in-memory state (which still has the user's edits — nothing was lost).
+  const newTimestamp = pendingConflictTimestamp || new Date().toISOString();
+  const {data: writtenRows, error} = await sb.from('roster_data').update({
+    rank_groups: rankGroups, subdivisions: subdivisions,
+    positions: positions, trainee_format: traineeFormat, trainee_format_to: traineeFormatTo, custom_tags: customTags, promotions: promotions, custom_themes: customThemes, show_insignia: showInsignia, always_show_insignia: alwaysShowInsignia, use_roster_callsign: useRosterCallsign, dept_logo: deptLogo,
+    theme: activeTheme, members: members, trainees: trainees,
+    updated_at: newTimestamp
+  }).eq('id', rosterDataId).select('id');
+
+  if(error){
+    showToast('⚠ Overwrite failed: '+error.message+' — this confirms a permissions problem, not a conflict.', true);
+  } else if(!writtenRows || writtenRows.length===0){
+    showToast('⚠ Overwrite still blocked. This confirms the save is being rejected by a server-side permission rule, not a real conflict. Your changes are still here locally — nothing is lost, but they cannot be saved until that permission is fixed.', true);
+  } else {
+    lastKnownUpdatedAt = newTimestamp;
+    showToast('✓ Your changes were saved, overwriting the previous version.');
+    saveSnapshot();
+  }
+  pendingConflictTimestamp = null;
 }
 
 async function reloadRosterFromServer(){
@@ -5467,12 +5543,12 @@ function renderEditLogList(targetEl, logs){
   const actionColor = {
     member_added: 'var(--green)', member_edited: 'var(--blue)', member_removed: 'var(--red)',
     trainee_removed: 'var(--red)', promote: 'var(--green)', demote: 'var(--orange,#fb923c)',
-    save_conflict_detected: 'var(--yellow,#fbbf24)'
+    save_conflict_detected: 'var(--yellow,#fbbf24)', save_error: 'var(--red)'
   };
   const actionLabel = {
     member_added: 'ADDED', member_edited: 'EDITED', member_removed: 'REMOVED',
     trainee_removed: 'TRAINEE REMOVED', promote: 'PROMOTED', demote: 'DEMOTED',
-    save_conflict_detected: 'CONFLICT AVOIDED'
+    save_conflict_detected: 'CONFLICT AVOIDED', save_error: 'SAVE FAILED'
   };
 
   targetEl.innerHTML = logs.map(l=>{
