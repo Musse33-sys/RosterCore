@@ -31,7 +31,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
 
 .hidden{display:none!important;}
-.flex{display:flex;}.flex-col{flex-direction:column;}.items-center{align-items:center;}.justify-between{justify-content:space-between;}.gap-2{gap:8px;}.gap-3{gap:12px;}.gap-4{gap:16px;}
 
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;letter-spacing:1.5px;text-transform:uppercase;padding:9px 18px;border-radius:var(--radius);cursor:pointer;transition:all .15s;border:none;white-space:nowrap;}
 .btn-primary{background:var(--accent);color:#0a0c10;font-weight:700;}
@@ -78,23 +77,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 #landingPage::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 70% 40% at 50% 0%,rgba(201,168,76,.04) 0%,transparent 60%);pointer-events:none;z-index:0;}
 #landingPage > *{position:relative;z-index:1;}
 
-.rc-logo .rc-ring{stroke:var(--accent);transition:stroke .3s;}
-.rc-logo .rc-r{fill:var(--text);}
-.rc-logo .rc-r-stroke{stroke:var(--text);}
-.rc-logo .rc-c{fill:var(--accent);transition:fill .3s;}
-.rc-logo .rc-c-stroke{stroke:var(--accent);transition:stroke .3s;}
-
-.landing-title span{color:var(--accent);}
-.landing-sub{font-size:16px;color:var(--text2);text-align:center;max-width:440px;line-height:1.7;margin-bottom:40px;}
-.landing-features{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;max-width:860px;width:100%;margin-bottom:48px;}
-.feat{background:var(--bg2);border:1px solid var(--border);border-top:2px solid var(--accent3);padding:20px;}
-.feat-icon{font-size:28px;margin-bottom:12px;color:var(--accent);}
-.feat-title{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:6px;}
-.feat-desc{font-size:13px;color:var(--text2);line-height:1.6;}
-
-.auth-modal{background:var(--bg2);border:1px solid var(--border2);border-top:2px solid var(--accent);width:400px;max-width:96vw;padding:40px;box-shadow:var(--shadow);}
-.auth-title{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:3px;text-align:center;color:var(--text);margin-bottom:4px;}
-
 @keyframes grad-sweep{0%{background-position:200% 50%}100%{background-position:0% 50%}}
 #appPage{display:none;flex-direction:column;min-height:100vh;position:fixed;inset:0;z-index:5;background:var(--bg);overflow-y:auto;}
 
@@ -102,18 +84,13 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .header-accent-bar{height:2px;background:linear-gradient(90deg,transparent 0%,var(--accent) 30%,var(--green) 70%,transparent 100%);}
 .header-inner{display:flex;align-items:center;justify-content:space-between;padding:16px 28px;gap:16px;}
 .header-identity{display:flex;align-items:center;gap:13px;flex:1;min-width:0;}
-.header-rail{display:none;}
-.header-rc{display:none;}
 .header-avatar{width:54px;height:54px;border-radius:50%;background:var(--bg2);border:2px solid color-mix(in srgb,var(--accent) 45%,transparent);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;}
 .header-avatar span{font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:700;color:var(--accent);letter-spacing:.5px;}
 .header-avatar img{width:100%;height:100%;object-fit:cover;}
 .header-text{min-width:0;}
 .header-name{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:2px;color:var(--text);line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .header-sub{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);margin-top:5px;letter-spacing:1.5px;text-transform:uppercase;}
-.header-center{display:none;}
-.header-seal{display:none;}
 .header-right{display:flex;align-items:center;gap:8px;flex-shrink:0;}
-.admin-pill{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;background:rgba(201,168,76,.1);border:1px solid var(--accent3);color:var(--accent);padding:7px 12px;border-radius:8px;}
 .logout-btn{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;background:transparent;border:1px solid var(--red2);color:var(--red);padding:8px 14px;border-radius:8px;cursor:pointer;transition:all .15s;}
 .logout-btn:hover{background:rgba(248,113,113,.1);border-color:var(--red);}
 .header-tools-row{display:flex;align-items:center;padding:11px 28px;border-bottom:1px solid var(--border);border-top:1px solid var(--border);gap:8px;background:var(--bg2);}
@@ -122,7 +99,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .tool-pill:hover{filter:brightness(1.3);}
 .tool-pill.active{filter:brightness(1.4);}
 
-.app-nav{display:flex;align-items:center;padding:0 32px;overflow-x:auto;}
 .nav-bar{display:flex;align-items:stretch;border-bottom:1px solid var(--border2);background:var(--bg);}
 .nav-tab{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text2);padding:14px 18px;cursor:pointer;background:none;border:none;border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap;}
 .nav-tab:hover{color:var(--text);}
@@ -233,12 +209,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .t-dot{width:10px;height:10px;border-radius:50%;}
 
 .sa-panel{max-width:1100px;}
-.sa-notice{background:rgba(167,139,250,.06);border:1px solid rgba(167,139,250,.3);border-left:3px solid var(--purple);padding:10px 16px;margin-bottom:24px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--purple);letter-spacing:1px;}
-.dept-table{width:100%;border-collapse:collapse;}
-.dept-table th{background:var(--bg3);border-bottom:1px solid var(--border2);font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);padding:10px 14px;text-align:left;}
-.dept-table td{padding:12px 14px;border-bottom:1px solid var(--border);color:var(--text2);font-size:13px;vertical-align:middle;}
-.dept-table tr:hover td{background:rgba(255,255,255,.02);}
-.dept-name-cell{font-weight:600;color:var(--text);font-size:13px;}
 
 .share-url{background:var(--bg3);border:1px solid var(--border2);padding:10px 13px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);word-break:break-all;cursor:pointer;border-radius:var(--radius);min-height:42px;margin-bottom:14px;}
 
@@ -273,21 +243,16 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 @media(max-width:768px){
   /* ── HEADER ── */
   .header-inner{min-height:56px;}
-  .header-rail{width:3px;}
   .header-identity{min-width:100px;max-width:170px;padding:8px 0;gap:8px;}
-  .header-rc{display:none;}
   .header-avatar{width:30px;height:30px;}
   .header-name{font-size:14px;letter-spacing:1px;}
   .header-sub{display:none;}
   .header-right{padding:0 10px;gap:5px;}
-  .admin-pill{display:none!important;}
   #shareBtn{font-size:8px;padding:4px 7px;}
   #saveRosterPdfBtn{display:none!important;}
   .logout-btn{font-size:8px;padding:4px 7px;}
 
   /* ── NAV ── */
-  .app-nav{padding:0 6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
-  .app-nav::-webkit-scrollbar{display:none;}
   .nav-tab{font-size:9px;letter-spacing:1px;padding:9px 9px;white-space:nowrap;}
 
   /* ── MAIN ── */
@@ -353,7 +318,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 
   /* show strikes on mobile */
   .roster-table .col-strikes{display:flex!important;align-items:center;flex-shrink:0;padding:0!important;}
-  .strike-badge{font-size:8px!important;padding:2px 5px!important;min-width:18px;text-align:center;}
 
   /* status — 5th td */
   .roster-table tr.row-filled td:nth-child(5){display:flex;align-items:center;flex-shrink:0;padding:0;}
@@ -384,8 +348,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   /* ── MODALS ── */
   .modal{padding:20px;width:96vw;}
   .modal-title{font-size:20px;}
-  .auth-modal{padding:24px;width:96vw;}
-  .auth-title{font-size:22px;}
   .form-row{grid-template-columns:1fr;}
   .form-input{font-size:16px;}
   .form-select{font-size:16px;}
@@ -399,14 +361,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   .theme-btn{min-width:calc(50% - 3px);font-size:9px;padding:8px 10px;}
   .section-hdr{flex-direction:column;align-items:flex-start;gap:10px;}
 
-  /* ── LANDING ── */
-  .landing-sub{font-size:14px;}
-  .landing-features{grid-template-columns:1fr 1fr;gap:10px;}
-  .feat{padding:16px;}
-
   /* ── MISC ── */
-  .dept-table{font-size:12px;}
-  .dept-table th,.dept-table td{padding:8px 10px;}
   .action-menu{right:auto;left:0;}
   .col-labels{display:none;}
 }
@@ -414,7 +369,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 @media(max-width:480px){
   .stats-bar{gap:5px;}
   .stat{min-width:calc(50% - 3px);}
-  .landing-features{grid-template-columns:1fr;}
   .header-name{font-size:16px;}
   .nav-tab{font-size:8px;padding:9px 8px;letter-spacing:.5px;}
   .theme-btn{min-width:calc(50% - 3px);}
@@ -441,11 +395,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   #landingNavLinks{display:none!important;}
   #landingNav > div:last-child{gap:6px;}
   #landingNav > div:last-child button{font-size:9px!important;padding:6px 10px!important;letter-spacing:.5px!important;}
-  .landing-title{font-size:34px!important;line-height:1.15!important;}
-  .landing-sub{font-size:13px!important;padding:0 8px;}
-  .landing-stats-bar{overflow-x:auto;-webkit-overflow-scrolling:touch;flex-wrap:nowrap!important;width:100%;}
-  #landingPage .landing-stats-bar > div{min-width:80px;padding:12px 10px!important;}
-  #landingPage .landing-stats-bar > div div:first-child{font-size:20px!important;}
   #landingPage [style*="padding:90px"]{padding:40px 16px 40px!important;}
 }
 </style>
@@ -988,30 +937,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
           </div>
         </div>
 
-        <div class="editor-divider" id="sheetsSyncDivider" style="display:none;"></div>
-
-        <!-- GOOGLE SHEETS SYNC — sagw@staticred.com only -->
-        <div class="editor-section" id="sheetsSyncSection" style="display:none;">
-          <div class="editor-h3">Google Sheets Sync</div>
-          <p style="font-size:13px;color:var(--text2);margin-bottom:14px;line-height:1.6;">Connect your roster to a Google Sheet. Every change you make syncs automatically.</p>
-          <div id="sheetsDisconnected">
-            <button class="btn btn-primary" onclick="connectGoogleSheets()" style="display:flex;align-items:center;gap:8px;">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 2h8l6 6v14a2 2 0 01-2 2H6a2 2 0 01-2-2V4a2 2 0 012-2z" stroke="currentColor" stroke-width="1.5"/><path d="M14 2v6h6" stroke="currentColor" stroke-width="1.5"/></svg>
-              Connect Google Sheets
-            </button>
-          </div>
-          <div id="sheetsConnected" style="display:none;">
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-              <div style="width:8px;height:8px;border-radius:50%;background:#4ade80;box-shadow:0 0 6px #4ade80;"></div>
-              <span style="font-size:12px;color:var(--text2);">Connected — <a id="sheetsLink" href="#" target="_blank" style="color:var(--accent);">Open Spreadsheet</a></span>
-            </div>
-            <div style="display:flex;gap:8px;">
-              <button class="btn btn-primary btn-sm" onclick="syncToSheets()">⟳ Sync Now</button>
-              <button class="btn btn-ghost btn-sm" onclick="disconnectSheets()">Disconnect</button>
-            </div>
-            <div id="syncStatus" style="font-size:11px;color:var(--text3);margin-top:8px;"></div>
-          </div>
-        </div>
 
       </div>
     </div>
@@ -1160,29 +1085,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 </div>
 
 <!-- HAMBURGER DROPDOWN -->
-<div id="hamburgerMenu" style="display:none;position:fixed;background:var(--bg2);border:1px solid var(--border2);border-top:2px solid var(--accent);border-radius:var(--radius);min-width:200px;z-index:9999;box-shadow:0 8px 32px rgba(0,0,0,.8);overflow:hidden;">
-  <button onclick="openBugReport();closeHamburger();" style="display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:12px 16px;background:none;border:none;color:var(--text2);font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;letter-spacing:.5px;border-bottom:1px solid var(--border);transition:background .1s;" onmouseover="this.style.background='var(--bg3)';this.style.color='var(--text)'" onmouseout="this.style.background='none';this.style.color='var(--text2)'">
-    🐛 Report a Bug
-  </button>
-</div>
-
-<!-- BUG REPORT MODAL -->
-<div class="modal-overlay hidden" id="bugReportModal" onclick="if(event.target===this)this.classList.add('hidden')">
-  <div class="modal" style="max-width:460px;">
-    <div class="modal-title">🐛 Report a Bug</div>
-    <div class="modal-sub">Describe the issue and we'll look into it.</div>
-    <div class="form-error hidden" id="bugReportError"></div>
-    <div class="form-group">
-      <label class="form-label">Description</label>
-      <textarea class="form-input" id="bugReportMsg" placeholder="Describe the bug in detail..." style="resize:vertical;min-height:120px;font-family:'Inter',sans-serif;"></textarea>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="document.getElementById('bugReportModal').classList.add('hidden')">Cancel</button>
-      <button class="btn btn-primary" onclick="submitBugReport()">Submit Report</button>
-    </div>
-  </div>
-</div>
-
 <!-- SUPER ADMIN DEPT HISTORY MODAL -->
 <div class="modal-overlay hidden" id="deptHistoryModal" onclick="if(event.target===this)this.classList.add('hidden')">
   <div class="modal" style="max-width:580px;">
@@ -1910,8 +1812,6 @@ async function loadDepartment(userId){
   nextTraineeId = trainees.length>0 ? Math.max(...trainees.map(t=>t.id||0))+1 : 1;
 }
 
-function toggleToolsDropdown(){ /* no-op — tools are now always visible pills */ }
-function closeToolsDropdown(){ /* no-op */ }
 
 function setSyncStatus(state){
   const el = document.getElementById('syncStatus');
@@ -2166,7 +2066,7 @@ async function openHistoryModal(){
   }
   list.innerHTML=snapshots.map((s,i)=>{
     const d=new Date(s.created_at);
-    const snap=s.snapshot;
+    const snap=s.snapshot||{};
     return`<div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:12px 16px;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:${i===0?'0':'8px'};">
         <div>
@@ -5332,45 +5232,6 @@ async function createDepartment(){
   document.getElementById('tempPwDeptName').textContent = name + ' — ' + email;
   document.getElementById('tempPwValue').textContent = password;
   document.getElementById('tempPwModal').classList.remove('hidden');
-}
-
-function toggleHamburger(e){
-  e.stopPropagation();
-  const menu=document.getElementById('hamburgerMenu');
-  if(menu.style.display==='block'){ closeHamburger(); return; }
-  const btn=document.getElementById('hamburgerBtn');
-  const rect=btn.getBoundingClientRect();
-  menu.style.display='block';
-  menu.style.top=(rect.bottom+4)+'px';
-  menu.style.right=(window.innerWidth-rect.right)+'px';
-}
-
-function closeHamburger(){
-  document.getElementById('hamburgerMenu').style.display='none';
-}
-
-document.addEventListener('click', ()=>closeHamburger());
-
-function openBugReport(){
-  document.getElementById('bugReportMsg').value='';
-  document.getElementById('bugReportError').classList.add('hidden');
-  document.getElementById('bugReportModal').classList.remove('hidden');
-}
-
-async function submitBugReport(){
-  const msg=document.getElementById('bugReportMsg').value.trim();
-  const errEl=document.getElementById('bugReportError');
-  errEl.classList.add('hidden');
-  if(!msg){errEl.textContent='⚠ Please describe the bug.';errEl.classList.remove('hidden');return;}
-  const {error}=await sb.from('bug_reports').insert({
-    dept_name: deptName||'Unknown',
-    dept_id: deptId||null,
-    reported_by: currentUser?.name||currentUser?.email||'Anonymous',
-    message: msg
-  });
-  if(error){errEl.textContent='⚠ '+error.message;errEl.classList.remove('hidden');return;}
-  document.getElementById('bugReportModal').classList.add('hidden');
-  showToast('✓ Bug report submitted. Thank you!');
 }
 
 async function loadBugReports(){
