@@ -718,8 +718,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
         <span id="syncStatus" class="hidden" style="font-family:'JetBrains Mono',monospace;font-size:9px;display:flex;align-items:center;gap:6px;padding:7px 12px;border-radius:8px;border:1px solid;white-space:nowrap;"></span>
         <button class="btn btn-ghost btn-sm hidden" id="loginFromPublicBtn" onclick="showAuthModal()" style="font-size:10px;border-radius:8px;">Login</button>
         <button class="btn btn-outline btn-sm hidden" id="shareBtn" onclick="openShareModal()" style="border-radius:8px;">Share</button>
-        <button class="btn btn-outline btn-sm hidden" id="newsBtn" onclick="openNewsModal()" style="border-radius:8px;border-color:rgba(255,61,129,.4);color:#ff3d81;font-size:11px;">News</button>
-        <button class="btn btn-ghost btn-sm hidden" id="saveRosterPdfBtn" onclick="downloadRosterPDF()" style="border-color:var(--green2);color:var(--green);font-size:10px;border-radius:8px;">↑ Save Roster</button>
+        <button class="btn btn-outline btn-sm hidden" id="newsBtn" onclick="openNewsModal()" style="border-radius:8px;border-color:rgba(244,114,182,.4);color:#f472b6;font-size:11px;">News</button>
         <button class="logout-btn" onclick="doLogout()">Logout</button>
       </div>
     </div>
@@ -731,8 +730,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
       <button id="editLogTab" onclick="switchTab('editlog',this)" class="tool-pill hidden" style="color:#fbbf24;border-color:rgba(251,191,36,.4);background:rgba(251,191,36,.1);">▤ Edit Log</button>
       <button id="historyBtn" onclick="openHistoryModal()" class="tool-pill hidden" style="color:#22d3ee;border-color:rgba(34,211,238,.4);background:rgba(34,211,238,.1);">⟳ History</button>
       <button id="saTab" onclick="switchTab('superadmin',this)" class="tool-pill hidden" style="color:#a78bfa;border-color:rgba(167,139,250,.4);background:rgba(167,139,250,.1);">⬡ Super Admin</button>
-      <button id="updatesTab" onclick="switchTab('updates',this)" class="tool-pill hidden" style="color:#ff3d81;border-color:rgba(255,61,129,.4);background:rgba(255,61,129,.1);">📣 Updates</button>
-      <button id="newsToolPill" onclick="openNewsModal()" class="tool-pill hidden" style="margin-left:auto;color:#ff3d81;border-color:rgba(255,61,129,.4);background:rgba(255,61,129,.1);font-size:10.5px;">News</button>
+      <button id="updatesTab" onclick="switchTab('updates',this)" class="tool-pill hidden" style="color:#f472b6;border-color:rgba(244,114,182,.4);background:rgba(244,114,182,.1);">📣 Updates</button>
+      <button id="saveRosterPdfBtn" onclick="downloadRosterPDF()" class="tool-pill hidden" style="margin-left:auto;color:var(--green);border-color:var(--green2);background:rgba(74,222,128,.1);">↑ Save Roster</button>
     </div>
     <div id="demoBanner" style="display:none;background:rgba(167,139,250,.12);border-bottom:1px solid rgba(167,139,250,.3);padding:8px 32px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--purple);letter-spacing:1px;align-items:center;justify-content:space-between;">
       <span>▶ DEMO MODE — Changes are temporary and will reset on refresh.</span>
@@ -1032,7 +1031,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;">
           <div>
             <div style="font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:3px;color:var(--text);line-height:1;">Department Updates</div>
-            <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#ff3d81;letter-spacing:2px;margin-top:4px;">📣 SHOWN AS A POPUP ON NEXT DEPARTMENT LOGIN</div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#f472b6;letter-spacing:2px;margin-top:4px;">📣 SHOWN AS A POPUP ON NEXT DEPARTMENT LOGIN</div>
           </div>
         </div>
 
@@ -1222,7 +1221,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 <!-- VERSION HISTORY MODAL -->
 <!-- NEWS MODAL (browsable list, separate from the forced popup) -->
 <div class="modal-overlay hidden" id="newsModal" onclick="if(event.target===this)this.classList.add('hidden')">
-  <div class="modal" style="max-width:520px;border-top:2px solid #ff3d81;">
+  <div class="modal" style="max-width:520px;border-top:2px solid #f472b6;">
     <div class="modal-title">📣 News</div>
     <div class="modal-sub">Everything RosterCore has announced, most recent first.</div>
     <div id="newsList" style="display:flex;flex-direction:column;gap:8px;max-height:420px;overflow-y:auto;margin:16px 0;"></div>
@@ -2369,7 +2368,6 @@ async function onLoginSuccess(user){
   document.getElementById('addTraineeBtn').classList.remove('hidden');
   document.getElementById('shareBtn').classList.remove('hidden');
   document.getElementById('newsBtn').classList.remove('hidden');
-  document.getElementById('newsToolPill').classList.remove('hidden');
   document.getElementById('saveRosterPdfBtn').classList.remove('hidden');
   document.getElementById('historyBtn').classList.remove('hidden');
 
@@ -2622,7 +2620,6 @@ async function completeStaffLogin(profile){
   if(hasPerm('editor')) document.getElementById('editorTab').classList.remove('hidden');
   if(!hasPerm('secondaryRosters')) document.getElementById('secondaryRosterTabs').classList.add('hidden');
   document.getElementById('newsBtn').classList.remove('hidden');
-  document.getElementById('newsToolPill').classList.remove('hidden');
 
   renderAll();
   await loadSecondaryRosters();
