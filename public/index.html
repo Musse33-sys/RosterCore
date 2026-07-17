@@ -2358,6 +2358,10 @@ async function onLoginSuccess(user){
   applyTheme(activeTheme);
   document.getElementById('headerName').textContent = deptName;
   setAvatar(deptName);
+  // Defense-in-depth: a regular dept head must never see super-admin-only controls,
+  // even if this login happens right after a super admin session on the same page.
+  document.getElementById('saTab').classList.add('hidden');
+  document.getElementById('updatesTab').classList.add('hidden');
   document.getElementById('rosterTab').classList.remove('hidden');
   document.getElementById('traineesTab').classList.remove('hidden');
   document.getElementById('addRosterTab').classList.remove('hidden');
@@ -2412,7 +2416,7 @@ async function doLogout(){
 
   document.getElementById('appPage').style.display='none';
   const lp2=document.getElementById('landingPage'); lp2.style.display='flex'; lp2.style.visibility='visible'; lp2.style.height=''; lp2.style.overflow='';
-  ['saTab','rosterTab','traineesTab','membersTab','editorTab','promoTab','addMemberBtn','addTraineeBtn','shareBtn','saveRosterPdfBtn','historyBtn','loginFromPublicBtn','editLogTab','toolsRow'].forEach(id=>{
+  ['saTab','updatesTab','rosterTab','traineesTab','membersTab','editorTab','promoTab','addMemberBtn','addTraineeBtn','shareBtn','newsBtn','saveRosterPdfBtn','historyBtn','loginFromPublicBtn','editLogTab','toolsRow'].forEach(id=>{
     const el=document.getElementById(id);
     if(el) el.classList.add('hidden');
   });
@@ -2613,6 +2617,9 @@ async function completeStaffLogin(profile){
   window.scrollTo(0,0);
   document.getElementById('headerName').textContent=deptName;
   setAvatar(profile.name);
+  // Defense-in-depth: staff must never see super-admin-only controls either.
+  document.getElementById('saTab').classList.add('hidden');
+  document.getElementById('updatesTab').classList.add('hidden');
   if(hasPerm('mainRoster')) document.getElementById('addMemberBtn').classList.remove('hidden');
   if(hasPerm('traineeRoster')) document.getElementById('addTraineeBtn').classList.remove('hidden');
   if(hasPerm('mainRoster')) document.getElementById('rosterTab').classList.remove('hidden');
