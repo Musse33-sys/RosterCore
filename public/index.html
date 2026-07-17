@@ -2408,13 +2408,19 @@ async function doLogout(){
   document.querySelectorAll('.secondary-roster-panel').forEach(el=>el.remove());
 
   // Clear all rendered content
-  ['rosterWrap','traineeWrap','allMembersWrap','promoWrap','statsBar','deptTableBody','historyList'].forEach(id=>{
+  ['rosterWrap','traineeWrap','allMembersWrap','promoWrap','statsBar','deptTableBody','historyList','saStatsRow','deptsByServer','serversList','bugReportsList','updatesList'].forEach(id=>{
     const el=document.getElementById(id);
     if(el) el.innerHTML='';
   });
   document.getElementById('headerName').textContent='My Department';
 
   document.getElementById('appPage').style.display='none';
+  // Reset every tab panel to a clean hidden state — without this, a panel that was
+  // "active" in the previous session (like Super Admin) stays display:block underneath,
+  // and flashes visible the instant the next login shows #appPage again, before that
+  // login's own switchTab() call has a chance to catch up and hide it.
+  document.querySelectorAll('.tab-panel').forEach(p=>{ p.style.display='none'; p.classList.remove('active'); });
+  document.querySelectorAll('.nav-tab,.tool-pill').forEach(b=>b.classList.remove('active'));
   const lp2=document.getElementById('landingPage'); lp2.style.display='flex'; lp2.style.visibility='visible'; lp2.style.height=''; lp2.style.overflow='';
   ['saTab','updatesTab','rosterTab','traineesTab','membersTab','editorTab','promoTab','addMemberBtn','addTraineeBtn','shareBtn','newsBtn','saveRosterPdfBtn','historyBtn','loginFromPublicBtn','editLogTab','toolsRow'].forEach(id=>{
     const el=document.getElementById(id);
