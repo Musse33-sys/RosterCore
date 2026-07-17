@@ -2323,6 +2323,7 @@ async function onLoginSuccess(user){
   if(isSuperAdmin){
     document.getElementById('saTab').classList.remove('hidden');
     document.getElementById('updatesTab').classList.remove('hidden');
+    document.getElementById('toolsRow').classList.remove('hidden');
     ['tab-roster','tab-trainees','tab-members'].forEach(id=>{
       const el=document.getElementById(id);
       if(el){el.style.display='none';el.classList.remove('active');}
