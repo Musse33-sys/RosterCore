@@ -718,6 +718,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
         <span id="syncStatus" class="hidden" style="font-family:'JetBrains Mono',monospace;font-size:9px;display:flex;align-items:center;gap:6px;padding:7px 12px;border-radius:8px;border:1px solid;white-space:nowrap;"></span>
         <button class="btn btn-ghost btn-sm hidden" id="loginFromPublicBtn" onclick="showAuthModal()" style="font-size:10px;border-radius:8px;">Login</button>
         <button class="btn btn-outline btn-sm hidden" id="shareBtn" onclick="openShareModal()" style="border-radius:8px;">Share</button>
+        <button class="btn btn-outline btn-sm hidden" id="newsBtn" onclick="openNewsModal()" style="border-radius:8px;border-color:rgba(255,61,129,.4);color:#ff3d81;">📣 News</button>
         <button class="btn btn-ghost btn-sm hidden" id="saveRosterPdfBtn" onclick="downloadRosterPDF()" style="border-color:var(--green2);color:var(--green);font-size:10px;border-radius:8px;">↑ Save Roster</button>
         <button class="logout-btn" onclick="doLogout()">Logout</button>
       </div>
@@ -1218,6 +1219,18 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 </div>
 
 <!-- VERSION HISTORY MODAL -->
+<!-- NEWS MODAL (browsable list, separate from the forced popup) -->
+<div class="modal-overlay hidden" id="newsModal" onclick="if(event.target===this)this.classList.add('hidden')">
+  <div class="modal" style="max-width:520px;border-top:2px solid #ff3d81;">
+    <div class="modal-title">📣 News</div>
+    <div class="modal-sub">Everything RosterCore has announced, most recent first.</div>
+    <div id="newsList" style="display:flex;flex-direction:column;gap:8px;max-height:420px;overflow-y:auto;margin:16px 0;"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="document.getElementById('newsModal').classList.add('hidden')">Close</button>
+    </div>
+  </div>
+</div>
+
 <!-- DEPARTMENT UPDATE POPUP -->
 <div id="updatePopupModal" class="hidden">
   <div class="upd-popup">
@@ -2353,6 +2366,7 @@ async function onLoginSuccess(user){
   document.getElementById('addMemberBtn').classList.remove('hidden');
   document.getElementById('addTraineeBtn').classList.remove('hidden');
   document.getElementById('shareBtn').classList.remove('hidden');
+  document.getElementById('newsBtn').classList.remove('hidden');
   document.getElementById('saveRosterPdfBtn').classList.remove('hidden');
   document.getElementById('historyBtn').classList.remove('hidden');
 
@@ -2604,6 +2618,7 @@ async function completeStaffLogin(profile){
   if(hasPerm('promotion')) document.getElementById('promoTab').classList.remove('hidden');
   if(hasPerm('editor')) document.getElementById('editorTab').classList.remove('hidden');
   if(!hasPerm('secondaryRosters')) document.getElementById('secondaryRosterTabs').classList.add('hidden');
+  document.getElementById('newsBtn').classList.remove('hidden');
 
   renderAll();
   await loadSecondaryRosters();
@@ -5575,6 +5590,28 @@ async function dismissCurrentUpdate(){
     document.getElementById('updatePopupModal').classList.add('hidden');
     pendingUpdateQueue = [];
   }
+}
+
+async function openNewsModal(){
+  document.getElementById('newsModal').classList.remove('hidden');
+  const wrap = document.getElementById('newsList');
+  wrap.innerHTML = `<p style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);padding:8px 0;">Loading...</p>`;
+  const {data:updates} = await sb.from('updates').select('*').order('created_at',{ascending:false}).limit(50);
+  if(!updates || !updates.length){
+    wrap.innerHTML = `<p style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);padding:8px 0;">Nothing posted yet — check back later.</p>`;
+    return;
+  }
+  wrap.innerHTML = updates.map(u=>{
+    const t = UPDATE_TYPES[u.type] || UPDATE_TYPES.announcement;
+    return `<div style="background:var(--bg3);border:1px solid var(--border);border-left:3px solid ${t.color};border-radius:8px;padding:14px 16px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1px;color:${t.color};font-weight:700;">${t.label.toUpperCase()}</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3);">${new Date(u.created_at).toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'}).toUpperCase()}</span>
+      </div>
+      <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px;">${escapeHtml(u.title)}</div>
+      <div style="font-size:12px;color:var(--text2);line-height:1.6;white-space:pre-wrap;">${escapeHtml(u.message)}</div>
+    </div>`;
+  }).join('');
 }
 
 let servers = [];
