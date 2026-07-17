@@ -732,6 +732,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
       <button id="historyBtn" onclick="openHistoryModal()" class="tool-pill hidden" style="color:#22d3ee;border-color:rgba(34,211,238,.4);background:rgba(34,211,238,.1);">⟳ History</button>
       <button id="saTab" onclick="switchTab('superadmin',this)" class="tool-pill hidden" style="color:#a78bfa;border-color:rgba(167,139,250,.4);background:rgba(167,139,250,.1);">⬡ Super Admin</button>
       <button id="updatesTab" onclick="switchTab('updates',this)" class="tool-pill hidden" style="color:#ff3d81;border-color:rgba(255,61,129,.4);background:rgba(255,61,129,.1);">📣 Updates</button>
+      <button id="newsToolPill" onclick="openNewsModal()" class="tool-pill hidden" style="margin-left:auto;color:#ff3d81;border-color:rgba(255,61,129,.4);background:rgba(255,61,129,.1);">📣 News</button>
     </div>
     <div id="demoBanner" style="display:none;background:rgba(167,139,250,.12);border-bottom:1px solid rgba(167,139,250,.3);padding:8px 32px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--purple);letter-spacing:1px;align-items:center;justify-content:space-between;">
       <span>▶ DEMO MODE — Changes are temporary and will reset on refresh.</span>
@@ -2001,8 +2002,9 @@ function setSyncStatus(state){
 // Warn before the user leaves/refreshes while a save is still pending or in flight —
 // this is the exact scenario that was causing edits to appear to "revert": the debounced
 // save (600ms) plus network round-trip hadn't finished yet when the page was reloaded.
+let isMarkingUpdateSeen = false;
 window.addEventListener('beforeunload', function(e){
-  if(saveTimer || isSyncing){
+  if(saveTimer || isSyncing || isMarkingUpdateSeen){
     e.preventDefault();
     e.returnValue = '';
     return '';
@@ -2367,6 +2369,7 @@ async function onLoginSuccess(user){
   document.getElementById('addTraineeBtn').classList.remove('hidden');
   document.getElementById('shareBtn').classList.remove('hidden');
   document.getElementById('newsBtn').classList.remove('hidden');
+  document.getElementById('newsToolPill').classList.remove('hidden');
   document.getElementById('saveRosterPdfBtn').classList.remove('hidden');
   document.getElementById('historyBtn').classList.remove('hidden');
 
@@ -2619,6 +2622,7 @@ async function completeStaffLogin(profile){
   if(hasPerm('editor')) document.getElementById('editorTab').classList.remove('hidden');
   if(!hasPerm('secondaryRosters')) document.getElementById('secondaryRosterTabs').classList.add('hidden');
   document.getElementById('newsBtn').classList.remove('hidden');
+  document.getElementById('newsToolPill').classList.remove('hidden');
 
   renderAll();
   await loadSecondaryRosters();
@@ -5577,11 +5581,26 @@ function showUpdatePopup(){
 
 async function dismissCurrentUpdate(){
   const u = pendingUpdateQueue[currentUpdateIndex];
+  const btn = document.getElementById('updPopupBtn');
+  const prevText = btn.textContent;
   if(u){
+    btn.disabled = true;
+    btn.textContent = 'Saving…';
+    isMarkingUpdateSeen = true;
     const seen = new Set(u.seen_by_dept_ids||[]);
     seen.add(deptId);
     u.seen_by_dept_ids = Array.from(seen);
-    sb.from('updates').update({seen_by_dept_ids: u.seen_by_dept_ids}).eq('id', u.id);
+    // Must be awaited — if we close the popup before this write actually reaches
+    // the database, refreshing right after clicking "Got it" can cancel the request
+    // mid-flight, so the update never actually gets marked seen and pops up again.
+    const {error} = await sb.from('updates').update({seen_by_dept_ids: u.seen_by_dept_ids}).eq('id', u.id);
+    isMarkingUpdateSeen = false;
+    btn.disabled = false;
+    btn.textContent = prevText;
+    if(error){
+      showToast('⚠ Could not save — please try again before closing.', true);
+      return;
+    }
   }
   if(currentUpdateIndex < pendingUpdateQueue.length-1){
     currentUpdateIndex++;
