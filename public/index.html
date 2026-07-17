@@ -76,6 +76,22 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .perm-dot .perm-dot-mark{width:6px;height:6px;border-radius:50%;background:var(--border2);flex-shrink:0;}
 .perm-dot.on{color:var(--pc,var(--accent));}
 .perm-dot.on .perm-dot-mark{background:var(--pc,var(--accent));box-shadow:0 0 5px var(--pc,var(--accent));}
+
+.upd-type-pill{background:var(--bg3);border:1px solid var(--border2);color:var(--text2);padding:7px 14px;border-radius:20px;font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.5px;cursor:pointer;transition:all .15s;}
+.upd-type-pill.active{background:color-mix(in srgb,var(--uc,var(--accent)) 12%,transparent);border:1.5px solid var(--uc,var(--accent));color:var(--uc,var(--accent));font-weight:700;}
+.upd-badge{display:inline-flex;align-items:center;gap:6px;background:color-mix(in srgb,var(--uc,var(--accent)) 12%,transparent);border:1.5px solid var(--uc,var(--accent));color:var(--uc,var(--accent));padding:6px 14px;border-radius:20px;font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:700;letter-spacing:.5px;}
+
+#updatePopupModal{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:10000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(2px);}
+.upd-popup{width:560px;max-width:92vw;background:#0a0a0c;border:1px solid #2a2a30;border-radius:14px;overflow:hidden;box-shadow:0 40px 100px rgba(0,0,0,.6);}
+.upd-popup-accent{height:3px;background:linear-gradient(90deg,#3b82f6,#4ade80);}
+.upd-popup-inner{padding:36px 36px 28px;}
+.upd-popup-title{font-family:'Inter',sans-serif;font-size:22px;font-weight:700;color:var(--text);line-height:1.3;margin:16px 0 14px;}
+.upd-popup-msg{font-size:14px;color:var(--text2);line-height:1.75;margin-bottom:24px;white-space:pre-wrap;}
+.upd-popup-footer{display:flex;align-items:center;justify-content:space-between;padding-top:20px;border-top:1px solid #1e1e22;}
+.upd-popup-meta{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);letter-spacing:.5px;}
+.upd-dots{display:flex;gap:5px;align-items:center;margin-top:8px;}
+.upd-dot{width:6px;height:6px;border-radius:50%;background:#333;transition:all .2s;}
+.upd-dot.active{background:#3b82f6;width:16px;border-radius:3px;}
 .form-check input[type=checkbox]{width:15px;height:15px;accent-color:var(--accent);cursor:pointer;}
 .form-error{background:rgba(248,113,113,.1);border:1px solid var(--red2);color:var(--red);padding:10px 12px;border-radius:var(--radius);font-size:12px;font-family:'JetBrains Mono',monospace;}
 
@@ -714,6 +730,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
       <button id="editLogTab" onclick="switchTab('editlog',this)" class="tool-pill hidden" style="color:#fbbf24;border-color:rgba(251,191,36,.4);background:rgba(251,191,36,.1);">▤ Edit Log</button>
       <button id="historyBtn" onclick="openHistoryModal()" class="tool-pill hidden" style="color:#22d3ee;border-color:rgba(34,211,238,.4);background:rgba(34,211,238,.1);">⟳ History</button>
       <button id="saTab" onclick="switchTab('superadmin',this)" class="tool-pill hidden" style="color:#a78bfa;border-color:rgba(167,139,250,.4);background:rgba(167,139,250,.1);">⬡ Super Admin</button>
+      <button id="updatesTab" onclick="switchTab('updates',this)" class="tool-pill hidden" style="color:#ff3d81;border-color:rgba(255,61,129,.4);background:rgba(255,61,129,.1);">📣 Updates</button>
     </div>
     <div id="demoBanner" style="display:none;background:rgba(167,139,250,.12);border-bottom:1px solid rgba(167,139,250,.3);padding:8px 32px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--purple);letter-spacing:1px;align-items:center;justify-content:space-between;">
       <span>▶ DEMO MODE — Changes are temporary and will reset on refresh.</span>
@@ -1006,6 +1023,56 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
       </div>
     </div>
 
+    <!-- DEPARTMENT UPDATES (super admin only) -->
+    <div class="tab-panel" id="tab-updates" style="display:none;">
+      <div class="sa-panel">
+
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;">
+          <div>
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:3px;color:var(--text);line-height:1;">Department Updates</div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#ff3d81;letter-spacing:2px;margin-top:4px;">📣 SHOWN AS A POPUP ON NEXT DEPARTMENT LOGIN</div>
+          </div>
+        </div>
+
+        <!-- COMPOSER -->
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:22px;margin-bottom:28px;">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--text3);margin-bottom:14px;">NEW UPDATE</div>
+
+          <div style="margin-bottom:14px;">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;color:var(--text3);margin-bottom:6px;">TYPE</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;" id="updTypeRow">
+              <button type="button" class="upd-type-pill active" data-type="feature" style="--uc:#4ade80;" onclick="selectUpdateType('feature',this)">🚀 New Feature</button>
+              <button type="button" class="upd-type-pill" data-type="bugfix" style="--uc:#f87171;" onclick="selectUpdateType('bugfix',this)">🐛 Bug Fix</button>
+              <button type="button" class="upd-type-pill" data-type="maintenance" style="--uc:#fbbf24;" onclick="selectUpdateType('maintenance',this)">🔧 Maintenance</button>
+              <button type="button" class="upd-type-pill" data-type="announcement" style="--uc:#a78bfa;" onclick="selectUpdateType('announcement',this)">📢 Announcement</button>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom:14px;">
+            <label class="form-label">Title</label>
+            <input class="form-input" id="updTitle" placeholder="e.g. Promotion documents now support multiple pages">
+          </div>
+
+          <div class="form-group" style="margin-bottom:16px;">
+            <label class="form-label">Message</label>
+            <textarea class="form-input" id="updMessage" placeholder="What changed, and why it matters to departments…" style="resize:vertical;min-height:90px;font-family:'Inter',sans-serif;"></textarea>
+          </div>
+
+          <div class="form-error hidden" id="updError"></div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-primary btn-sm" onclick="publishUpdate()">Publish</button>
+            <button class="btn btn-ghost btn-sm" onclick="clearUpdateForm()">Clear</button>
+          </div>
+        </div>
+
+        <!-- PUBLISHED LIST -->
+        <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--text3);text-transform:uppercase;margin-bottom:10px;">Published</div>
+        <div class="divider" style="margin-bottom:14px;"></div>
+        <div id="updatesList"></div>
+
+      </div>
+    </div>
+
   </main>
 </div>
 
@@ -1151,6 +1218,25 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 </div>
 
 <!-- VERSION HISTORY MODAL -->
+<!-- DEPARTMENT UPDATE POPUP -->
+<div id="updatePopupModal" class="hidden">
+  <div class="upd-popup">
+    <div class="upd-popup-accent"></div>
+    <div class="upd-popup-inner">
+      <div class="upd-badge" id="updPopupBadge" style="--uc:#4ade80;">🚀 NEW FEATURE</div>
+      <div class="upd-popup-title" id="updPopupTitle"></div>
+      <div class="upd-popup-msg" id="updPopupMsg"></div>
+      <div class="upd-popup-footer">
+        <div>
+          <div class="upd-popup-meta" id="updPopupMeta">POSTED —</div>
+          <div class="upd-dots" id="updPopupDots"></div>
+        </div>
+        <button class="btn btn-primary" onclick="dismissCurrentUpdate()" id="updPopupBtn">GOT IT →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- SAVE CONFLICT MODAL -->
 <div class="modal-overlay hidden" id="saveConflictModal">
   <div class="modal" style="max-width:520px;border-top:2px solid var(--red);">
@@ -2236,6 +2322,7 @@ async function onLoginSuccess(user){
 
   if(isSuperAdmin){
     document.getElementById('saTab').classList.remove('hidden');
+    document.getElementById('updatesTab').classList.remove('hidden');
     ['tab-roster','tab-trainees','tab-members'].forEach(id=>{
       const el=document.getElementById(id);
       if(el){el.style.display='none';el.classList.remove('active');}
@@ -2278,6 +2365,7 @@ async function onLoginSuccess(user){
   showToast('Welcome back, '+deptName+'!');
   history.replaceState(null,'','#main-roster'); document.title='RosterCore — Main Roster';
   switchTab('roster', document.getElementById('rosterTab'));
+  checkForNewUpdates();
   startPresence(deptName+' (Owner)', deptId);
   startRealtimeSync();
 }
@@ -2540,6 +2628,7 @@ async function completeStaffLogin(profile){
     hash: profile.password_hash,
     profile_id: profile.id
   }));
+  checkForNewUpdates();
 }
 
 function renderPromotions(){
@@ -4066,12 +4155,13 @@ function switchTab(name, btn){
   if(btn) btn.classList.add('active');
   if(name==='editor') renderEditor();
   if(name==='editlog') loadOwnEditLog();
-  if(name==='superadmin') loadSuperAdminDepts(); loadBugReports();
+  if(name==='superadmin'){ loadSuperAdminDepts(); loadBugReports(); }
+  if(name==='updates') loadUpdates();
   if(name==='members') renderAllMembers();
   if(name==='promotions') renderPromotions();
   
-  const hashMap={roster:'main-roster',trainees:'trainee-roster',members:'all-members',editor:'editor',promotions:'promotions',editlog:'edit-log',superadmin:'super-admin'};
-  const titleMap={roster:'Main Roster',trainees:'Trainee Roster',members:'All Members',editor:'Editor',promotions:'Promotions',editlog:'Edit Log',superadmin:'Super Admin'};
+  const hashMap={roster:'main-roster',trainees:'trainee-roster',members:'all-members',editor:'editor',promotions:'promotions',editlog:'edit-log',superadmin:'super-admin',updates:'updates'};
+  const titleMap={roster:'Main Roster',trainees:'Trainee Roster',members:'All Members',editor:'Editor',promotions:'Promotions',editlog:'Edit Log',superadmin:'Super Admin',updates:'Updates'};
   history.replaceState(null,'',window.location.pathname+(window.location.search||'')+'#'+(hashMap[name]||name));
   document.title='RosterCore — '+(titleMap[name]||name);
   // Show FAB on roster/trainees tabs for mobile
@@ -5355,6 +5445,135 @@ async function deleteBugReport(id){
   await sb.from('bug_reports').delete().eq('id',id);
   loadBugReports();
   showToast('Bug report deleted.');
+}
+
+// ═══════════ DEPARTMENT UPDATES ═══════════
+
+const UPDATE_TYPES = {
+  feature: {label:'🚀 New Feature', color:'#4ade80'},
+  bugfix: {label:'🐛 Bug Fix', color:'#f87171'},
+  maintenance: {label:'🔧 Maintenance', color:'#fbbf24'},
+  announcement: {label:'📢 Announcement', color:'#a78bfa'},
+};
+let selectedUpdateType = 'feature';
+
+function selectUpdateType(type, btn){
+  selectedUpdateType = type;
+  document.querySelectorAll('#updTypeRow .upd-type-pill').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function clearUpdateForm(){
+  document.getElementById('updTitle').value='';
+  document.getElementById('updMessage').value='';
+  document.getElementById('updError').classList.add('hidden');
+  selectedUpdateType='feature';
+  document.querySelectorAll('#updTypeRow .upd-type-pill').forEach(b=>b.classList.remove('active'));
+  document.querySelector('#updTypeRow .upd-type-pill[data-type="feature"]').classList.add('active');
+}
+
+async function publishUpdate(){
+  const title = document.getElementById('updTitle').value.trim();
+  const message = document.getElementById('updMessage').value.trim();
+  const errEl = document.getElementById('updError');
+  errEl.classList.add('hidden');
+  if(!title || !message){ errEl.textContent='⚠ Title and message are both required.'; errEl.classList.remove('hidden'); return; }
+
+  const {error} = await sb.from('updates').insert({
+    type: selectedUpdateType,
+    title, message,
+    seen_by_dept_ids: []
+  });
+  if(error){ errEl.textContent='⚠ '+error.message; errEl.classList.remove('hidden'); return; }
+  clearUpdateForm();
+  await loadUpdates();
+  showToast('✓ Update published.');
+}
+
+async function loadUpdates(){
+  const wrap = document.getElementById('updatesList');
+  if(!wrap) return;
+  wrap.innerHTML = `<p style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);padding:8px;">Loading...</p>`;
+  const {data:updates} = await sb.from('updates').select('*').order('created_at',{ascending:false}).limit(50);
+  if(!updates || !updates.length){
+    wrap.innerHTML = `<p style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);padding:8px;">No updates published yet.</p>`;
+    return;
+  }
+  wrap.innerHTML = updates.map(u=>{
+    const t = UPDATE_TYPES[u.type] || UPDATE_TYPES.announcement;
+    const seenCount = (u.seen_by_dept_ids||[]).length;
+    return `<div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid ${t.color};border-radius:8px;padding:14px 18px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
+      <div style="min-width:0;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1px;color:${t.color};font-weight:700;">${t.label.toUpperCase()}</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3);">${new Date(u.created_at).toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'}).toUpperCase()}</span>
+        </div>
+        <div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(u.title)}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;flex-shrink:0;">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3);">👁 ${seenCount} dept${seenCount===1?'':'s'} seen</span>
+        <button class="btn btn-danger" style="padding:5px 12px;font-size:9px;" onclick="deleteUpdateItem('${u.id}')">DELETE</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function deleteUpdateItem(id){
+  if(!confirm('Delete this update? Departments who have not seen it yet will no longer see it.')) return;
+  await sb.from('updates').delete().eq('id',id);
+  await loadUpdates();
+  showToast('Update deleted.');
+}
+
+// ── Department-facing popup ──
+let pendingUpdateQueue = [];
+let currentUpdateIndex = 0;
+
+async function checkForNewUpdates(){
+  if(!deptId) return;
+  const {data:updates} = await sb.from('updates').select('*').order('created_at',{ascending:true});
+  if(!updates || !updates.length) return;
+  pendingUpdateQueue = updates.filter(u => !(u.seen_by_dept_ids||[]).includes(deptId));
+  if(!pendingUpdateQueue.length) return;
+  currentUpdateIndex = 0;
+  showUpdatePopup();
+}
+
+function showUpdatePopup(){
+  const u = pendingUpdateQueue[currentUpdateIndex];
+  if(!u) return;
+  const t = UPDATE_TYPES[u.type] || UPDATE_TYPES.announcement;
+  const badge = document.getElementById('updPopupBadge');
+  badge.style.setProperty('--uc', t.color);
+  badge.textContent = t.label.toUpperCase();
+  document.getElementById('updPopupTitle').textContent = u.title;
+  document.getElementById('updPopupMsg').textContent = u.message;
+  document.getElementById('updPopupMeta').textContent = 'POSTED '+new Date(u.created_at).toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'}).toUpperCase();
+  document.getElementById('updPopupBtn').textContent = currentUpdateIndex < pendingUpdateQueue.length-1 ? 'NEXT →' : 'GOT IT →';
+
+  const dotsWrap = document.getElementById('updPopupDots');
+  dotsWrap.innerHTML = pendingUpdateQueue.length > 1
+    ? pendingUpdateQueue.map((_,i)=>`<div class="upd-dot${i===currentUpdateIndex?' active':''}"></div>`).join('')
+    : '';
+
+  document.getElementById('updatePopupModal').classList.remove('hidden');
+}
+
+async function dismissCurrentUpdate(){
+  const u = pendingUpdateQueue[currentUpdateIndex];
+  if(u){
+    const seen = new Set(u.seen_by_dept_ids||[]);
+    seen.add(deptId);
+    u.seen_by_dept_ids = Array.from(seen);
+    sb.from('updates').update({seen_by_dept_ids: u.seen_by_dept_ids}).eq('id', u.id);
+  }
+  if(currentUpdateIndex < pendingUpdateQueue.length-1){
+    currentUpdateIndex++;
+    showUpdatePopup();
+  } else {
+    document.getElementById('updatePopupModal').classList.add('hidden');
+    pendingUpdateQueue = [];
+  }
 }
 
 let servers = [];
