@@ -58,6 +58,24 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .form-select:focus{border-color:var(--accent);}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 .form-check{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--text2);}
+
+.perm-card{display:flex;align-items:center;gap:12px;padding:11px 13px;border-radius:10px;border:1px solid var(--border);background:var(--bg3);cursor:pointer;transition:all .15s;position:relative;}
+.perm-card:hover{border-color:color-mix(in srgb,var(--pc,var(--accent)) 50%,var(--border));}
+.perm-card:has(input:checked){background:color-mix(in srgb,var(--pc,var(--accent)) 9%,var(--bg3));border-color:color-mix(in srgb,var(--pc,var(--accent)) 40%,var(--border));}
+.perm-card input{position:absolute;opacity:0;pointer-events:none;}
+.perm-icon-box{width:32px;height:32px;border-radius:8px;background:color-mix(in srgb,var(--pc,var(--accent)) 15%,transparent);color:var(--pc,var(--accent));display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.perm-info{flex:1;min-width:0;}
+.perm-title{font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:700;color:var(--text);letter-spacing:.5px;text-transform:uppercase;}
+.perm-desc{font-size:10.5px;color:var(--text3);margin-top:2px;line-height:1.4;}
+.perm-switch{width:32px;height:18px;border-radius:20px;background:var(--border2);position:relative;flex-shrink:0;transition:background .15s;}
+.perm-switch::after{content:'';position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:var(--text3);transition:all .15s;}
+.perm-card:has(input:checked) .perm-switch{background:var(--pc,var(--accent));}
+.perm-card:has(input:checked) .perm-switch::after{left:16px;background:#fff;}
+.perm-dot-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.perm-dot{display:flex;align-items:center;gap:5px;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.5px;color:var(--text3);}
+.perm-dot .perm-dot-mark{width:6px;height:6px;border-radius:50%;background:var(--border2);flex-shrink:0;}
+.perm-dot.on{color:var(--pc,var(--accent));}
+.perm-dot.on .perm-dot-mark{background:var(--pc,var(--accent));box-shadow:0 0 5px var(--pc,var(--accent));}
 .form-check input[type=checkbox]{width:15px;height:15px;accent-color:var(--accent);cursor:pointer;}
 .form-error{background:rgba(248,113,113,.1);border:1px solid var(--red2);color:var(--red);padding:10px 12px;border-radius:var(--radius);font-size:12px;font-family:'JetBrains Mono',monospace;}
 
@@ -1235,11 +1253,36 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
       <div style="margin-bottom:12px;">
         <label class="form-label" style="margin-bottom:8px;display:block;">Permissions</label>
         <div style="display:flex;flex-direction:column;gap:6px;">
-          <label class="form-check"><input type="checkbox" id="cpPermEdit" checked style="accent-color:var(--accent);"> <span style="font-size:11px;color:var(--text2);">Edit Members — add, edit, delete</span></label>
-          <label class="form-check"><input type="checkbox" id="cpPermPromote" checked style="accent-color:var(--accent);"> <span style="font-size:11px;color:var(--text2);">Promote / Demote</span></label>
-          <label class="form-check"><input type="checkbox" id="cpPermTrainees" checked style="accent-color:var(--accent);"> <span style="font-size:11px;color:var(--text2);">Manage Trainees</span></label>
-          <label class="form-check"><input type="checkbox" id="cpPermPromotions" checked style="accent-color:var(--accent);"> <span style="font-size:11px;color:var(--text2);">Promotions Log</span></label>
-          <label class="form-check"><input type="checkbox" id="cpPermStrikes" checked style="accent-color:var(--accent);"> <span style="font-size:11px;color:var(--text2);">Edit Strikes</span></label>
+          <label class="perm-card" style="--pc:#2f8fff;">
+            <input type="checkbox" id="cpPermMainRoster" checked>
+            <div class="perm-icon-box">☰</div>
+            <div class="perm-info"><div class="perm-title">Main Roster</div><div class="perm-desc">View, add, edit, and remove members</div></div>
+            <div class="perm-switch"></div>
+          </label>
+          <label class="perm-card" style="--pc:#9b5cff;">
+            <input type="checkbox" id="cpPermTraineeRoster" checked>
+            <div class="perm-icon-box">🎓</div>
+            <div class="perm-info"><div class="perm-title">Trainee Roster</div><div class="perm-desc">Manage trainees and graduate to main</div></div>
+            <div class="perm-switch"></div>
+          </label>
+          <label class="perm-card" style="--pc:#1fd65f;">
+            <input type="checkbox" id="cpPermSecondaryRosters" checked>
+            <div class="perm-icon-box">🛡</div>
+            <div class="perm-info"><div class="perm-title">Secondary Rosters</div><div class="perm-desc">View and edit rosters like SWAT, K9, etc.</div></div>
+            <div class="perm-switch"></div>
+          </label>
+          <label class="perm-card" style="--pc:#ffb300;">
+            <input type="checkbox" id="cpPermEditor" checked>
+            <div class="perm-icon-box">⚙</div>
+            <div class="perm-info"><div class="perm-title">Editor</div><div class="perm-desc">Ranks, positions, subdivisions, theme</div></div>
+            <div class="perm-switch"></div>
+          </label>
+          <label class="perm-card" style="--pc:#ff3d81;">
+            <input type="checkbox" id="cpPermPromotion" checked>
+            <div class="perm-icon-box">▲</div>
+            <div class="perm-info"><div class="perm-title">Promotion</div><div class="perm-desc">Promote, demote, and view the promotions log</div></div>
+            <div class="perm-switch"></div>
+          </label>
         </div>
       </div>
       <div class="form-error hidden" id="cpError"></div>
@@ -1276,15 +1319,40 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 
 <!-- EDIT PERMISSIONS MODAL -->
 <div class="modal-overlay hidden" id="editPermsModal" onclick="if(event.target===this)this.classList.add('hidden')">
-  <div class="modal" style="max-width:380px;">
+  <div class="modal" style="max-width:420px;">
     <div class="modal-title">Edit Permissions</div>
     <div class="modal-sub" id="editPermsName"></div>
-    <div style="display:flex;flex-direction:column;gap:8px;margin:16px 0;">
-      <label class="form-check"><input type="checkbox" id="epPermEdit" style="accent-color:var(--accent);"> <span style="font-size:12px;color:var(--text2);">Edit Members — add, edit, delete</span></label>
-      <label class="form-check"><input type="checkbox" id="epPermPromote" style="accent-color:var(--accent);"> <span style="font-size:12px;color:var(--text2);">Promote / Demote</span></label>
-      <label class="form-check"><input type="checkbox" id="epPermTrainees" style="accent-color:var(--accent);"> <span style="font-size:12px;color:var(--text2);">Manage Trainees</span></label>
-      <label class="form-check"><input type="checkbox" id="epPermPromotions" style="accent-color:var(--accent);"> <span style="font-size:12px;color:var(--text2);">Promotions Log</span></label>
-      <label class="form-check"><input type="checkbox" id="epPermStrikes" style="accent-color:var(--accent);"> <span style="font-size:12px;color:var(--text2);">Edit Strikes</span></label>
+    <div style="display:flex;flex-direction:column;gap:6px;margin:16px 0;">
+      <label class="perm-card" style="--pc:#2f8fff;">
+        <input type="checkbox" id="epPermMainRoster">
+        <div class="perm-icon-box">☰</div>
+        <div class="perm-info"><div class="perm-title">Main Roster</div><div class="perm-desc">View, add, edit, and remove members</div></div>
+        <div class="perm-switch"></div>
+      </label>
+      <label class="perm-card" style="--pc:#9b5cff;">
+        <input type="checkbox" id="epPermTraineeRoster">
+        <div class="perm-icon-box">🎓</div>
+        <div class="perm-info"><div class="perm-title">Trainee Roster</div><div class="perm-desc">Manage trainees and graduate to main</div></div>
+        <div class="perm-switch"></div>
+      </label>
+      <label class="perm-card" style="--pc:#1fd65f;">
+        <input type="checkbox" id="epPermSecondaryRosters">
+        <div class="perm-icon-box">🛡</div>
+        <div class="perm-info"><div class="perm-title">Secondary Rosters</div><div class="perm-desc">View and edit rosters like SWAT, K9, etc.</div></div>
+        <div class="perm-switch"></div>
+      </label>
+      <label class="perm-card" style="--pc:#ffb300;">
+        <input type="checkbox" id="epPermEditor">
+        <div class="perm-icon-box">⚙</div>
+        <div class="perm-info"><div class="perm-title">Editor</div><div class="perm-desc">Ranks, positions, subdivisions, theme</div></div>
+        <div class="perm-switch"></div>
+      </label>
+      <label class="perm-card" style="--pc:#ff3d81;">
+        <input type="checkbox" id="epPermPromotion">
+        <div class="perm-icon-box">▲</div>
+        <div class="perm-info"><div class="perm-title">Promotion</div><div class="perm-desc">Promote, demote, and view the promotions log</div></div>
+        <div class="perm-switch"></div>
+      </label>
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="document.getElementById('editPermsModal').classList.add('hidden')">Cancel</button>
@@ -1486,10 +1554,10 @@ function buildMemberRow(m, gi){
     <td>${strikeBadge(m.strikes||0)}</td>
     <td class="col-notes" style="font-size:11px;color:var(--text2);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escapeHtml(m.notes||'')}">${escapeHtml(m.notes||'—')}</td>
     ${currentUser?`<td><div class="row-acts">
-      ${gi>0&&hasPerm('promote')?`<button class="btn-promote btn" onclick="promote(${m.id})">▲</button>`:''}
-      ${gi<rankGroups.length-1&&hasPerm('promote')?`<button class="btn-demote btn" onclick="demote(${m.id})">▼</button>`:''}
-      ${hasPerm('editMembers')?`<button class="btn btn-ghost btn-xs" onclick="openEditMember(${m.id})">Edit</button>`:''}
-      ${hasPerm('editMembers')?`<button class="btn btn-danger" onclick="openConfirmDelete(${m.id},'member')">✕</button>`:''}
+      ${gi>0&&hasPerm('promotion')?`<button class="btn-promote btn" onclick="promote(${m.id})">▲</button>`:''}
+      ${gi<rankGroups.length-1&&hasPerm('promotion')?`<button class="btn-demote btn" onclick="demote(${m.id})">▼</button>`:''}
+      ${hasPerm('mainRoster')?`<button class="btn btn-ghost btn-xs" onclick="openEditMember(${m.id})">Edit</button>`:''}
+      ${hasPerm('mainRoster')?`<button class="btn btn-danger" onclick="openConfirmDelete(${m.id},'member')">✕</button>`:''}
     </div></td>`:''}
   </tr>`;
 }
@@ -2305,11 +2373,11 @@ async function createProfile(){
     name, username,
     password_hash: hash,
     must_change_password: true,
-    perm_edit_members: document.getElementById('cpPermEdit').checked,
-    perm_promote: document.getElementById('cpPermPromote').checked,
-    perm_trainees: document.getElementById('cpPermTrainees').checked,
-    perm_promotions: document.getElementById('cpPermPromotions').checked,
-    perm_strikes: document.getElementById('cpPermStrikes').checked,
+    perm_main_roster: document.getElementById('cpPermMainRoster').checked,
+    perm_trainee_roster: document.getElementById('cpPermTraineeRoster').checked,
+    perm_secondary_rosters: document.getElementById('cpPermSecondaryRosters').checked,
+    perm_editor: document.getElementById('cpPermEditor').checked,
+    perm_promotion: document.getElementById('cpPermPromotion').checked,
   });
   if(error){
     errEl.textContent=error.message.includes('unique')?'⚠ Username already taken.':'⚠ '+error.message;
@@ -2329,16 +2397,20 @@ async function loadProfileList(){
     return;
   }
   el.innerHTML=profiles.map(p=>{
-    const perms = [
-      p.perm_edit_members!==false ? 'Edit Members' : null,
-      p.perm_promote!==false ? 'Promote/Demote' : null,
-      p.perm_trainees!==false ? 'Trainees' : null,
-      p.perm_promotions!==false ? 'Promotions' : null,
-      p.perm_strikes!==false ? 'Strikes' : null,
-    ].filter(Boolean);
+    const permDefs = [
+      {key:'perm_main_roster', label:'Main', color:'#2f8fff'},
+      {key:'perm_trainee_roster', label:'Trainee', color:'#9b5cff'},
+      {key:'perm_secondary_rosters', label:'Secondary', color:'#1fd65f'},
+      {key:'perm_editor', label:'Editor', color:'#ffb300'},
+      {key:'perm_promotion', label:'Promotion', color:'#ff3d81'},
+    ];
+    const dots = permDefs.map(pd=>{
+      const on = p[pd.key]!==false;
+      return `<span class="perm-dot${on?' on':''}" style="--pc:${pd.color};"><span class="perm-dot-mark"></span>${pd.label}</span>`;
+    }).join('');
     return `
     <div style="background:var(--bg3);border:1px solid var(--border);padding:10px 14px;border-radius:var(--radius);margin-bottom:4px;">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
         <div>
           <div style="font-weight:600;color:var(--text);font-size:13px;">👤 ${escapeHtml(p.name)}</div>
           <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);margin-top:2px;">@${p.username} · ${new Date(p.created_at).toLocaleDateString()}${p.must_change_password?` · <span style="color:var(--yellow);">Awaiting first login</span>`:''}</div>
@@ -2348,10 +2420,7 @@ async function loadProfileList(){
           <button class="btn btn-danger" onclick="removeProfile('${p.id}','${p.name}')">Remove</button>
         </div>
       </div>
-      <div style="display:flex;flex-wrap:wrap;gap:4px;">
-        ${perms.map(pm=>`<span style="font-size:9px;letter-spacing:1px;background:var(--accent)18;border:1px solid var(--accent)44;color:var(--accent);padding:1px 7px;border-radius:3px;">${pm}</span>`).join('')}
-        ${perms.length===0?`<span style="font-size:9px;color:var(--text3);">No permissions</span>`:''}
-      </div>
+      <div class="perm-dot-row">${dots}</div>
     </div>`;
   }).join('');
 }
@@ -2363,22 +2432,22 @@ async function editProfilePerms(id){
   if(!p) return;
   _editingProfileId = id;
   document.getElementById('editPermsName').textContent = p.name + ' (@' + p.username + ')';
-  document.getElementById('epPermEdit').checked = p.perm_edit_members!==false;
-  document.getElementById('epPermPromote').checked = p.perm_promote!==false;
-  document.getElementById('epPermTrainees').checked = p.perm_trainees!==false;
-  document.getElementById('epPermPromotions').checked = p.perm_promotions!==false;
-  document.getElementById('epPermStrikes').checked = p.perm_strikes!==false;
+  document.getElementById('epPermMainRoster').checked = p.perm_main_roster!==false;
+  document.getElementById('epPermTraineeRoster').checked = p.perm_trainee_roster!==false;
+  document.getElementById('epPermSecondaryRosters').checked = p.perm_secondary_rosters!==false;
+  document.getElementById('epPermEditor').checked = p.perm_editor!==false;
+  document.getElementById('epPermPromotion').checked = p.perm_promotion!==false;
   document.getElementById('editPermsModal').classList.remove('hidden');
 }
 
 async function saveProfilePerms(){
   if(!_editingProfileId) return;
   await sb.from('roster_profiles').update({
-    perm_edit_members: document.getElementById('epPermEdit').checked,
-    perm_promote: document.getElementById('epPermPromote').checked,
-    perm_trainees: document.getElementById('epPermTrainees').checked,
-    perm_promotions: document.getElementById('epPermPromotions').checked,
-    perm_strikes: document.getElementById('epPermStrikes').checked,
+    perm_main_roster: document.getElementById('epPermMainRoster').checked,
+    perm_trainee_roster: document.getElementById('epPermTraineeRoster').checked,
+    perm_secondary_rosters: document.getElementById('epPermSecondaryRosters').checked,
+    perm_editor: document.getElementById('epPermEditor').checked,
+    perm_promotion: document.getElementById('epPermPromotion').checked,
   }).eq('id', _editingProfileId);
   document.getElementById('editPermsModal').classList.add('hidden');
   await loadProfileList();
@@ -2425,11 +2494,11 @@ async function completeStaffLogin(profile){
     name:profile.name,
     username:profile.username,
     perms:{
-      editMembers: profile.perm_edit_members!==false,
-      promote: profile.perm_promote!==false,
-      trainees: profile.perm_trainees!==false,
-      promotions: profile.perm_promotions!==false,
-      strikes: profile.perm_strikes!==false,
+      mainRoster: profile.perm_main_roster!==false,
+      traineeRoster: profile.perm_trainee_roster!==false,
+      secondaryRosters: profile.perm_secondary_rosters!==false,
+      editor: profile.perm_editor!==false,
+      promotion: profile.perm_promotion!==false,
     }
   };
 
@@ -2438,23 +2507,37 @@ async function completeStaffLogin(profile){
   window.scrollTo(0,0);
   document.getElementById('headerName').textContent=deptName;
   setAvatar(profile.name);
-  if(hasPerm('editMembers')) document.getElementById('addMemberBtn').classList.remove('hidden');
-  if(hasPerm('trainees')) document.getElementById('addTraineeBtn').classList.remove('hidden');
-  document.getElementById('rosterTab').classList.remove('hidden');
-  if(hasPerm('trainees')) document.getElementById('traineesTab').classList.remove('hidden');
-  document.getElementById('membersTab').classList.remove('hidden');
-  if(hasPerm('promotions')) document.getElementById('promoTab').classList.remove('hidden');
+  if(hasPerm('mainRoster')) document.getElementById('addMemberBtn').classList.remove('hidden');
+  if(hasPerm('traineeRoster')) document.getElementById('addTraineeBtn').classList.remove('hidden');
+  if(hasPerm('mainRoster')) document.getElementById('rosterTab').classList.remove('hidden');
+  if(hasPerm('traineeRoster')) document.getElementById('traineesTab').classList.remove('hidden');
+  if(hasPerm('mainRoster')||hasPerm('traineeRoster')) document.getElementById('membersTab').classList.remove('hidden');
+  if(hasPerm('promotion')) document.getElementById('promoTab').classList.remove('hidden');
+  if(hasPerm('editor')) document.getElementById('editorTab').classList.remove('hidden');
+  if(!hasPerm('secondaryRosters')) document.getElementById('secondaryRosterTabs').classList.add('hidden');
 
   renderAll();
   await loadSecondaryRosters();
   showToast('Welcome, '+profile.name+'!');
-  history.replaceState(null,'','#main-roster'); document.title='RosterCore — Main Roster';
-  switchTab('roster', document.getElementById('rosterTab'));
+  // Land on the first tab this staff member actually has access to
+  const firstTab = hasPerm('mainRoster') ? 'roster'
+    : hasPerm('traineeRoster') ? 'trainees'
+    : hasPerm('secondaryRosters') && secondaryRosters.length ? null
+    : hasPerm('editor') ? 'editor'
+    : hasPerm('promotion') ? 'promotions'
+    : 'roster';
+  if(firstTab){
+    history.replaceState(null,'','#'+(firstTab==='roster'?'main-roster':firstTab==='trainees'?'trainee-roster':firstTab));
+    document.title='RosterCore — '+(firstTab==='roster'?'Main Roster':firstTab==='trainees'?'Trainee Roster':firstTab);
+    switchTab(firstTab, document.getElementById(firstTab==='roster'?'rosterTab':firstTab==='trainees'?'traineesTab':firstTab==='editor'?'editorTab':'promoTab'));
+  } else if(secondaryRosters.length){
+    switchToSecondaryRoster(secondaryRosters[0].id);
+  }
   startPresence(profile.name, rd.dept_id);
   startRealtimeSync();
   localStorage.setItem('rc_staff_session', JSON.stringify({
     username: profile.username,
-    hash: hash,
+    hash: profile.password_hash,
     profile_id: profile.id
   }));
 }
@@ -3315,7 +3398,7 @@ function renderSecondaryRosterTabs(){
       <div class="filter-bar">
         <input class="filter-input" id="srSearch_${sr.id}" placeholder="Search name or callsign…" oninput="renderSecondaryRoster('${sr.id}')">
         <select class="filter-select" id="srFilterGroup_${sr.id}" onchange="renderSecondaryRoster('${sr.id}')"><option value="">All Groups</option></select>
-        ${hasPerm('editMembers')?`<button class="btn btn-primary btn-sm" onclick="openAddSecondaryMember('${sr.id}')">+ Add Member</button>`:''}
+        ${hasPerm('secondaryRosters')?`<button class="btn btn-primary btn-sm" onclick="openAddSecondaryMember('${sr.id}')">+ Add Member</button>`:''}
         ${currentUser && currentUser.email!=='staff' && currentUser.email!=='shared' ? `<button class="btn btn-ghost btn-sm" onclick="openEditSecondaryRoster('${sr.id}')">⚙ Edit Roster</button>
         <button class="btn btn-danger" onclick="confirmDeleteSecondaryRoster('${sr.id}')">✕</button>` : ''}
       </div>
@@ -3508,7 +3591,7 @@ function _renderSecondaryRosterInner(id, sr){
       ? getSmartSlots(g.from,g.to,filledCallsigns)
       : {slots:[], total:gMembers.length, capped:false};
 
-    const canEdit = hasPerm('editMembers');
+    const canEdit = hasPerm('secondaryRosters');
     const colCount = canEdit ? 9 : 8;
 
     const memberRow = (m) => `<tr class="row-filled">
@@ -4117,10 +4200,10 @@ function renderRoster(){
               <td>${strikeBadge(m.strikes||0)}</td>
               <td class="col-notes" style="font-size:11px;color:var(--text2);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escapeHtml(m.notes||'')}">${escapeHtml(m.notes||'—')}</td>
               ${currentUser?`<td><div class="row-acts">
-                ${gi>0&&hasPerm('promote')?`<button class="btn-promote btn" onclick="promote(${m.id})">▲</button>`:''}
-                ${gi<rankGroups.length-1&&hasPerm('promote')?`<button class="btn-demote btn" onclick="demote(${m.id})">▼</button>`:''}
-                ${hasPerm('editMembers')?`<button class="btn btn-ghost btn-xs" onclick="openEditMember(${m.id})">Edit</button>`:''}
-                ${hasPerm('editMembers')?`<button class="btn btn-danger" onclick="openConfirmDelete(${m.id},'member')">✕</button>`:''}
+                ${gi>0&&hasPerm('promotion')?`<button class="btn-promote btn" onclick="promote(${m.id})">▲</button>`:''}
+                ${gi<rankGroups.length-1&&hasPerm('promotion')?`<button class="btn-demote btn" onclick="demote(${m.id})">▼</button>`:''}
+                ${hasPerm('mainRoster')?`<button class="btn btn-ghost btn-xs" onclick="openEditMember(${m.id})">Edit</button>`:''}
+                ${hasPerm('mainRoster')?`<button class="btn btn-danger" onclick="openConfirmDelete(${m.id},'member')">✕</button>`:''}
               </div></td>`:''}
             </tr>`;
     };
