@@ -3490,7 +3490,10 @@ function renderSecondaryRosterTabs(){
   // Remove old panels
   document.querySelectorAll('.secondary-roster-panel').forEach(el=>el.remove());
 
-  wrap.innerHTML = secondaryRosters.map(sr=>
+  const divider = secondaryRosters.length
+    ? `<span style="display:inline-block;width:1px;height:20px;background:var(--border2);vertical-align:middle;margin:0 14px;"></span>`
+    : '';
+  wrap.innerHTML = divider + secondaryRosters.map(sr=>
     `<button class="nav-tab" id="srTab_${sr.id}" onclick="switchToSecondaryRoster('${sr.id}')">${escapeHtml(sr.name)}</button>`
   ).join('');
 
