@@ -1402,12 +1402,12 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   </div>
 </div>
 
-<!-- TEMP PASSWORD MODAL -->
+<!-- INITIAL PASSWORD MODAL -->
 <div class="modal-overlay hidden" id="tempPwModal">
   <div class="modal" style="max-width:400px;">
     <div class="modal-title">Account Created ✓</div>
     <div class="modal-sub" id="tempPwDeptName"></div>
-    <p style="font-size:13px;color:var(--text2);margin:16px 0 8px;line-height:1.6;">Share this temporary password with the department head. They will be asked to set their own password on first login.</p>
+    <p style="font-size:13px;color:var(--text2);margin:16px 0 8px;line-height:1.6;">This is their password. Share it with the department head securely — it won't be shown again.</p>
     <div style="background:var(--bg3);border:1px solid var(--accent);border-radius:var(--radius);padding:14px;text-align:center;margin-bottom:16px;">
       <div style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:var(--accent);letter-spacing:4px;" id="tempPwValue"></div>
     </div>
@@ -2488,7 +2488,6 @@ async function createProfile(){
     dept_id: deptId,
     name, username,
     password_hash: hash,
-    must_change_password: true,
     perm_main_roster: document.getElementById('cpPermMainRoster').checked,
     perm_trainee_roster: document.getElementById('cpPermTraineeRoster').checked,
     perm_secondary_rosters: document.getElementById('cpPermSecondaryRosters').checked,
@@ -2529,7 +2528,7 @@ async function loadProfileList(){
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
         <div>
           <div style="font-weight:600;color:var(--text);font-size:13px;">👤 ${escapeHtml(p.name)}</div>
-          <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);margin-top:2px;">@${p.username} · ${new Date(p.created_at).toLocaleDateString()}${p.must_change_password?` · <span style="color:var(--yellow);">Awaiting first login</span>`:''}</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);margin-top:2px;">@${p.username} · ${new Date(p.created_at).toLocaleDateString()}</div>
         </div>
         <div style="display:flex;gap:6px;">
           <button class="btn btn-ghost btn-sm" onclick="editProfilePerms('${p.id}')">Perms</button>
@@ -5418,7 +5417,7 @@ async function createDepartment(){
 
   // Insert department record
   const serverId=document.getElementById('cdServer')?.value||null;
-  const {error:dErr}=await sb.from('departments').insert({user_id:data.user.id, name, email, server_id:serverId||null, must_change_password:true});
+  const {error:dErr}=await sb.from('departments').insert({user_id:data.user.id, name, email, server_id:serverId||null});
   if(dErr){errEl.textContent='⚠ '+dErr.message;errEl.classList.remove('hidden');return;}
 
   // Insert empty roster data
@@ -5714,13 +5713,9 @@ async function loadSuperAdminDepts(){
   const statsRow=document.getElementById('saStatsRow');
   if(statsRow && depts){
     const total=depts.length;
-    const active=depts.filter(d=>!d.must_change_password).length;
-    const tempPw=depts.filter(d=>d.must_change_password).length;
     const serverCount=servers.length;
     statsRow.innerHTML=[
       {label:'Departments',val:total,color:'var(--accent)'},
-      {label:'Active',val:active,color:'var(--green)'},
-      {label:'Temp Password',val:tempPw,color:'#fbbf24'},
       {label:'Servers',val:serverCount,color:'var(--blue)'},
     ].map(s=>`
       <div style="background:var(--bg2);border:1px solid var(--border);border-top:2px solid ${s.color};border-radius:var(--radius);padding:14px 16px;">
@@ -5779,12 +5774,9 @@ async function loadSuperAdminDepts(){
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;">
           ${g.depts.map(d=>`
             <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:border-color .15s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
-              <div style="padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
-                <div>
-                  <div style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:var(--text);">${escapeHtml(d.name)}</div>
-                  <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);margin-top:2px;">${d.email||'—'}</div>
-                </div>
-                <span style="font-size:9px;letter-spacing:1px;padding:3px 8px;border-radius:3px;flex-shrink:0;${d.must_change_password?'background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.3);color:#fbbf24;':'background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.3);color:#4ade80;'}">${d.must_change_password?'TEMP PW':'ACTIVE'}</span>
+              <div style="padding:12px 14px;border-bottom:1px solid var(--border);">
+                <div style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:var(--text);">${escapeHtml(d.name)}</div>
+                <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);margin-top:2px;">${d.email||'—'}</div>
               </div>
               <div style="padding:10px 14px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
                 <span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3);cursor:pointer;filter:blur(4px);transition:filter .2s;" id="pw_${d.id}" data-hidden="1" onclick="togglePw('${d.id}')" title="Click to reveal">${d.password_hint||'—'}</span>
@@ -5855,10 +5847,9 @@ async function doChangeDeptPassword(){
       return;
     }
 
-    // Update password hint and mark as temp pw so dept head must change on next login
+    // Update password hint
     await sb.from('departments').update({
-      password_hint: pwd,
-      must_change_password: true
+      password_hint: pwd
     }).eq('user_id', changePwUserId);
 
     document.getElementById('changePwModal').classList.add('hidden');
