@@ -2312,11 +2312,11 @@ async function doLogin(){
     // Looks like a username — member/staff account
     const username = identifier.toLowerCase();
     const hash = btoa(unescape(encodeURIComponent(pwd+'_rc_salt_'+username)));
-    const {data:profile, error} = await sb.from('roster_profiles').select('*').eq('username',username).eq('password_hash',hash).single();
+    const {data:result, error} = await sb.rpc('staff_login', {p_username: username, p_password_hash: hash});
     document.getElementById('authSubmitBtn').textContent='SIGN IN →';
-    if(error || !profile){ errEl.textContent='⚠ Invalid username or password.'; errEl.classList.remove('hidden'); return; }
+    if(error || !result || !result.profile){ errEl.textContent='⚠ Invalid username or password.'; errEl.classList.remove('hidden'); return; }
     closeAuthModal();
-    await completeStaffLogin(profile);
+    await completeStaffLogin(result.profile, result.roster_data, result.department);
   }
 }
 
@@ -2580,11 +2580,11 @@ async function removeProfile(id, name){
 
 let _pendingProfile = null;
 
-async function completeStaffLogin(profile){
-  const {data:rd}=await sb.from('roster_data').select('*').eq('id',profile.roster_id).single();
+async function completeStaffLogin(profile, preloadedRoster, preloadedDept){
+  const rd = preloadedRoster || (await sb.from('roster_data').select('*').eq('id',profile.roster_id).single()).data;
   if(!rd){ showToast('⚠ Roster not found.', true); return; }
 
-  const {data:dept}=await sb.from('departments').select('*').eq('id',rd.dept_id).single();
+  const dept = preloadedDept || (await sb.from('departments').select('*').eq('id',rd.dept_id).single()).data;
 
   rosterDataId=rd.id;
   lastKnownUpdatedAt = rd.updated_at;
@@ -6117,36 +6117,12 @@ document.addEventListener('keydown',e=>{
   if(savedStaff){
     try{
       const {username, hash} = JSON.parse(savedStaff);
-      const {data:profile,error} = await sb.from('roster_profiles').select('*').eq('username',username).eq('password_hash',hash).single();
-      if(!error && profile){
-        const {data:rd} = await sb.from('roster_data').select('*').eq('id',profile.roster_id).single();
-        const {data:dept} = await sb.from('departments').select('*').eq('id',rd?.dept_id).single();
-        if(rd && dept){
-          rosterDataId=rd.id; lastKnownUpdatedAt = rd.updated_at; deptId=rd.dept_id; deptName=dept.name||'Department';
-          rankGroups=rd.rank_groups||[]; subdivisions=rd.subdivisions||[];
-          positions=migratePositions(rd.positions); traineeFormat=rd.trainee_format||''; traineeFormatTo=rd.trainee_format_to||''; showInsignia=rd.show_insignia||false; alwaysShowInsignia=rd.always_show_insignia||false;
-          customTags=rd.custom_tags||[]; promotions=rd.promotions||[];
-          customThemes=(rd.custom_themes&&rd.custom_themes.length?rd.custom_themes:[{name:'Custom 1',accent:'#c9a84c',bg:'#0a0c10'},{name:'Custom 2',accent:'#60a5fa',bg:'#080c14'}]);
-          activeTheme=rd.theme||'dark-steel'; members=rd.members||[]; trainees=rd.trainees||[];
-          nextMemberId=members.length>0?Math.max(...members.map(m=>m.id||0))+1:1;
-          nextTraineeId=trainees.length>0?Math.max(...trainees.map(t=>t.id||0))+1:1;
-          applyTheme(activeTheme);
-          currentUser={email:'staff',name:profile.name,username:profile.username};
-          document.getElementById('landingPage').style.display='none';
-          document.getElementById('appPage').style.display='flex'; document.getElementById('appPage').style.flexDirection='column';
-          document.getElementById('headerName').textContent=deptName;
-          setAvatar(profile.name);
-          document.getElementById('rosterTab').classList.remove('hidden');
-          document.getElementById('traineesTab').classList.remove('hidden');
-          document.getElementById('membersTab').classList.remove('hidden');
-          document.getElementById('addMemberBtn').classList.remove('hidden');
-          document.getElementById('addTraineeBtn').classList.remove('hidden');
-          renderAll();
-          switchTab('roster', document.getElementById('rosterTab'));
-          startPresence(profile.name, rd.dept_id);
-          startRealtimeSync();
-          return;
-        }
+      const {data:result, error} = await sb.rpc('staff_login', {p_username: username, p_password_hash: hash});
+      if(!error && result && result.profile){
+        document.getElementById('landingPage').style.display='none';
+        document.getElementById('appPage').style.display='flex'; document.getElementById('appPage').style.flexDirection='column';
+        await completeStaffLogin(result.profile, result.roster_data, result.department);
+        return;
       }
     } catch(e){}
     localStorage.removeItem('rc_staff_session');
