@@ -77,6 +77,13 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .perm-dot.on{color:var(--pc,var(--accent));}
 .perm-dot.on .perm-dot-mark{background:var(--pc,var(--accent));box-shadow:0 0 5px var(--pc,var(--accent));}
 
+.simple-toggle{position:relative;display:inline-block;width:38px;height:22px;flex-shrink:0;cursor:pointer;}
+.simple-toggle input{position:absolute;opacity:0;width:100%;height:100%;margin:0;cursor:pointer;}
+.simple-toggle .track{position:absolute;inset:0;background:var(--border2);border-radius:20px;transition:background .15s;pointer-events:none;}
+.simple-toggle .track::after{content:'';position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:var(--text3);transition:all .15s;}
+.simple-toggle input:checked ~ .track{background:var(--green);}
+.simple-toggle input:checked ~ .track::after{left:18px;background:#fff;}
+
 .upd-type-pill{background:var(--bg3);border:1px solid var(--border2);color:var(--text2);padding:7px 14px;border-radius:20px;font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.5px;cursor:pointer;transition:all .15s;}
 .upd-type-pill.active{background:color-mix(in srgb,var(--uc,var(--accent)) 12%,transparent);border:1.5px solid var(--uc,var(--accent));color:var(--uc,var(--accent));font-weight:700;}
 .upd-badge{display:inline-flex;align-items:center;gap:6px;background:color-mix(in srgb,var(--uc,var(--accent)) 12%,transparent);border:1.5px solid var(--uc,var(--accent));color:var(--uc,var(--accent));padding:6px 14px;border-radius:20px;font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:700;letter-spacing:.5px;}
@@ -1332,6 +1339,13 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
     <!-- PUBLIC LINK -->
     <div class="form-group">
       <label class="form-label">Public Link — Read Only</label>
+      <div style="display:flex;align-items:center;justify-content:space-between;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:10px;">
+        <div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;" id="shareStatusLabel">Checking…</div>
+          <div style="font-size:10.5px;color:var(--text3);margin-top:2px;" id="shareStatusDesc">—</div>
+        </div>
+        <span class="simple-toggle"><input type="checkbox" id="shareToggle" onchange="toggleShareEnabled()"><span class="track"></span></span>
+      </div>
       <div class="share-url" id="publicUrl" onclick="copyPublicLink()" title="Click to copy">Generating…</div>
       <button class="btn btn-primary btn-sm" onclick="copyPublicLink()">Copy Public Link</button>
     </div>
@@ -2452,7 +2466,50 @@ async function openShareModal(){
     await sb.from('departments').update({slug}).eq('id',deptId);
   }
   document.getElementById('publicUrl').textContent=location.origin+location.pathname+'?dept='+slug;
+
+  // Load the REAL sharing status — this was previously never checked, so the toggle
+  // always looked unset even when a department's link genuinely wasn't working.
+  const {data:rd} = await sb.from('roster_data').select('share_enabled').eq('id',rosterDataId).single();
+  const enabled = !!(rd && rd.share_enabled);
+  document.getElementById('shareToggle').checked = enabled;
+  updateShareStatusText(enabled);
+
   await loadProfileList();
+}
+
+function updateShareStatusText(enabled){
+  const label = document.getElementById('shareStatusLabel');
+  const desc = document.getElementById('shareStatusDesc');
+  if(enabled){
+    label.textContent = '🟢 Public link is ON';
+    label.style.color = 'var(--green)';
+    desc.textContent = 'Anyone with the link can view this roster.';
+  } else {
+    label.textContent = '⚪ Public link is OFF';
+    label.style.color = 'var(--text3)';
+    desc.textContent = "The link above won't work until you turn this on.";
+  }
+}
+
+async function toggleShareEnabled(){
+  const enabled = document.getElementById('shareToggle').checked;
+  const updates = {share_enabled: enabled};
+  // Generate a share token the first time this is turned on, for departments that
+  // don't have one yet (needed by the separate token-based share link format).
+  if(enabled){
+    const {data:rd} = await sb.from('roster_data').select('share_token').eq('id',rosterDataId).single();
+    if(!rd || !rd.share_token){
+      updates.share_token = (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2)).replace(/-/g,'').slice(0,20);
+    }
+  }
+  const {error} = await sb.from('roster_data').update(updates).eq('id',rosterDataId);
+  if(error){
+    showToast('⚠ '+error.message, true);
+    document.getElementById('shareToggle').checked = !enabled; // revert on failure
+    return;
+  }
+  updateShareStatusText(enabled);
+  showToast(enabled ? '✓ Public link is now live.' : '✓ Public link turned off.');
 }
 
 function copyPublicLink(){
