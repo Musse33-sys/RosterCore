@@ -1624,6 +1624,8 @@ function escapeHtml(str){
 }
 
 let currentUser = null;
+let staffAuthUsername = null;
+let staffAuthHash = null;
 let isSuperAdmin = false;
 let deptId = null;
 let rosterDataId = null;
@@ -2075,27 +2077,49 @@ async function saveRoster(){
   setSyncStatus('saving');
   try {
     const newTimestamp = new Date().toISOString();
-
-    let updateQuery = sb.from('roster_data').update({
+    const payload = {
       rank_groups: rankGroups, subdivisions: subdivisions,
       positions: positions, trainee_format: traineeFormat, trainee_format_to: traineeFormatTo, custom_tags: customTags, promotions: promotions, custom_themes: customThemes, show_insignia: showInsignia, always_show_insignia: alwaysShowInsignia, use_roster_callsign: useRosterCallsign, dept_logo: deptLogo,
-      theme: activeTheme, members: members, trainees: trainees,
-      updated_at: newTimestamp
-    }).eq('id', rosterDataId);
+      theme: activeTheme, members: members, trainees: trainees
+    };
 
-    if(lastKnownUpdatedAt) updateQuery = updateQuery.eq('updated_at', lastKnownUpdatedAt);
+    let writtenRows, e1;
 
-    // Run the roster save and the department-name sync in parallel — they touch
-    // different tables and don't depend on each other, so there's no reason to
-    // make the user wait for both sequentially.
-    const deptNameUpdate = (currentUser && currentUser.email !== 'shared' && currentUser.email !== 'staff' && deptId)
-      ? sb.from('departments').update({name: deptName}).eq('id', deptId)
-      : Promise.resolve();
+    if(currentUser?.email === 'staff'){
+      // Staff have no real Supabase session (auth.uid() is null for them), so a normal
+      // authenticated table update is always rejected by RLS. Route through the secure
+      // function instead — it verifies their credentials and department ownership
+      // server-side before writing anything.
+      const {data: result, error} = await sb.rpc('staff_save_roster', {
+        p_username: staffAuthUsername,
+        p_password_hash: staffAuthHash,
+        p_roster_id: rosterDataId,
+        p_last_known_updated_at: lastKnownUpdatedAt || null,
+        p_payload: payload
+      });
+      if(error){ e1 = error; }
+      else if(result && result.error){ e1 = {message: result.error}; }
+      else if(result && result.conflict){ writtenRows = []; }
+      else if(result && result.success){ writtenRows = [{id: rosterDataId, updated_at: result.updated_at}]; }
+      else { e1 = {message: 'Unexpected response from server.'}; }
+    } else {
+      let updateQuery = sb.from('roster_data').update({...payload, updated_at: newTimestamp}).eq('id', rosterDataId);
+      if(lastKnownUpdatedAt) updateQuery = updateQuery.eq('updated_at', lastKnownUpdatedAt);
 
-    const [{data: writtenRows, error:e1}] = await Promise.all([
-      updateQuery.select('id, updated_at'),
-      deptNameUpdate
-    ]);
+      // Run the roster save and the department-name sync in parallel — they touch
+      // different tables and don't depend on each other, so there's no reason to
+      // make the user wait for both sequentially.
+      const deptNameUpdate = (currentUser && currentUser.email !== 'shared' && deptId)
+        ? sb.from('departments').update({name: deptName}).eq('id', deptId)
+        : Promise.resolve();
+
+      const [saveResult] = await Promise.all([
+        updateQuery.select('id, updated_at'),
+        deptNameUpdate
+      ]);
+      writtenRows = saveResult.data;
+      e1 = saveResult.error;
+    }
 
     if(e1){
       // A real database error (permissions, network, etc.) — never touch local state.
@@ -2139,20 +2163,28 @@ async function openSaveConflictModal(){
   // Distinguish a genuine conflict (someone else really did save) from a save that's
   // being silently blocked (e.g. by a database permission rule) by checking what the
   // server currently has for this roster.
-  const {data: current} = await sb.from('roster_data').select('updated_at,members').eq('id', rosterDataId).single();
-
-  if(!current){
-    subEl.textContent = "We couldn't even read this roster back from the server. This looks like a permissions problem, not a real conflict — your changes are safe here, but saving won't work until that's fixed.";
-  } else if(current.updated_at === lastKnownUpdatedAt){
-    // Server's timestamp never actually changed — the update was blocked for another reason
-    // (most likely a database permission rule), not a real edit-conflict.
-    subEl.textContent = "The server's copy hasn't actually changed since you loaded it — so this isn't really a conflict with someone else's edit. Your save is being blocked for another reason (most likely a permissions issue on the server side). Your changes are safe here for now.";
-    detailEl.style.display = 'block';
-    detailEl.textContent = 'Diagnostic: expected updated_at ' + lastKnownUpdatedAt + ', server still shows ' + current.updated_at + ' — save was rejected without any real change happening.';
-  } else {
+  if(currentUser?.email === 'staff'){
+    // Staff route through staff_save_roster, which already verifies credentials and
+    // ownership BEFORE attempting the write — so if we've reached this modal at all,
+    // it can only be a genuine timestamp conflict, never a permissions problem.
     subEl.textContent = "Someone else's changes reached the server after you loaded this roster. You can overwrite with your version, or discard your local changes and load the latest.";
-    detailEl.style.display = 'block';
-    detailEl.textContent = 'Diagnostic: your copy was based on ' + lastKnownUpdatedAt + ', server now has ' + current.updated_at + '.';
+    detailEl.style.display = 'none';
+  } else {
+    const {data: current} = await sb.from('roster_data').select('updated_at,members').eq('id', rosterDataId).single();
+
+    if(!current){
+      subEl.textContent = "We couldn't even read this roster back from the server. This looks like a permissions problem, not a real conflict — your changes are safe here, but saving won't work until that's fixed.";
+    } else if(current.updated_at === lastKnownUpdatedAt){
+      // Server's timestamp never actually changed — the update was blocked for another reason
+      // (most likely a database permission rule), not a real edit-conflict.
+      subEl.textContent = "The server's copy hasn't actually changed since you loaded it — so this isn't really a conflict with someone else's edit. Your save is being blocked for another reason (most likely a permissions issue on the server side). Your changes are safe here for now.";
+      detailEl.style.display = 'block';
+      detailEl.textContent = 'Diagnostic: expected updated_at ' + lastKnownUpdatedAt + ', server still shows ' + current.updated_at + ' — save was rejected without any real change happening.';
+    } else {
+      subEl.textContent = "Someone else's changes reached the server after you loaded this roster. You can overwrite with your version, or discard your local changes and load the latest.";
+      detailEl.style.display = 'block';
+      detailEl.textContent = 'Diagnostic: your copy was based on ' + lastKnownUpdatedAt + ', server now has ' + current.updated_at + '.';
+    }
   }
 }
 
@@ -2172,12 +2204,25 @@ async function resolveSaveConflict(choice){
   // in-memory state (which still has the user's edits — nothing was lost).
   setSyncStatus('saving');
   const newTimestamp = pendingConflictTimestamp || new Date().toISOString();
-  const {data: writtenRows, error} = await sb.from('roster_data').update({
+  const payload = {
     rank_groups: rankGroups, subdivisions: subdivisions,
     positions: positions, trainee_format: traineeFormat, trainee_format_to: traineeFormatTo, custom_tags: customTags, promotions: promotions, custom_themes: customThemes, show_insignia: showInsignia, always_show_insignia: alwaysShowInsignia, use_roster_callsign: useRosterCallsign, dept_logo: deptLogo,
-    theme: activeTheme, members: members, trainees: trainees,
-    updated_at: newTimestamp
-  }).eq('id', rosterDataId).select('id, updated_at');
+    theme: activeTheme, members: members, trainees: trainees
+  };
+
+  let writtenRows, error;
+  if(currentUser?.email === 'staff'){
+    const {data: result, error: rpcError} = await sb.rpc('staff_save_roster', {
+      p_username: staffAuthUsername, p_password_hash: staffAuthHash,
+      p_roster_id: rosterDataId, p_last_known_updated_at: null, p_payload: payload
+    });
+    if(rpcError){ error = rpcError; }
+    else if(result && result.error){ error = {message: result.error}; }
+    else if(result && result.success){ writtenRows = [{id: rosterDataId, updated_at: result.updated_at}]; }
+  } else {
+    const res = await sb.from('roster_data').update({...payload, updated_at: newTimestamp}).eq('id', rosterDataId).select('id, updated_at');
+    writtenRows = res.data; error = res.error;
+  }
 
   if(error){
     showToast('⚠ Overwrite failed: '+error.message+' — this confirms a permissions problem, not a conflict.', true);
@@ -2198,7 +2243,16 @@ async function resolveSaveConflict(choice){
 async function reloadRosterFromServer(){
   if(!rosterDataId) return;
   if(saveTimer){ clearTimeout(saveTimer); saveTimer=null; } // cancel any pending save
-  const {data:rd} = await sb.from('roster_data').select('*').eq('id', rosterDataId).single();
+  let rd;
+  if(currentUser?.email === 'staff'){
+    // Staff can't read roster_data directly (no real session) — reuse staff_login,
+    // which already does exactly this fetch securely, verified by their credentials.
+    const {data: result} = await sb.rpc('staff_login', {p_username: staffAuthUsername, p_password_hash: staffAuthHash});
+    rd = result && result.roster_data;
+  } else {
+    const res = await sb.from('roster_data').select('*').eq('id', rosterDataId).single();
+    rd = res.data;
+  }
   if(!rd) return;
   // Guard: don't overwrite existing members with an empty array from server
   // unless we also currently have no members (genuine empty roster)
@@ -2330,6 +2384,7 @@ async function doLogin(){
     document.getElementById('authSubmitBtn').textContent='SIGN IN →';
     if(error || !result || !result.profile){ errEl.textContent='⚠ Invalid username or password.'; errEl.classList.remove('hidden'); return; }
     closeAuthModal();
+    staffAuthUsername = username; staffAuthHash = hash;
     await completeStaffLogin(result.profile, result.roster_data, result.department);
   }
 }
@@ -6169,6 +6224,7 @@ document.addEventListener('keydown',e=>{
       if(!error && result && result.profile){
         document.getElementById('landingPage').style.display='none';
         document.getElementById('appPage').style.display='flex'; document.getElementById('appPage').style.flexDirection='column';
+        staffAuthUsername = username; staffAuthHash = hash;
         await completeStaffLogin(result.profile, result.roster_data, result.department);
         return;
       }
