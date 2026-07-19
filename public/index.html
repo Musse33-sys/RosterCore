@@ -222,11 +222,28 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .section-title span{color:var(--accent);}
 .divider{height:1px;background:linear-gradient(90deg,var(--accent3),transparent);margin-bottom:20px;}
 
-.editor-wrap{max-width:680px;}
-.editor-notice{background:rgba(201,168,76,.06);border:1px solid var(--accent3);border-left:3px solid var(--accent);padding:10px 16px;margin-bottom:24px;display:flex;align-items:center;gap:10px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);letter-spacing:1px;}
-.editor-section{margin-bottom:22px;}
-.editor-h3{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;color:var(--text);margin-bottom:12px;}
-.editor-divider{height:1px;background:linear-gradient(90deg,var(--border2),transparent);margin:22px 0;}
+.editor-wrap{max-width:1180px;}
+.editor-row-2col{display:contents;}
+.editor-nav-item{display:flex;align-items:center;gap:11px;padding:11px 14px;border-radius:9px;cursor:pointer;transition:all .15s;font-size:13px;font-weight:600;color:var(--text2);border:1px solid transparent;}
+.editor-nav-item:hover{background:var(--bg4);}
+.editor-nav-item.active{background:color-mix(in srgb,var(--nc) 12%,transparent);border:1px solid color-mix(in srgb,var(--nc) 35%,transparent);color:var(--nc);font-weight:700;}
+.editor-nav-icon{width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;background:color-mix(in srgb,var(--nc) 15%,transparent);}
+.editor-notice{background:rgba(59,130,246,.07);border:1px solid rgba(59,130,246,.25);border-radius:10px;padding:13px 18px;margin-bottom:26px;display:flex;align-items:center;gap:10px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent2);letter-spacing:.5px;}
+.editor-section{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:22px 24px;margin-bottom:16px;}
+.editor-h3{font-family:'Bebas Neue',sans-serif;font-size:19px;letter-spacing:2px;color:var(--text);margin-bottom:14px;display:flex;align-items:center;gap:10px;}
+.editor-icon{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:color-mix(in srgb,var(--ec,var(--accent)) 15%,transparent);color:var(--ec,var(--accent));}
+.editor-icon svg{width:16px;height:16px;}
+.editor-nav-icon svg{width:15px;height:15px;}
+.ed-logo-edit{transition:border-color .15s;}
+.ed-logo-overlay{position:absolute;inset:0;background:rgba(0,0,0,0);display:flex;align-items:center;justify-content:center;opacity:0;transition:all .15s;}
+.ed-logo-edit:hover .ed-logo-overlay{background:rgba(0,0,0,.65);opacity:1;}
+.ed-name-edit{display:block;cursor:pointer;border-radius:8px;padding:6px 9px;margin:-6px -9px;position:relative;}
+.ed-name-edit:hover{background:var(--bg3);}
+.ed-name-edit input{background:transparent;border:none;outline:none;color:var(--text);font-family:'Inter',sans-serif;font-weight:700;font-size:15px;padding:0;width:100%;margin-bottom:1px;}
+.ed-name-edit input:focus{outline:none;}
+.ed-name-edit .ed-pencil{position:absolute;top:6px;right:8px;opacity:0;transition:opacity .15s;}
+.ed-name-edit:hover .ed-pencil{opacity:1;}
+.editor-divider{display:none;}
 .edit-list{display:flex;flex-direction:column;gap:7px;margin-bottom:10px;}
 .edit-row{display:grid;gap:6px;align-items:center;background:var(--bg3);border:1px solid var(--border);padding:8px 10px;border-radius:var(--radius);}
 .edit-input{background:rgba(10,12,16,.6);border:1px solid var(--border);color:var(--text);padding:6px 9px;font-family:'JetBrains Mono',monospace;font-size:11px;border-radius:var(--radius);outline:none;width:100%;}
@@ -873,48 +890,58 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
     <!-- EDITOR TAB -->
     <div class="tab-panel" style="display:none;" id="tab-editor">
       <div class="editor-wrap">
-        <div class="editor-notice">⬡ Changes save automatically. Build your roster structure here. <button class="btn btn-primary btn-sm" onclick="saveRoster()" style="margin-left:12px;">Save Now</button></div>
+        <div class="editor-notice"><span style="font-size:13px;">●</span> Changes save automatically. Build your roster structure here.<button class="btn btn-primary btn-sm" onclick="saveRoster()" style="margin-left:auto;">Save Now</button></div>
 
-        <!-- DEPT NAME -->
-        <div class="editor-section">
-          <div class="editor-h3">Department Name</div>
-          <input class="form-input" id="deptNameInput" placeholder="e.g. San Andreas Game Warden" oninput="updateDeptName(this.value)" style="max-width:400px;">
-        </div>
-        <div class="editor-divider"></div>
+        <div style="display:flex;gap:0;background:var(--bg2);border:1px solid rgba(167,139,250,.25);border-radius:14px;overflow:hidden;box-shadow:0 0 40px rgba(167,139,250,.06);">
+          <div style="width:250px;border-right:1px solid var(--border);padding:16px 12px;flex-shrink:0;">
+            <div id="edThemeBadge" style="display:inline-flex;align-items:center;background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.4);color:var(--purple);font-weight:700;font-size:11.5px;padding:5px 12px;border-radius:20px;margin-bottom:16px;">Theme</div>
 
-        <!-- DEPARTMENT LOGO -->
-        <div class="editor-section">
-          <div class="editor-h3">Department Logo</div>
-          <div style="display:flex;align-items:center;gap:16px;">
-            <div id="deptLogoPreview" style="width:64px;height:64px;border:1px solid var(--border);border-radius:8px;background:var(--bg3);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;">
-              <span style="font-size:24px;color:var(--border2);">⬡</span>
-            </div>
-            <div style="display:flex;flex-direction:column;gap:8px;">
-              <label class="btn btn-ghost btn-sm" style="cursor:pointer;">
-                Upload Logo
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:6px;">
+              <label class="ed-logo-edit" style="width:44px;height:44px;border-radius:10px;background:var(--bg3);border:2px solid var(--purple);display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative;cursor:pointer;overflow:hidden;">
+                <div id="deptLogoPreview" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;overflow:hidden;">
+                  <span style="font-size:20px;color:var(--border2);">⬡</span>
+                </div>
+                <div class="ed-logo-overlay">
+                  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                </div>
                 <input type="file" accept="image/*" style="display:none;" onchange="uploadDeptLogo(this)">
               </label>
-              <button class="btn btn-danger" onclick="removeDeptLogo()" style="font-size:9px;padding:5px 10px;">Remove</button>
-              <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3);">Shows in header + promo cards. PNG or SVG recommended.</div>
+              <label class="ed-name-edit">
+                <input id="deptNameInput" placeholder="e.g. San Andreas Game Warden" oninput="updateDeptName(this.value)">
+                <div style="font-size:11.5px;color:var(--text3);">Editor · Configuration</div>
+                <svg class="ed-pencil" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="var(--purple)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              </label>
             </div>
-          </div>
-        </div>
-        <div class="editor-divider"></div>
+            <button class="btn btn-danger" onclick="removeDeptLogo()" style="font-size:8px;padding:3px 8px;margin-bottom:14px;">Remove logo</button>
 
+            <div style="display:flex;align-items:center;gap:7px;background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.3);color:var(--green);font-size:11px;font-weight:600;padding:7px 11px;border-radius:8px;margin-bottom:18px;">
+              <span style="width:6px;height:6px;border-radius:50%;background:var(--green);flex-shrink:0;"></span>Live · autosaves as you type
+            </div>
+
+            <div class="editor-nav-item active" id="ednav-theme" style="--nc:#a78bfa;" onclick="switchEditorSection('theme')"><span class="editor-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 011.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg></span><span>Theme</span></div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--text3);padding:0 10px;margin:16px 0 8px;">ROSTER STRUCTURE</div>
+            <div class="editor-nav-item" id="ednav-rankgroups" style="--nc:#a78bfa;" onclick="switchEditorSection('rankgroups')"><span class="editor-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></span><span>Rank Groups</span></div>
+            <div class="editor-nav-item" id="ednav-positions" style="--nc:#a78bfa;" onclick="switchEditorSection('positions')"><span class="editor-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></span><span>Fixed Positions</span></div>
+            <div class="editor-nav-item" id="ednav-subdivisions" style="--nc:#a78bfa;" onclick="switchEditorSection('subdivisions')"><span class="editor-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg></span><span>Subdivisions</span></div>
+            <div class="editor-nav-item" id="ednav-tags" style="--nc:#a78bfa;" onclick="switchEditorSection('tags')"><span class="editor-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg></span><span>Custom Tags</span></div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--text3);padding:0 10px;margin:16px 0 8px;">OTHER</div>
+            <div class="editor-nav-item" id="ednav-trainee" style="--nc:#a78bfa;" onclick="switchEditorSection('trainee')"><span class="editor-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c0 1.5 3 3 6 3s6-1.5 6-3v-5"/></svg></span><span>Trainee Range</span></div>
+            <div class="editor-nav-item" id="ednav-insignia" style="--nc:#a78bfa;" onclick="switchEditorSection('insignia')"><span class="editor-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span><span>Rank Insignia</span></div>
+          </div>
+          <div style="flex:1;padding:24px 28px;min-width:0;">
         <!-- THEME -->
-        <div class="editor-section">
-          <div class="editor-h3">Theme</div>
+        <div class="editor-section" id="edsec-theme">
+          <div class="editor-h3"><span class="editor-icon" style="--ec:#a78bfa;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 011.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg></span>Theme</div>
           <div class="themes-grid" id="themesGrid"></div>
           <div style="margin-top:14px;border-top:1px solid var(--border);padding-top:14px;">
             <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:10px;">Custom Themes</div>
             <div style="display:flex;flex-direction:column;gap:8px;" id="customThemesList"></div>
           </div>
         </div>
-        <div class="editor-divider"></div>
-
+        
         <!-- RANK GROUPS -->
-        <div class="editor-section">
-          <div class="editor-h3">Rank Groups</div>
+        <div class="editor-section" id="edsec-rankgroups" style="display:none;">
+          <div class="editor-h3"><span class="editor-icon" style="--ec:#a78bfa;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></span>Rank Groups</div>
           <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;margin-bottom:12px;">
             <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
               <input type="checkbox" id="useRosterCSToggle" ${useRosterCallsign?'checked':''} onchange="toggleUseRosterCS(this.checked)" style="accent-color:var(--accent);width:15px;height:15px;">
@@ -935,11 +962,11 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
           </div>
           <p style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);margin-top:8px;line-height:1.7;">Top = highest rank. "From" and "To" define the callsign range for that group. Vacant slots show automatically.</p>
         </div>
-        <div class="editor-divider"></div>
-
+        
+        <div class="editor-row-2col">
         <!-- FIXED POSITIONS -->
-        <div class="editor-section">
-          <div class="editor-h3">Fixed Positions &amp; Callsigns</div>
+        <div class="editor-section" id="edsec-positions" style="display:none;">
+          <div class="editor-h3"><span class="editor-icon" style="--ec:#a78bfa;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></span>Fixed Positions &amp; Callsigns</div>
           <p style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);margin-bottom:10px;line-height:1.7;">Assign a fixed callsign and insignia to a position. Members with this position will display the fixed callsign and insignia on the roster.</p>
           <div class="col-labels" style="grid-template-columns:1fr 110px 44px 28px;"><span>Title</span><span>Callsign</span><span>Insignia</span><span></span></div>
           <div class="edit-list" id="posList"></div>
@@ -951,8 +978,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
         </div>
 
         <!-- SUBDIVISIONS -->
-        <div class="editor-section">
-          <div class="editor-h3">Subdivisions</div>
+        <div class="editor-section" id="edsec-subdivisions" style="display:none;">
+          <div class="editor-h3"><span class="editor-icon" style="--ec:#a78bfa;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg></span>Subdivisions</div>
           <div class="col-labels" style="grid-template-columns:1fr 60px 28px;"><span>Name</span><span>Color</span><span></span></div>
           <div class="edit-list" id="sdList"></div>
           <div class="add-form">
@@ -961,11 +988,11 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
             <button class="btn btn-primary btn-sm" onclick="addSubdivision()">+ Add</button>
           </div>
         </div>
-        <div class="editor-divider"></div>
-
+        </div>
+        
         <!-- CUSTOM TAGS -->
-        <div class="editor-section">
-          <div class="editor-h3">Custom Tags</div>
+        <div class="editor-section" id="edsec-tags" style="display:none;">
+          <div class="editor-h3"><span class="editor-icon" style="--ec:#a78bfa;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg></span>Custom Tags</div>
           <div class="edit-list" id="tagList"></div>
           <div class="add-form">
             <input class="add-input" id="tagNew" placeholder="Tag name (e.g. FTO, Volunteer, Sniper)">
@@ -974,9 +1001,9 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
           </div>
           <p style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);margin-top:8px;line-height:1.7;">Tags appear as checkboxes when adding/editing members and as badges on the roster.</p>
         </div>
-        <div class="editor-divider"></div>
-        <div class="editor-section">
-          <div class="editor-h3">Trainee Callsign Range</div>
+                <div class="editor-row-2col">
+        <div class="editor-section" id="edsec-trainee" style="display:none;">
+          <div class="editor-h3"><span class="editor-icon" style="--ec:#a78bfa;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c0 1.5 3 3 6 3s6-1.5 6-3v-5"/></svg></span>Trainee Callsign Range</div>
           <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;">
             <div class="form-group" style="margin-bottom:0;">
               <label class="form-label">From</label>
@@ -990,11 +1017,10 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
           </div>
         </div>
 
-        <div class="editor-divider"></div>
-
+        
         <!-- INSIGNIA -->
-        <div class="editor-section">
-          <div class="editor-h3">Rank Insignia</div>
+        <div class="editor-section" id="edsec-insignia" style="display:none;">
+          <div class="editor-h3"><span class="editor-icon" style="--ec:#a78bfa;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>Rank Insignia</div>
           <p style="font-size:13px;color:var(--text2);margin-bottom:14px;line-height:1.6;">Show a rank insignia between the callsign and name on the main roster.</p>
           <div style="display:flex;gap:12px;">
             <label style="display:flex;align-items:center;gap:8px;cursor:pointer;background:var(--bg3);border:1px solid var(--border);padding:10px 16px;border-radius:var(--radius);transition:all .15s;" id="insigniaYesLabel">
@@ -1016,6 +1042,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
               <input type="radio" name="alwaysInsigniaToggle" id="alwaysInsigniaNo" value="no" onchange="toggleAlwaysInsignia(false)" style="accent-color:var(--accent);width:15px;height:15px;" checked>
               <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text);">No</span>
             </label>
+          </div>
+        </div>
           </div>
         </div>
 
@@ -4011,8 +4039,7 @@ function openEditSecondaryRoster(id){
         </div>
       </label>
     </div>
-    <div class="editor-divider"></div>
-    <div class="editor-h3" style="margin-bottom:10px;">Rank Groups</div>
+        <div class="editor-h3" style="margin-bottom:10px;">Rank Groups</div>
     <div id="srRankGroupList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;"></div>
     <div class="add-form">
       <input class="add-input" id="srNewGroupName" placeholder="Group name">
@@ -5051,8 +5078,20 @@ function hasPerm(perm){
   return currentUser.perms?.[perm] === true;
 }
 
+const EDITOR_SECTIONS = ['theme','rankgroups','positions','subdivisions','tags','trainee','insignia'];
+function switchEditorSection(key){
+  EDITOR_SECTIONS.forEach(k=>{
+    const sec = document.getElementById('edsec-'+k);
+    const nav = document.getElementById('ednav-'+k);
+    if(sec) sec.style.display = (k===key) ? '' : 'none';
+    if(nav) nav.classList.toggle('active', k===key);
+  });
+}
+
 function renderEditor(){
   document.getElementById('deptNameInput').value=deptName;
+  const themeBadge = document.getElementById('edThemeBadge');
+  if(themeBadge) themeBadge.textContent = getThemeDisplayName() + ' · Active Theme';
   document.getElementById('traineeFormatInput').value=traineeFormat;
   const toEl=document.getElementById('traineeFormatToInput');
   if(toEl) toEl.value=traineeFormatTo;
@@ -5114,7 +5153,20 @@ function renderThemesGrid(){
     </div>`).join('');
 }
 
-function selectTheme(id){ applyTheme(id); renderThemesGrid(); scheduleSave(); showToast('Theme updated.'); }
+function selectTheme(id){
+  applyTheme(id); renderThemesGrid(); scheduleSave(); showToast('Theme updated.');
+  const themeBadge = document.getElementById('edThemeBadge');
+  if(themeBadge) themeBadge.textContent = getThemeDisplayName() + ' · Active Theme';
+}
+
+function getThemeDisplayName(){
+  if(activeTheme && activeTheme.startsWith('custom-')){
+    const i = parseInt(activeTheme.split('-')[1]);
+    return (customThemes[i] && customThemes[i].name) || 'Custom Theme';
+  }
+  const t = themes.find(t=>t.id===activeTheme);
+  return t ? t.name : 'Theme';
+}
 
 function applyTheme(id){
   if(id && id.startsWith('custom-')){
@@ -5167,6 +5219,8 @@ function selectCustomTheme(i){
   renderThemesGrid();
   scheduleSave();
   showToast(`✓ ${customThemes[i].name} applied.`);
+  const themeBadge = document.getElementById('edThemeBadge');
+  if(themeBadge) themeBadge.textContent = getThemeDisplayName() + ' · Active Theme';
 }
 
 // Uploaded images (dept logos, insignia badges) were being stored raw/uncompressed as
