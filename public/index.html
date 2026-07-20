@@ -457,8 +457,31 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   #landingNav > div:last-child button{font-size:9px!important;padding:6px 10px!important;letter-spacing:.5px!important;}
   #landingPage [style*="padding:90px"]{padding:40px 16px 40px!important;}
 }
+
+.mm2-avatar{width:64px;height:64px;border-radius:16px;background:var(--bg3);border:2px solid var(--accent3);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:700;color:var(--accent);margin-bottom:14px;}
+.mm2-manage-label{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--text3);text-transform:uppercase;margin:20px 0 8px;padding-left:2px;}
+.mm2-manage-btn{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:9px;cursor:pointer;transition:all .15s;font-size:12.5px;font-weight:600;color:var(--text2);border:1px solid transparent;background:none;width:100%;text-align:left;margin-bottom:3px;font-family:'Inter',sans-serif;}
+.mm2-manage-btn:hover{background:var(--bg4);color:var(--text);}
+.mm2-manage-icon{width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:color-mix(in srgb,var(--mc,var(--accent)) 15%,transparent);color:var(--mc,var(--accent));}
+.mm2-manage-icon svg{width:13px;height:13px;}
+.mm2-manage-btn.danger{color:var(--red);}
+.mm2-manage-btn.danger .mm2-manage-icon{background:rgba(248,113,113,.12);color:var(--red);}
+.mm2-manage-btn:disabled{opacity:.35;cursor:not-allowed;}
+.mm2-manage-btn:disabled:hover{background:none;color:var(--text2);}
+
+.mm2-tabbar{display:flex;gap:6px;margin:14px 0 18px;flex-wrap:wrap;}
+.mm2-tab{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:8px 14px;border-radius:20px;cursor:pointer;border:1px solid var(--border);background:var(--bg3);color:var(--text2);transition:all .15s;}
+.mm2-tab:hover{color:var(--text);}
+.mm2-tab.active{background:color-mix(in srgb,var(--accent) 14%,transparent);border-color:var(--accent);color:var(--accent);font-weight:700;}
+
+.mm2-history-item{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);align-items:flex-start;}
+.mm2-history-item:last-child{border-bottom:none;}
+.mm2-history-icon{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px;background:color-mix(in srgb,var(--hc,var(--accent)) 15%,transparent);color:var(--hc,var(--accent));}
+.mm2-history-title{font-size:12.5px;font-weight:700;color:var(--text);}
+.mm2-history-sub{font-size:11px;color:var(--text3);margin-top:1px;}
+.mm2-history-time{font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--text3);white-space:nowrap;padding-left:10px;margin-left:auto;}
 </style>
-<!-- v2.1 -->
+<!-- v2.2 -->
 </head>
 <body>
 
@@ -1155,43 +1178,62 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 
 <!-- ADD/EDIT MEMBER -->
 <div class="modal-overlay hidden" id="memberModal" onclick="if(event.target===this)closeMemberModal()">
-  <div class="modal" style="width:860px;max-width:96vw;padding:0;overflow:hidden;border-top:1px solid rgba(167,139,250,.25);border-left:1px solid rgba(167,139,250,.25);border-right:1px solid rgba(167,139,250,.25);border-bottom:1px solid rgba(167,139,250,.25);box-shadow:0 0 40px rgba(167,139,250,.08),var(--shadow);">
+  <div class="modal" style="width:900px;max-width:96vw;padding:0;overflow:hidden;border-top:1px solid rgba(167,139,250,.25);border-left:1px solid rgba(167,139,250,.25);border-right:1px solid rgba(167,139,250,.25);border-bottom:1px solid rgba(167,139,250,.25);box-shadow:0 0 40px rgba(167,139,250,.08),var(--shadow);">
     <div style="display:flex;align-items:center;gap:7px;padding:14px 22px 0;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);">
       <span style="width:6px;height:6px;border-radius:50%;background:var(--green);"></span><span id="mmLiveLabel">New member — unsaved</span>
     </div>
-    <div style="display:flex;min-height:460px;">
+    <div style="display:flex;min-height:480px;">
 
-      <!-- LEFT: identity card + section nav -->
-      <div style="width:230px;border-right:1px solid var(--border);padding:16px;flex-shrink:0;">
+      <!-- LEFT: identity card + manage actions -->
+      <div style="width:250px;border-right:1px solid var(--border);padding:18px 16px;flex-shrink:0;">
+        <div class="mm2-avatar" id="mmAvatar"><span id="mmAvatarInitials">—</span></div>
         <div id="mmBadge" class="mono" style="display:inline-flex;align-items:center;background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.4);color:var(--purple);font-weight:700;font-size:11px;padding:5px 11px;border-radius:20px;margin-bottom:14px;"></div>
 
-        <div style="margin-bottom:14px;padding-left:11px;">
-          <div id="mmHeading" style="font-weight:700;font-size:14.5px;color:var(--text);"></div>
+        <div style="margin-bottom:14px;">
+          <div id="mmHeading" style="font-weight:700;font-size:15px;color:var(--text);"></div>
           <div id="mmHeadingSub" style="font-size:11.5px;color:var(--text3);margin-top:1px;"></div>
         </div>
 
-        <div id="mmStatusPill" style="display:flex;align-items:center;gap:7px;background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.3);color:var(--green);font-size:11px;font-weight:600;padding:7px 11px;border-radius:8px;margin-bottom:20px;">
+        <div id="mmStatusPill" style="display:flex;align-items:center;gap:7px;background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.3);color:var(--green);font-size:11px;font-weight:600;padding:7px 11px;border-radius:8px;margin-bottom:6px;">
           <span id="mmStatusDot" style="width:6px;height:6px;border-radius:50%;background:var(--green);flex-shrink:0;"></span><span id="mmStatusPillText"></span>
         </div>
 
-        <div class="mono" style="font-size:9px;letter-spacing:1.5px;color:var(--text3);margin-bottom:8px;padding-left:11px;">ROSTER PREVIEW</div>
-        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 11px;margin-bottom:22px;display:flex;align-items:center;gap:9px;">
-          <span class="mono" id="mmPreviewCS" style="font-size:11px;color:var(--purple);font-weight:700;"></span>
-          <span id="mmPreviewName" style="font-size:12px;color:var(--text3);font-style:italic;"></span>
-          <span id="mmPreviewDot" style="width:6px;height:6px;border-radius:50%;background:var(--green);margin-left:auto;flex-shrink:0;"></span>
-        </div>
+        <div class="mm2-manage-label">Manage</div>
+        <button type="button" class="mm2-manage-btn" style="--mc:#60a5fa;" onclick="switchMemberSection('status')">
+          <span class="mm2-manage-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></span>
+          Change Status
+        </button>
+        <button type="button" class="mm2-manage-btn" style="--mc:#a78bfa;" onclick="switchMemberSection('subdivisions')">
+          <span class="mm2-manage-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg></span>
+          Subdivisions &amp; Tags
+        </button>
+        <button type="button" class="mm2-manage-btn" id="mmPromoteBtn" style="--mc:#4ade80;" onclick="mmQuickPromote()">
+          <span class="mm2-manage-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><path d="M5 12l7-7 7 7"/></svg></span>
+          Promote Member
+        </button>
+        <button type="button" class="mm2-manage-btn" id="mmDemoteBtn" style="--mc:#fb923c;" onclick="mmQuickDemote()">
+          <span class="mm2-manage-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M19 12l-7 7-7-7"/></svg></span>
+          Demote Member
+        </button>
+        <button type="button" class="mm2-manage-btn danger" id="mmRemoveBtn" onclick="mmQuickRemove()">
+          <span class="mm2-manage-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></span>
+          Remove Member
+        </button>
 
-        <div class="editor-nav-item active" id="mmnav-details" style="--nc:#a78bfa;margin-bottom:6px;" onclick="switchMemberSection('details')"><span class="editor-nav-icon"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></span>Details</div>
-        <div class="editor-nav-item" id="mmnav-subdivisions" style="--nc:#a78bfa;margin-bottom:6px;" onclick="switchMemberSection('subdivisions')"><span class="editor-nav-icon"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg></span>Subdivisions</div>
-        <div class="editor-nav-item" id="mmnav-status" style="--nc:#a78bfa;" onclick="switchMemberSection('status')"><span class="editor-nav-icon"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></span>Status &amp; Notes</div>
-
-        <p style="font-size:10.5px;color:var(--text3);font-style:italic;line-height:1.6;margin-top:24px;padding-left:11px;">Callsign is auto-assigned from the rank group's format. The preview updates as you fill in the form.</p>
+        <p style="font-size:10.5px;color:var(--text3);font-style:italic;line-height:1.6;margin-top:20px;">Callsign is auto-assigned from the rank group's format.</p>
       </div>
 
-      <!-- RIGHT: sections -->
+      <!-- RIGHT: tabs + sections -->
       <div style="flex:1;padding:18px 24px;min-width:0;display:flex;flex-direction:column;">
         <div style="display:flex;justify-content:flex-end;">
           <div onclick="closeMemberModal()" style="width:26px;height:26px;border-radius:50%;background:var(--bg3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:12px;cursor:pointer;">✕</div>
+        </div>
+
+        <div class="mm2-tabbar">
+          <button type="button" class="mm2-tab active" id="mm2tab-details" onclick="switchMemberSection('details')">🗂 Details</button>
+          <button type="button" class="mm2-tab" id="mm2tab-subdivisions" onclick="switchMemberSection('subdivisions')">🏷 Subdivisions</button>
+          <button type="button" class="mm2-tab" id="mm2tab-status" onclick="switchMemberSection('status')">⚑ Status &amp; Notes</button>
+          <button type="button" class="mm2-tab" id="mm2tab-history" onclick="switchMemberSection('history')">🕘 History</button>
         </div>
 
         <div id="mmsec-details" style="flex:1;">
@@ -1222,6 +1264,10 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
           </div>
           <div class="form-group"><label class="form-label">Notes</label><input class="form-input" id="mmNotes" placeholder="Optional…"></div>
           <div id="mmTagsWrap" style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:10px;"></div>
+        </div>
+
+        <div id="mmsec-history" style="display:none;flex:1;overflow-y:auto;max-height:340px;">
+          <div id="mmHistoryList"></div>
         </div>
 
         <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">
@@ -4901,12 +4947,58 @@ function graduate(id){
 }
 
 function switchMemberSection(key){
-  ['details','subdivisions','status'].forEach(k=>{
+  ['details','subdivisions','status','history'].forEach(k=>{
     const sec = document.getElementById('mmsec-'+k);
-    const nav = document.getElementById('mmnav-'+k);
+    const tab = document.getElementById('mm2tab-'+k);
     if(sec) sec.style.display = (k===key) ? '' : 'none';
-    if(nav) nav.classList.toggle('active', k===key);
+    if(tab) tab.classList.toggle('active', k===key);
   });
+  if(key==='history') renderMemberHistory();
+}
+
+function renderMemberHistory(){
+  const wrap = document.getElementById('mmHistoryList');
+  if(!wrap) return;
+  if(editingMemberId===null){
+    wrap.innerHTML = `<p style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);padding:8px 0;">History is available once this member is saved.</p>`;
+    return;
+  }
+  const m = members.find(mb=>mb.id===editingMemberId);
+  if(!m){ wrap.innerHTML=''; return; }
+  const items = [];
+  promotions.filter(p=>p.name===m.name).forEach(p=>{
+    items.push({ date:new Date(p.date), icon:'▲', color:'#4ade80', title:`Promoted to ${p.toGroup}`, sub:`${p.fromCS||'—'} → ${p.toCS||'—'}` });
+  });
+  if((m.strikes||0)>0){
+    items.push({ date:new Date(), icon:'⚠', color:'#f87171', title:`${m.strikes} active strike${m.strikes>1?'s':''}`, sub: m.notes?`Note: ${m.notes}`:'No notes on file', _pin:true });
+  }
+  if(m.doh){
+    items.push({ date:new Date(m.doh), icon:'★', color:'#60a5fa', title:'Joined the department', sub:`Hired ${fmtDate(m.doh)}` });
+  }
+  items.sort((a,b)=> (b._pin?1:0)-(a._pin?1:0) || b.date-a.date );
+  if(!items.length){ wrap.innerHTML = `<p style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);padding:8px 0;">No recorded history yet.</p>`; return; }
+  wrap.innerHTML = items.map(it=>`
+    <div class="mm2-history-item">
+      <div class="mm2-history-icon" style="--hc:${it.color};">${it.icon}</div>
+      <div style="flex:1;min-width:0;">
+        <div class="mm2-history-title">${escapeHtml(it.title)}</div>
+        <div class="mm2-history-sub">${escapeHtml(it.sub)}</div>
+      </div>
+      <div class="mm2-history-time">${it._pin?'now':getTimeAgo(it.date)}</div>
+    </div>`).join('');
+}
+
+function mmQuickPromote(){
+  if(editingMemberId===null){ showToast('⚠ Save this member first.', true); return; }
+  closeMemberModal(); promote(editingMemberId);
+}
+function mmQuickDemote(){
+  if(editingMemberId===null){ showToast('⚠ Save this member first.', true); return; }
+  closeMemberModal(); demote(editingMemberId);
+}
+function mmQuickRemove(){
+  if(editingMemberId===null){ showToast('⚠ Save this member first.', true); return; }
+  closeMemberModal(); openConfirmDelete(editingMemberId,'member');
 }
 
 function updateMemberPreview(){
@@ -4933,12 +5025,9 @@ function updateMemberPreview(){
   document.getElementById('mmStatusDot').style.background = sc.c;
   document.getElementById('mmStatusPillText').textContent = status + (doh ? ' · hire date '+doh : '');
 
-  document.getElementById('mmPreviewCS').textContent = callsign || '—';
-  const previewName = document.getElementById('mmPreviewName');
-  previewName.textContent = name ? name : '— unnamed —';
-  previewName.style.fontStyle = name ? 'normal' : 'italic';
-  previewName.style.color = name ? 'var(--text)' : 'var(--text3)';
-  document.getElementById('mmPreviewDot').style.background = sc.c;
+  const initials = name ? name.trim().split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase() : '—';
+  const initEl = document.getElementById('mmAvatarInitials');
+  if(initEl) initEl.textContent = initials;
 }
 
 function openAddMember(){
@@ -4960,6 +5049,7 @@ function openAddMember(){
   populateTagCheckboxes([]);
   switchMemberSection('details');
   updateMemberPreview();
+  ['mmPromoteBtn','mmDemoteBtn','mmRemoveBtn'].forEach(id=>{ const b=document.getElementById(id); if(b) b.disabled=true; });
   document.getElementById('memberModal').classList.remove('hidden');
 }
 function onGroupChange(){
@@ -5022,6 +5112,10 @@ function openEditMember(id){
   populateTagCheckboxes(m.tags||[]);
   switchMemberSection('details');
   updateMemberPreview();
+  const gi=rgIndex(m.rankGroup);
+  document.getElementById('mmPromoteBtn').disabled = gi<=0;
+  document.getElementById('mmDemoteBtn').disabled = gi>=rankGroups.length-1;
+  document.getElementById('mmRemoveBtn').disabled = false;
   document.getElementById('memberModal').classList.remove('hidden');
 }
 function closeMemberModal(){ document.getElementById('memberModal').classList.add('hidden'); }
