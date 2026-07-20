@@ -141,10 +141,10 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .tool-pill:hover{filter:brightness(1.3);}
 .tool-pill.active{filter:brightness(1.4);}
 
-.nav-bar{display:flex;align-items:stretch;border-bottom:1px solid var(--border2);background:var(--bg);}
-.nav-tab{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text2);padding:14px 18px;cursor:pointer;background:none;border:none;border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap;}
-.nav-tab:hover{color:var(--text);}
-.nav-tab.active{color:var(--text);font-weight:700;border-bottom-color:var(--accent);}
+.nav-bar{display:flex;align-items:center;gap:6px;border-bottom:1px solid var(--border2);background:var(--bg);padding:8px 0;}
+.nav-tab{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text2);padding:9px 16px;cursor:pointer;background:none;border:none;border-radius:20px;transition:all .15s;white-space:nowrap;}
+.nav-tab:hover{color:var(--text);background:var(--bg3);}
+.nav-tab.active{background:var(--text);color:var(--bg);font-weight:700;}
 
 .app-main{flex:1;padding:28px 32px;max-width:1600px;margin:0 auto;width:100%;}
 
@@ -823,7 +823,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
       <span>▶ DEMO MODE — Changes are temporary and will reset on refresh.</span>
       <button onclick="doLogout()" style="background:transparent;border:1px solid rgba(167,139,250,.4);color:var(--purple);font-family:'JetBrains Mono',monospace;font-size:10px;padding:4px 10px;cursor:pointer;border-radius:var(--radius);">Exit Demo</button>
     </div>
-    <nav class="nav-bar" style="display:flex;align-items:stretch;padding:0 28px;">
+    <nav class="nav-bar" style="display:flex;align-items:center;gap:6px;padding:8px 28px;">
       <button class="nav-tab hidden" id="rosterTab" onclick="switchTab('roster',this)">Main Roster</button>
       <button class="nav-tab hidden" id="traineesTab" onclick="switchTab('trainees',this)">Trainee Roster</button>
       <span id="secondaryRosterTabs"></span>
@@ -2031,7 +2031,7 @@ let traineeFormatTo = '';
 let customTags = [];
 let promotions = [];
 let customThemes = [{name:'Custom 1',accent:'#c9a84c',bg:'#0a0c10'},{name:'Custom 2',accent:'#60a5fa',bg:'#080c14'}];
-let activeTheme = 'dark-steel';
+let activeTheme = 'midnight-blue';
 let members = [];
 let trainees = [];
 let secondaryRosters = [];
@@ -2154,7 +2154,7 @@ async function loadDepartment(userId){
   customTags = rd.custom_tags||[];
   promotions = rd.promotions||[];
   customThemes = (rd.custom_themes&&rd.custom_themes.length?rd.custom_themes:[{name:'Custom 1',accent:'#c9a84c',bg:'#0a0c10'},{name:'Custom 2',accent:'#60a5fa',bg:'#080c14'}]);
-  activeTheme = rd.theme||'dark-steel';
+  activeTheme = rd.theme||'midnight-blue';
   showInsignia = rd.show_insignia||false;
   alwaysShowInsignia = rd.always_show_insignia||false;
   useRosterCallsign = rd.use_roster_callsign||false;
@@ -2566,7 +2566,7 @@ async function onLoginSuccess(user){
   members=[]; trainees=[]; rankGroups=[]; subdivisions=[]; positions=[];
   traineeFormat=''; traineeFormatTo=''; customTags=[]; promotions=[];
   customThemes=[{name:'Custom 1',accent:'#c9a84c',bg:'#0a0c10'},{name:'Custom 2',accent:'#60a5fa',bg:'#080c14'}];
-  deptId=null; rosterDataId=null; deptName=''; activeTheme='dark-steel';
+  deptId=null; rosterDataId=null; deptName=''; activeTheme='midnight-blue';
   nextMemberId=1; nextTraineeId=1;
   currentUser = user;
   isSuperAdmin = isSuperAdminEmail(user.email);
@@ -2639,7 +2639,7 @@ async function doLogout(){
   }
   currentUser=null; isSuperAdmin=false; deptId=null; rosterDataId=null;
   members=[]; trainees=[]; rankGroups=[]; subdivisions=[]; positions=[];
-  traineeFormat=''; traineeFormatTo=''; deptName=''; activeTheme='dark-steel';
+  traineeFormat=''; traineeFormatTo=''; deptName=''; activeTheme='midnight-blue';
   customTags=[]; promotions=[]; customThemes=[{name:'Custom 1',accent:'#c9a84c',bg:'#0a0c10'},{name:'Custom 2',accent:'#60a5fa',bg:'#080c14'}];
   nextMemberId=1; nextTraineeId=1;
   secondaryRosters=[]; activeSecondaryId=null;
@@ -2670,7 +2670,7 @@ async function doLogout(){
   localStorage.removeItem('rc_staff_session');
   const demoBanner=document.getElementById('demoBanner');
   if(demoBanner) demoBanner.style.display='none';
-  applyTheme('dark-steel');
+  applyTheme('midnight-blue');
   history.replaceState(null,'',window.location.pathname); document.title='RosterCore';
   showToast('Logged out.');
 }
@@ -2878,7 +2878,7 @@ async function completeStaffLogin(profile, preloadedRoster, preloadedDept){
   promotions=rd.promotions||[];
   traineeFormat=rd.trainee_format||'';
   traineeFormatTo=rd.trainee_format_to||''; showInsignia=rd.show_insignia||false; alwaysShowInsignia=rd.always_show_insignia||false;
-  activeTheme=rd.theme||'dark-steel';
+  activeTheme=rd.theme||'midnight-blue';
   members=rd.members||[];
   trainees=rd.trainees||[];
   if(rd.custom_themes&&rd.custom_themes.length) customThemes=rd.custom_themes;
@@ -6386,7 +6386,7 @@ async function confirmDeptRestore(snapshotId, deptName, rosterDataId){
     custom_tags:snap.customTags||[],
     promotions:snap.promotions||[],
     custom_themes:snap.customThemes||[],
-    theme:snap.activeTheme||'dark-steel',
+    theme:snap.activeTheme||'midnight-blue',
     members:snap.members||[],
     trainees:snap.trainees||[],
     updated_at:new Date().toISOString()
@@ -6426,7 +6426,7 @@ document.addEventListener('keydown',e=>{
 });
 
 (async()=>{
-  applyTheme('dark-steel');
+  applyTheme('midnight-blue');
 
   const params=new URLSearchParams(window.location.search);
   const token=params.get('share');
@@ -6450,7 +6450,7 @@ document.addEventListener('keydown',e=>{
         deptId=deptRecord.id; deptName=deptRecord.name||'Department';
         rankGroups=rd.rank_groups||[]; subdivisions=rd.subdivisions||[];
         positions=migratePositions(rd.positions); traineeFormat=rd.trainee_format||''; traineeFormatTo=rd.trainee_format_to||''; showInsignia=rd.show_insignia||false; alwaysShowInsignia=rd.always_show_insignia||false; customTags=rd.custom_tags||[]; promotions=rd.promotions||[]; customThemes=(rd.custom_themes&&rd.custom_themes.length?rd.custom_themes:[{name:'Custom 1',accent:'#c9a84c',bg:'#0a0c10'},{name:'Custom 2',accent:'#60a5fa',bg:'#080c14'}]);
-        activeTheme=rd.theme||'dark-steel'; members=rd.members||[]; trainees=rd.trainees||[]; deptLogo=rd.dept_logo||'';
+        activeTheme=rd.theme||'midnight-blue'; members=rd.members||[]; trainees=rd.trainees||[]; deptLogo=rd.dept_logo||'';
         applyTheme(activeTheme);
         document.getElementById('headerName').textContent=deptName;
         document.getElementById('landingPage').style.display='none';
@@ -6478,7 +6478,7 @@ document.addEventListener('keydown',e=>{
       if(dept){deptId=dept.id;deptName=dept.name||'Department';}
       rankGroups=rd.rank_groups||[]; subdivisions=rd.subdivisions||[];
       positions=migratePositions(rd.positions); traineeFormat=rd.trainee_format||''; traineeFormatTo=rd.trainee_format_to||''; showInsignia=rd.show_insignia||false; alwaysShowInsignia=rd.always_show_insignia||false; customTags=rd.custom_tags||[]; promotions=rd.promotions||[]; customThemes=(rd.custom_themes&&rd.custom_themes.length?rd.custom_themes:[{name:'Custom 1',accent:'#c9a84c',bg:'#0a0c10'},{name:'Custom 2',accent:'#60a5fa',bg:'#080c14'}]);
-      activeTheme=rd.theme||'dark-steel'; members=rd.members||[]; trainees=rd.trainees||[]; deptLogo=rd.dept_logo||'';
+      activeTheme=rd.theme||'midnight-blue'; members=rd.members||[]; trainees=rd.trainees||[]; deptLogo=rd.dept_logo||'';
       applyTheme(activeTheme);
       document.getElementById('headerName').textContent=deptName;
       document.getElementById('landingPage').style.display='none';
