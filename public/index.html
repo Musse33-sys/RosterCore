@@ -1155,33 +1155,80 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 
 <!-- ADD/EDIT MEMBER -->
 <div class="modal-overlay hidden" id="memberModal" onclick="if(event.target===this)closeMemberModal()">
-  <div class="modal">
-    <div class="modal-title" id="mmTitle">Add Member</div>
-    <div class="modal-sub" id="mmSub">New member will be auto-assigned a callsign.</div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">Full Name</label><input class="form-input" id="mmName" placeholder="John Smith"></div>
-      <div class="form-group"><label class="form-label">Callsign</label><input class="form-input" id="mmCallsign" placeholder="Auto-assigned" oninput="onCallsignChange()" onblur="onCallsignChange()"></div>
+  <div class="modal" style="width:860px;max-width:96vw;padding:0;overflow:hidden;border-top:1px solid rgba(167,139,250,.25);border-left:1px solid rgba(167,139,250,.25);border-right:1px solid rgba(167,139,250,.25);border-bottom:1px solid rgba(167,139,250,.25);box-shadow:0 0 40px rgba(167,139,250,.08),var(--shadow);">
+    <div style="display:flex;align-items:center;gap:7px;padding:14px 22px 0;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);">
+      <span style="width:6px;height:6px;border-radius:50%;background:var(--green);"></span><span id="mmLiveLabel">New member — unsaved</span>
     </div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">Rank Group</label><select class="form-select" id="mmGroup" onchange="onGroupChange()"></select></div>
-      <div class="form-group"><label class="form-label">Position</label><select class="form-select" id="mmPosition"><option value="">— None —</option></select></div>
-    </div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">ID</label><input class="form-input" id="mmDiscord" placeholder="123456789…"></div>
-      <div class="form-group"><label class="form-label">Date of Hire</label><input class="form-input" type="date" id="mmDOH"></div>
-    </div>
-    <div class="form-group"><label class="form-label">Subdivisions</label><div id="mmSubdivsWrap" style="display:flex;flex-wrap:wrap;gap:12px;margin-top:4px;"></div></div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">Status</label>
-        <select class="form-select" id="mmStatus"><option>Active</option><option>Inactive</option><option>LOA</option><option>Part Time</option></select>
+    <div style="display:flex;min-height:460px;">
+
+      <!-- LEFT: identity card + section nav -->
+      <div style="width:230px;border-right:1px solid var(--border);padding:16px;flex-shrink:0;">
+        <div id="mmBadge" class="mono" style="display:inline-flex;align-items:center;background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.4);color:var(--purple);font-weight:700;font-size:11px;padding:5px 11px;border-radius:20px;margin-bottom:14px;"></div>
+
+        <div style="margin-bottom:14px;padding-left:11px;">
+          <div id="mmHeading" style="font-weight:700;font-size:14.5px;color:var(--text);"></div>
+          <div id="mmHeadingSub" style="font-size:11.5px;color:var(--text3);margin-top:1px;"></div>
+        </div>
+
+        <div id="mmStatusPill" style="display:flex;align-items:center;gap:7px;background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.3);color:var(--green);font-size:11px;font-weight:600;padding:7px 11px;border-radius:8px;margin-bottom:20px;">
+          <span id="mmStatusDot" style="width:6px;height:6px;border-radius:50%;background:var(--green);flex-shrink:0;"></span><span id="mmStatusPillText"></span>
+        </div>
+
+        <div class="mono" style="font-size:9px;letter-spacing:1.5px;color:var(--text3);margin-bottom:8px;padding-left:11px;">ROSTER PREVIEW</div>
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 11px;margin-bottom:22px;display:flex;align-items:center;gap:9px;">
+          <span class="mono" id="mmPreviewCS" style="font-size:11px;color:var(--purple);font-weight:700;"></span>
+          <span id="mmPreviewName" style="font-size:12px;color:var(--text3);font-style:italic;"></span>
+          <span id="mmPreviewDot" style="width:6px;height:6px;border-radius:50%;background:var(--green);margin-left:auto;flex-shrink:0;"></span>
+        </div>
+
+        <div class="editor-nav-item active" id="mmnav-details" style="--nc:#a78bfa;margin-bottom:6px;" onclick="switchMemberSection('details')"><span class="editor-nav-icon"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></span>Details</div>
+        <div class="editor-nav-item" id="mmnav-subdivisions" style="--nc:#a78bfa;margin-bottom:6px;" onclick="switchMemberSection('subdivisions')"><span class="editor-nav-icon"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg></span>Subdivisions</div>
+        <div class="editor-nav-item" id="mmnav-status" style="--nc:#a78bfa;" onclick="switchMemberSection('status')"><span class="editor-nav-icon"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></span>Status &amp; Notes</div>
+
+        <p style="font-size:10.5px;color:var(--text3);font-style:italic;line-height:1.6;margin-top:24px;padding-left:11px;">Callsign is auto-assigned from the rank group's format. The preview updates as you fill in the form.</p>
       </div>
-      <div class="form-group"><label class="form-label">Strikes</label><input class="form-input" type="number" id="mmStrikes" value="0" min="0" max="99"></div>
-    </div>
-    <div class="form-group"><label class="form-label">Notes</label><input class="form-input" id="mmNotes" placeholder="Optional…"></div>
-    <div id="mmTagsWrap" style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:10px;"></div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeMemberModal()">Cancel</button>
-      <button class="btn btn-primary" id="mmSaveBtn" onclick="saveMember()">Save Member</button>
+
+      <!-- RIGHT: sections -->
+      <div style="flex:1;padding:18px 24px;min-width:0;display:flex;flex-direction:column;">
+        <div style="display:flex;justify-content:flex-end;">
+          <div onclick="closeMemberModal()" style="width:26px;height:26px;border-radius:50%;background:var(--bg3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:12px;cursor:pointer;">✕</div>
+        </div>
+
+        <div id="mmsec-details" style="flex:1;">
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Full Name</label><input class="form-input" id="mmName" placeholder="John Smith" oninput="updateMemberPreview()"></div>
+            <div class="form-group"><label class="form-label">Callsign</label><input class="form-input" id="mmCallsign" placeholder="Auto-assigned" oninput="onCallsignChange();updateMemberPreview();" onblur="onCallsignChange();updateMemberPreview();"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Rank Group</label><select class="form-select" id="mmGroup" onchange="onGroupChange();updateMemberPreview();"></select></div>
+            <div class="form-group"><label class="form-label">Position</label><select class="form-select" id="mmPosition" onchange="updateMemberPreview()"><option value="">— None —</option></select></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">ID</label><input class="form-input" id="mmDiscord" placeholder="123456789…"></div>
+            <div class="form-group"><label class="form-label">Date of Hire</label><input class="form-input" type="date" id="mmDOH" oninput="updateMemberPreview()"></div>
+          </div>
+        </div>
+
+        <div id="mmsec-subdivisions" style="display:none;flex:1;">
+          <div class="form-group"><label class="form-label">Subdivisions</label><div id="mmSubdivsWrap" style="display:flex;flex-wrap:wrap;gap:12px;margin-top:4px;"></div></div>
+        </div>
+
+        <div id="mmsec-status" style="display:none;flex:1;">
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Status</label>
+              <select class="form-select" id="mmStatus" onchange="updateMemberPreview()"><option>Active</option><option>Inactive</option><option>LOA</option><option>Part Time</option></select>
+            </div>
+            <div class="form-group"><label class="form-label">Strikes</label><input class="form-input" type="number" id="mmStrikes" value="0" min="0" max="99"></div>
+          </div>
+          <div class="form-group"><label class="form-label">Notes</label><input class="form-input" id="mmNotes" placeholder="Optional…"></div>
+          <div id="mmTagsWrap" style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:10px;"></div>
+        </div>
+
+        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">
+          <button class="btn btn-ghost" onclick="closeMemberModal()">Cancel</button>
+          <button class="btn btn-primary" id="mmSaveBtn" onclick="saveMember()">Save Member</button>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -4853,13 +4900,53 @@ function graduate(id){
   showToast(`★ ${t.name} graduated → ${cs} (${lowest.name})`);
 }
 
+function switchMemberSection(key){
+  ['details','subdivisions','status'].forEach(k=>{
+    const sec = document.getElementById('mmsec-'+k);
+    const nav = document.getElementById('mmnav-'+k);
+    if(sec) sec.style.display = (k===key) ? '' : 'none';
+    if(nav) nav.classList.toggle('active', k===key);
+  });
+}
+
+function updateMemberPreview(){
+  const name = document.getElementById('mmName').value.trim();
+  const callsign = document.getElementById('mmCallsign').value.trim();
+  const group = document.getElementById('mmGroup').value;
+  const position = document.getElementById('mmPosition').value;
+  const status = document.getElementById('mmStatus').value || 'Active';
+  const doh = document.getElementById('mmDOH').value;
+
+  document.getElementById('mmBadge').textContent = (callsign||'—') + (group ? ' · '+group : '');
+  document.getElementById('mmHeading').textContent = name || (editingMemberId!==null ? 'Unnamed Member' : 'New Member');
+  document.getElementById('mmHeadingSub').textContent = (group||'—') + ' · ' + (position || 'Unassigned');
+
+  const statusColors = {
+    Active:{c:'#4ade80',bg:'rgba(74,222,128,.08)',bd:'rgba(74,222,128,.3)'},
+    Inactive:{c:'#f87171',bg:'rgba(248,113,113,.08)',bd:'rgba(248,113,113,.3)'},
+    LOA:{c:'#fbbf24',bg:'rgba(251,191,36,.08)',bd:'rgba(251,191,36,.3)'},
+    'Part Time':{c:'#fb923c',bg:'rgba(251,146,60,.08)',bd:'rgba(251,146,60,.3)'}
+  };
+  const sc = statusColors[status] || statusColors['Active'];
+  const pill = document.getElementById('mmStatusPill');
+  pill.style.background = sc.bg; pill.style.borderColor = sc.bd; pill.style.color = sc.c;
+  document.getElementById('mmStatusDot').style.background = sc.c;
+  document.getElementById('mmStatusPillText').textContent = status + (doh ? ' · hire date '+doh : '');
+
+  document.getElementById('mmPreviewCS').textContent = callsign || '—';
+  const previewName = document.getElementById('mmPreviewName');
+  previewName.textContent = name ? name : '— unnamed —';
+  previewName.style.fontStyle = name ? 'normal' : 'italic';
+  previewName.style.color = name ? 'var(--text)' : 'var(--text3)';
+  document.getElementById('mmPreviewDot').style.background = sc.c;
+}
+
 function openAddMember(){
   editingMemberId=null;
   populateSel('mmGroup', rankGroups.map(g=>g.name), false);
   populateSel('mmPosition', positions.map(p=>typeof p==='string'?p:p.name), true);
   populateSubdivCheckboxes([]);
-  document.getElementById('mmTitle').textContent='Add Member';
-  document.getElementById('mmSub').textContent='Callsign auto-assigned from rank group format.';
+  document.getElementById('mmLiveLabel').textContent='New member — unsaved';
   document.getElementById('mmName').value='';
   const defGroup = rankGroups[rankGroups.length-1]?.name||'';
   document.getElementById('mmGroup').value=defGroup;
@@ -4871,6 +4958,8 @@ function openAddMember(){
   document.getElementById('mmStrikes').value='0';
   document.getElementById('mmNotes').value='';
   populateTagCheckboxes([]);
+  switchMemberSection('details');
+  updateMemberPreview();
   document.getElementById('memberModal').classList.remove('hidden');
 }
 function onGroupChange(){
@@ -4919,8 +5008,7 @@ function openEditMember(id){
   editingMemberId=id;
   populateSel('mmGroup', rankGroups.map(g=>g.name), false);
   populateSel('mmPosition', positions.map(p=>typeof p==='string'?p:p.name), true);
-  document.getElementById('mmTitle').textContent='Edit Member';
-  document.getElementById('mmSub').textContent='Update personnel details.';
+  document.getElementById('mmLiveLabel').textContent='Editing existing member';
   document.getElementById('mmName').value=m.name;
   document.getElementById('mmCallsign').value=m.callsign||'';
   document.getElementById('mmGroup').value=m.rankGroup;
@@ -4932,6 +5020,8 @@ function openEditMember(id){
   document.getElementById('mmNotes').value=m.notes||'';
   populateSubdivCheckboxes(m.subdivs||[]);
   populateTagCheckboxes(m.tags||[]);
+  switchMemberSection('details');
+  updateMemberPreview();
   document.getElementById('memberModal').classList.remove('hidden');
 }
 function closeMemberModal(){ document.getElementById('memberModal').classList.add('hidden'); }
