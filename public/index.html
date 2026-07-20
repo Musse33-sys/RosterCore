@@ -162,7 +162,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 
 
 .stats-bar{display:flex;gap:10px;margin-bottom:24px;flex-wrap:wrap;}
-.stat{background:var(--bg2);border:1px solid var(--border);border-top:2px solid var(--accent3);padding:14px 18px;flex:1;min-width:100px;}
+.stat{background:color-mix(in srgb,var(--sc,var(--accent)) 8%,transparent);border:1px solid color-mix(in srgb,var(--sc,var(--accent)) 30%,transparent);border-radius:8px;padding:14px 18px;flex:1;min-width:100px;}
 .stat-label{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--text3);margin-bottom:6px;}
 .stat-val{font-family:'Bebas Neue',sans-serif;font-size:38px;color:var(--accent);line-height:1;}
 
@@ -3975,8 +3975,8 @@ function _renderSecondaryRosterInner(id, sr){
     const total=membersLocal.length;
     const active=membersLocal.filter(m=>m.status==='Active').length;
     statsEl.innerHTML=`
-      <div class="stat"><div class="stat-label">Total</div><div class="stat-val">${total}</div></div>
-      <div class="stat"><div class="stat-label">Active</div><div class="stat-val" style="color:var(--green);">${active}</div></div>
+      <div class="stat" style="--sc:var(--accent);"><div class="stat-label">Total</div><div class="stat-val">${total}</div></div>
+      <div class="stat" style="--sc:var(--green);"><div class="stat-label">Active</div><div class="stat-val" style="color:var(--green);">${active}</div></div>
     `;
   }
 
@@ -4543,9 +4543,9 @@ function renderStats(){
     trainees: trainees.length,
   };
   document.getElementById('statsBar').innerHTML=[
-    ['Total',s.total,''],['Active',s.active,'var(--green)'],['Inactive',s.inactive,'var(--red)'],
+    ['Total',s.total,'var(--accent)'],['Active',s.active,'var(--green)'],['Inactive',s.inactive,'var(--red)'],
     ['LOA',s.loa,'var(--yellow)'],['Part Time',s.pt,'var(--orange)'],['Trainees',s.trainees,'var(--purple)']
-  ].map(([l,v,c])=>`<div class="stat"><div class="stat-label">${l}</div><div class="stat-val" style="${c?'color:'+c:''}">${v}</div></div>`).join('');
+  ].map(([l,v,c])=>`<div class="stat" style="--sc:${c};"><div class="stat-label">${l}</div><div class="stat-val" style="color:${c};">${v}</div></div>`).join('');
 }
 
 const RG_PALETTE = ['#2f8fff','#9b5cff','#1fd65f','#ffb300','#ff3d81','#00d1e0','#ff4d4d','#00e6a3','#ff6a1f','#6c5ce7'];
