@@ -77,6 +77,18 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .perm-dot.on{color:var(--pc,var(--accent));}
 .perm-dot.on .perm-dot-mark{background:var(--pc,var(--accent));box-shadow:0 0 5px var(--pc,var(--accent));}
 
+.subdiv-row{display:flex;align-items:center;gap:12px;padding:10px 13px;border-radius:10px;border:1px solid var(--border);background:var(--bg3);cursor:pointer;transition:all .15s;position:relative;}
+.subdiv-row:hover{border-color:color-mix(in srgb,var(--pc,var(--accent)) 50%,var(--border));}
+.subdiv-row:has(input:checked){background:color-mix(in srgb,var(--pc,var(--accent)) 9%,var(--bg3));border-color:color-mix(in srgb,var(--pc,var(--accent)) 40%,var(--border));}
+.subdiv-row input{position:absolute;opacity:0;pointer-events:none;}
+.subdiv-row-icon{width:28px;height:28px;border-radius:8px;background:color-mix(in srgb,var(--pc,var(--accent)) 15%,transparent);color:var(--pc,var(--accent));display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;}
+.subdiv-row-icon svg{width:13px;height:13px;}
+.subdiv-row-name{flex:1;min-width:0;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.subdiv-row-switch{width:32px;height:18px;border-radius:20px;background:var(--border2);position:relative;flex-shrink:0;transition:background .15s;}
+.subdiv-row-switch::after{content:'';position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:var(--text3);transition:all .15s;}
+.subdiv-row:has(input:checked) .subdiv-row-switch{background:var(--pc,var(--accent));}
+.subdiv-row:has(input:checked) .subdiv-row-switch::after{left:16px;background:#fff;}
+
 .simple-toggle{position:relative;display:inline-block;width:38px;height:22px;flex-shrink:0;cursor:pointer;}
 .simple-toggle input{position:absolute;opacity:0;width:100%;height:100%;margin:0;cursor:pointer;}
 .simple-toggle .track{position:absolute;inset:0;background:var(--border2);border-radius:20px;transition:background .15s;pointer-events:none;}
@@ -1249,7 +1261,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
         </div>
 
         <div id="mmsec-subdivisions" style="display:none;flex:1;margin-top:6px;">
-          <div class="form-group"><label class="form-label">Subdivisions</label><div id="mmSubdivsWrap" style="display:flex;flex-wrap:wrap;gap:12px;margin-top:4px;"></div></div>
+          <div class="form-group"><label class="form-label">Subdivisions</label><div id="mmSubdivsWrap" style="display:flex;flex-direction:column;gap:6px;margin-top:4px;"></div></div>
         </div>
 
         <div id="mmsec-status" style="display:none;flex:1;margin-top:6px;">
@@ -4255,7 +4267,7 @@ function openAddSecondaryMember(id){
       <div class="form-group"><label class="form-label">ID</label><input class="form-input" id="srmDiscord" placeholder="123456789…"></div>
       <div class="form-group"><label class="form-label">Date of Hire</label><input class="form-input" type="date" id="srmDOH" value="${new Date().toISOString().split('T')[0]}"></div>
     </div>
-    <div class="form-group"><label class="form-label">Subdivisions</label><div id="srmSubdivsWrap" style="display:flex;flex-wrap:wrap;gap:12px;margin-top:4px;"></div></div>
+    <div class="form-group"><label class="form-label">Subdivisions</label><div id="srmSubdivsWrap" style="display:flex;flex-direction:column;gap:6px;margin-top:4px;"></div></div>
     <div class="form-row">
       <div class="form-group"><label class="form-label">Status</label><select class="form-select" id="srmStatus"><option>Active</option><option>Inactive</option><option>LOA</option><option>Part Time</option></select></div>
       <div class="form-group"><label class="form-label">Strikes</label><input class="form-input" type="number" id="srmStrikes" value="0"></div>
@@ -4278,9 +4290,11 @@ function openAddSecondaryMember(id){
   if(!subdivisions.length){ subWrap.innerHTML='<span style="font-size:11px;color:var(--text3);">No subdivisions set up yet.</span>'; }
   else {
     subWrap.innerHTML=subdivisions.map(s=>`
-      <label class="form-check">
-        <input type="checkbox" name="srmSubdivNew" value="${escapeHtml(s.name)}" style="accent-color:${s.color||'var(--accent)'};">
-        <span style="color:${s.color||'var(--text2)'};">${escapeHtml(s.name)}</span>
+      <label class="subdiv-row" style="--pc:${s.color||'var(--accent)'};">
+        <input type="checkbox" name="srmSubdivNew" value="${escapeHtml(s.name)}">
+        <span class="subdiv-row-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg></span>
+        <span class="subdiv-row-name">${escapeHtml(s.name)}</span>
+        <span class="subdiv-row-switch"></span>
       </label>`).join('');
   }
 
@@ -4346,7 +4360,7 @@ function openEditSecondaryMember(rosterId, memberId){
       <div class="form-group"><label class="form-label">ID</label><input class="form-input" id="srmEditDiscord" placeholder="123456789…" value="${escapeHtml(m.discord||'')}"></div>
       <div class="form-group"><label class="form-label">Date of Hire</label><input class="form-input" type="date" id="srmEditDOH" value="${m.doh||''}"></div>
     </div>
-    <div class="form-group"><label class="form-label">Subdivisions</label><div id="srmSubdivsWrap" style="display:flex;flex-wrap:wrap;gap:12px;margin-top:4px;"></div></div>
+    <div class="form-group"><label class="form-label">Subdivisions</label><div id="srmSubdivsWrap" style="display:flex;flex-direction:column;gap:6px;margin-top:4px;"></div></div>
     <div class="form-row">
       <div class="form-group"><label class="form-label">Status</label><select class="form-select" id="srmEditStatus">${['Active','Inactive','LOA','Part Time'].map(s=>`<option ${s===m.status?'selected':''}>${s}</option>`).join('')}</select></div>
       <div class="form-group"><label class="form-label">Strikes</label><input class="form-input" type="number" id="srmEditStrikes" value="${m.strikes||0}"></div>
@@ -4371,9 +4385,11 @@ function openEditSecondaryMember(rosterId, memberId){
   else {
     const selectedSubdivs = m.subdivs||[];
     subWrap.innerHTML=subdivisions.map(s=>`
-      <label class="form-check">
-        <input type="checkbox" name="srmSubdiv" value="${escapeHtml(s.name)}" ${selectedSubdivs.includes(s.name)?'checked':''} style="accent-color:${s.color||'var(--accent)'};">
-        <span style="color:${s.color||'var(--text2)'};">${escapeHtml(s.name)}</span>
+      <label class="subdiv-row" style="--pc:${s.color||'var(--accent)'};">
+        <input type="checkbox" name="srmSubdiv" value="${escapeHtml(s.name)}" ${selectedSubdivs.includes(s.name)?'checked':''}>
+        <span class="subdiv-row-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg></span>
+        <span class="subdiv-row-name">${escapeHtml(s.name)}</span>
+        <span class="subdiv-row-switch"></span>
       </label>`).join('');
   }
 
@@ -5760,9 +5776,11 @@ function populateSubdivCheckboxes(selectedSubdivs){
   if(!wrap) return;
   if(!subdivisions.length){ wrap.innerHTML='<span style="font-size:11px;color:var(--text3);">No subdivisions set up yet.</span>'; return; }
   wrap.innerHTML=subdivisions.map(s=>`
-    <label class="form-check">
-      <input type="checkbox" name="mmSubdiv" value="${escapeHtml(s.name)}" ${(selectedSubdivs||[]).includes(s.name)?'checked':''} style="accent-color:${s.color||'var(--accent)'};">
-      <span style="color:${s.color||'var(--text2)'};">${escapeHtml(s.name)}</span>
+    <label class="subdiv-row" style="--pc:${s.color||'var(--accent)'};">
+      <input type="checkbox" name="mmSubdiv" value="${escapeHtml(s.name)}" ${(selectedSubdivs||[]).includes(s.name)?'checked':''}>
+      <span class="subdiv-row-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg></span>
+      <span class="subdiv-row-name">${escapeHtml(s.name)}</span>
+      <span class="subdiv-row-switch"></span>
     </label>`).join('');
 }
 
