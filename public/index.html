@@ -458,7 +458,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   #landingPage [style*="padding:90px"]{padding:40px 16px 40px!important;}
 }
 
-.mm2-avatar{width:64px;height:64px;border-radius:16px;background:var(--bg3);border:2px solid var(--accent3);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:700;color:var(--accent);margin-bottom:14px;}
 .mm2-manage-label{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--text3);text-transform:uppercase;margin:20px 0 8px;padding-left:2px;}
 .mm2-manage-btn{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:9px;cursor:pointer;transition:all .15s;font-size:12.5px;font-weight:600;color:var(--text2);border:1px solid transparent;background:none;width:100%;text-align:left;margin-bottom:3px;font-family:'Inter',sans-serif;}
 .mm2-manage-btn:hover{background:var(--bg4);color:var(--text);}
@@ -1183,9 +1182,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 
       <!-- LEFT: identity card + manage actions -->
       <div style="width:250px;border-right:1px solid var(--border);padding:18px 16px;flex-shrink:0;">
-        <div class="mm2-avatar" id="mmAvatar"><span id="mmAvatarInitials">—</span></div>
-        <div id="mmBadge" class="mono" style="display:inline-flex;align-items:center;background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.4);color:var(--purple);font-weight:700;font-size:11px;padding:5px 11px;border-radius:20px;margin-bottom:14px;"></div>
-
         <div style="margin-bottom:14px;">
           <div id="mmHeading" style="font-weight:700;font-size:15px;color:var(--text);"></div>
           <div id="mmHeadingSub" style="font-size:11.5px;color:var(--text3);margin-top:1px;"></div>
@@ -5004,13 +5000,11 @@ function mmQuickRemove(){
 
 function updateMemberPreview(){
   const name = document.getElementById('mmName').value.trim();
-  const callsign = document.getElementById('mmCallsign').value.trim();
   const group = document.getElementById('mmGroup').value;
   const position = document.getElementById('mmPosition').value;
   const status = document.getElementById('mmStatus').value || 'Active';
   const doh = document.getElementById('mmDOH').value;
 
-  document.getElementById('mmBadge').textContent = (callsign||'—') + (group ? ' · '+group : '');
   document.getElementById('mmHeading').textContent = name || (editingMemberId!==null ? 'Unnamed Member' : 'New Member');
   document.getElementById('mmHeadingSub').textContent = (group||'—') + ' · ' + (position || 'Unassigned');
 
@@ -5025,10 +5019,6 @@ function updateMemberPreview(){
   pill.style.background = sc.bg; pill.style.borderColor = sc.bd; pill.style.color = sc.c;
   document.getElementById('mmStatusDot').style.background = sc.c;
   document.getElementById('mmStatusPillText').textContent = status + (doh ? ' · hire date '+doh : '');
-
-  const initials = name ? name.trim().split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase() : '—';
-  const initEl = document.getElementById('mmAvatarInitials');
-  if(initEl) initEl.textContent = initials;
 }
 
 function openAddMember(){
