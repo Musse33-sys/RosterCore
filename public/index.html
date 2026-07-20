@@ -468,11 +468,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .mm2-manage-btn.danger .mm2-manage-icon{background:rgba(248,113,113,.12);color:var(--red);}
 .mm2-manage-btn:disabled{opacity:.35;cursor:not-allowed;}
 .mm2-manage-btn:disabled:hover{background:none;color:var(--text2);}
-
-.mm2-tabbar{display:flex;gap:6px;margin:14px 0 18px;flex-wrap:wrap;}
-.mm2-tab{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:8px 14px;border-radius:20px;cursor:pointer;border:1px solid var(--border);background:var(--bg3);color:var(--text2);transition:all .15s;}
-.mm2-tab:hover{color:var(--text);}
-.mm2-tab.active{background:color-mix(in srgb,var(--accent) 14%,transparent);border-color:var(--accent);color:var(--accent);font-weight:700;}
+.mm2-manage-btn.active{background:color-mix(in srgb,var(--mc,var(--accent)) 13%,transparent);color:var(--text);}
+.mm2-manage-btn.active .mm2-manage-icon{background:color-mix(in srgb,var(--mc,var(--accent)) 28%,transparent);}
 
 .mm2-history-item{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);align-items:flex-start;}
 .mm2-history-item:last-child{border-bottom:none;}
@@ -1199,14 +1196,25 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
         </div>
 
         <div class="mm2-manage-label">Manage</div>
-        <button type="button" class="mm2-manage-btn" style="--mc:#60a5fa;" onclick="switchMemberSection('status')">
-          <span class="mm2-manage-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></span>
-          Change Status
+        <button type="button" class="mm2-manage-btn active" id="mm2nav-details" style="--mc:#60a5fa;" onclick="switchMemberSection('details')">
+          <span class="mm2-manage-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></span>
+          Details
         </button>
-        <button type="button" class="mm2-manage-btn" style="--mc:#a78bfa;" onclick="switchMemberSection('subdivisions')">
+        <button type="button" class="mm2-manage-btn" id="mm2nav-subdivisions" style="--mc:#a78bfa;" onclick="switchMemberSection('subdivisions')">
           <span class="mm2-manage-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg></span>
-          Subdivisions &amp; Tags
+          Subdivisions
         </button>
+        <button type="button" class="mm2-manage-btn" id="mm2nav-status" style="--mc:#fbbf24;" onclick="switchMemberSection('status')">
+          <span class="mm2-manage-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></span>
+          Status &amp; Notes
+        </button>
+        <button type="button" class="mm2-manage-btn" id="mm2nav-history" style="--mc:#22d3ee;" onclick="switchMemberSection('history')">
+          <span class="mm2-manage-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></span>
+          History
+        </button>
+
+        <div style="height:1px;background:var(--border);margin:14px 0;"></div>
+
         <button type="button" class="mm2-manage-btn" id="mmPromoteBtn" style="--mc:#4ade80;" onclick="mmQuickPromote()">
           <span class="mm2-manage-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><path d="M5 12l7-7 7 7"/></svg></span>
           Promote Member
@@ -1223,20 +1231,13 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
         <p style="font-size:10.5px;color:var(--text3);font-style:italic;line-height:1.6;margin-top:20px;">Callsign is auto-assigned from the rank group's format.</p>
       </div>
 
-      <!-- RIGHT: tabs + sections -->
+      <!-- RIGHT: sections -->
       <div style="flex:1;padding:18px 24px;min-width:0;display:flex;flex-direction:column;">
         <div style="display:flex;justify-content:flex-end;">
           <div onclick="closeMemberModal()" style="width:26px;height:26px;border-radius:50%;background:var(--bg3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:12px;cursor:pointer;">✕</div>
         </div>
 
-        <div class="mm2-tabbar">
-          <button type="button" class="mm2-tab active" id="mm2tab-details" onclick="switchMemberSection('details')">🗂 Details</button>
-          <button type="button" class="mm2-tab" id="mm2tab-subdivisions" onclick="switchMemberSection('subdivisions')">🏷 Subdivisions</button>
-          <button type="button" class="mm2-tab" id="mm2tab-status" onclick="switchMemberSection('status')">⚑ Status &amp; Notes</button>
-          <button type="button" class="mm2-tab" id="mm2tab-history" onclick="switchMemberSection('history')">🕘 History</button>
-        </div>
-
-        <div id="mmsec-details" style="flex:1;">
+        <div id="mmsec-details" style="flex:1;margin-top:6px;">
           <div class="form-row">
             <div class="form-group"><label class="form-label">Full Name</label><input class="form-input" id="mmName" placeholder="John Smith" oninput="updateMemberPreview()"></div>
             <div class="form-group"><label class="form-label">Callsign</label><input class="form-input" id="mmCallsign" placeholder="Auto-assigned" oninput="onCallsignChange();updateMemberPreview();" onblur="onCallsignChange();updateMemberPreview();"></div>
@@ -1251,11 +1252,11 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
           </div>
         </div>
 
-        <div id="mmsec-subdivisions" style="display:none;flex:1;">
+        <div id="mmsec-subdivisions" style="display:none;flex:1;margin-top:6px;">
           <div class="form-group"><label class="form-label">Subdivisions</label><div id="mmSubdivsWrap" style="display:flex;flex-wrap:wrap;gap:12px;margin-top:4px;"></div></div>
         </div>
 
-        <div id="mmsec-status" style="display:none;flex:1;">
+        <div id="mmsec-status" style="display:none;flex:1;margin-top:6px;">
           <div class="form-row">
             <div class="form-group"><label class="form-label">Status</label>
               <select class="form-select" id="mmStatus" onchange="updateMemberPreview()"><option>Active</option><option>Inactive</option><option>LOA</option><option>Part Time</option></select>
@@ -1266,7 +1267,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
           <div id="mmTagsWrap" style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:10px;"></div>
         </div>
 
-        <div id="mmsec-history" style="display:none;flex:1;overflow-y:auto;max-height:340px;">
+        <div id="mmsec-history" style="display:none;flex:1;overflow-y:auto;max-height:340px;margin-top:6px;">
           <div id="mmHistoryList"></div>
         </div>
 
@@ -4949,9 +4950,9 @@ function graduate(id){
 function switchMemberSection(key){
   ['details','subdivisions','status','history'].forEach(k=>{
     const sec = document.getElementById('mmsec-'+k);
-    const tab = document.getElementById('mm2tab-'+k);
+    const nav = document.getElementById('mm2nav-'+k);
     if(sec) sec.style.display = (k===key) ? '' : 'none';
-    if(tab) tab.classList.toggle('active', k===key);
+    if(nav) nav.classList.toggle('active', k===key);
   });
   if(key==='history') renderMemberHistory();
 }
