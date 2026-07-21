@@ -220,6 +220,9 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .s1{background:rgba(251,191,36,.1);color:var(--yellow);border:1px solid rgba(161,122,20,.6);}
 .s2{background:rgba(251,146,60,.1);color:var(--orange);border:1px solid rgba(154,52,18,.6);}
 .s3{background:rgba(248,113,113,.1);color:var(--red);border:1px solid var(--red2);}
+.strike-bars{display:inline-flex;align-items:center;gap:4px;vertical-align:middle;}
+.strike-bar{width:8px;height:8px;border-radius:50%;background:transparent;border:1.5px solid var(--border2);}
+.strike-bar.on{background:var(--red);border-color:var(--red);}
 
 .row-acts{display:flex;gap:4px;opacity:0;transition:opacity .1s;}
 .roster-table tr:hover .row-acts{opacity:1;}
@@ -992,6 +995,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
             <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--text3);padding:0 10px;margin:16px 0 8px;">OTHER</div>
             <div class="editor-nav-item" id="ednav-trainee" style="--nc:#a78bfa;" onclick="switchEditorSection('trainee')"><span class="editor-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c0 1.5 3 3 6 3s6-1.5 6-3v-5"/></svg></span><span>Trainee Range</span></div>
             <div class="editor-nav-item" id="ednav-insignia" style="--nc:#a78bfa;" onclick="switchEditorSection('insignia')"><span class="editor-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span><span>Rank Insignia</span></div>
+            <div class="editor-nav-item" id="ednav-maxstrikes" style="--nc:#f472b6;" onclick="switchEditorSection('maxstrikes')"><span class="editor-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><path d="M12 17h.01"/></svg></span><span>Max Strikes</span></div>
           </div>
           <div style="flex:1;padding:24px 28px;min-width:0;">
         <!-- THEME -->
@@ -1112,6 +1116,19 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
               <input type="radio" name="alwaysInsigniaToggle" id="alwaysInsigniaNo" value="no" onchange="toggleAlwaysInsignia(false)" style="accent-color:var(--accent);width:15px;height:15px;" checked>
               <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text);">No</span>
             </label>
+          </div>
+        </div>
+
+        <div class="editor-section" id="edsec-maxstrikes" style="display:none;">
+          <div class="editor-h3"><span class="editor-icon" style="--ec:#f472b6;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><path d="M12 17h.01"/></svg></span>Max Strikes</div>
+          <p style="font-size:13px;color:var(--text2);margin-bottom:14px;line-height:1.6;">How many strikes the tally badge shows before it reads as full. Members can still be given more — this only controls the display.</p>
+          <div class="form-group" style="max-width:160px;">
+            <label class="form-label">Strikes shown</label>
+            <input class="form-input" type="number" id="maxStrikesInput" min="1" max="20" value="4" oninput="updateMaxStrikes(this.value)">
+          </div>
+          <div style="margin-top:14px;">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:8px;">Preview</div>
+            <span class="strike-bars" id="maxStrikesPreview"></span>
           </div>
         </div>
           </div>
@@ -1318,7 +1335,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
         <div id="mmsec-strikes" style="display:none;flex:1;margin-top:6px;">
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
             <label class="form-label" style="margin:0;">Strikes</label>
-            <span id="mmStrikeCount" class="strike s0">0</span>
+            <span id="mmStrikeCount" class="strike-bars"></span>
           </div>
           <div id="mmStrikeList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;max-height:180px;overflow-y:auto;"></div>
           <div class="add-form">
@@ -2014,7 +2031,7 @@ function startRealtimeSync(){
       promotions = rd.promotions||[];
       if(rd.custom_themes&&rd.custom_themes.length) customThemes = rd.custom_themes;
       if(rd.theme && rd.theme !== activeTheme) applyTheme(rd.theme);
-      if(rd.show_insignia !== undefined) showInsignia = rd.show_insignia; if(rd.always_show_insignia !== undefined) alwaysShowInsignia = rd.always_show_insignia; if(rd.bg_effect !== undefined && rd.bg_effect !== bgEffect) applyBgEffect(rd.bg_effect);
+      if(rd.show_insignia !== undefined) showInsignia = rd.show_insignia; if(rd.always_show_insignia !== undefined) alwaysShowInsignia = rd.always_show_insignia; if(rd.bg_effect !== undefined && rd.bg_effect !== bgEffect) applyBgEffect(rd.bg_effect); if(rd.max_strikes !== undefined && rd.max_strikes !== maxStrikes){ maxStrikes = rd.max_strikes; renderRoster(); }
       if(rd.use_roster_callsign !== undefined) useRosterCallsign = rd.use_roster_callsign;
       nextMemberId = members.length>0?Math.max(...members.map(m=>m.id||0))+1:1;
       nextTraineeId = trainees.length>0?Math.max(...trainees.map(t=>t.id||0))+1:1;
@@ -2086,6 +2103,7 @@ let rankGroups = [];
 let showInsignia = false;
 let alwaysShowInsignia = false;
 let bgEffect = 'none';
+let maxStrikes = 4;
 let subdivisions = [];
 let positions = [];
 let traineeFormat = '';
@@ -2219,7 +2237,7 @@ async function loadDepartment(userId){
   promotions = rd.promotions||[];
   customThemes = (rd.custom_themes&&rd.custom_themes.length?rd.custom_themes:[{name:'Custom 1',accent:'#c9a84c',bg:'#0a0c10'},{name:'Custom 2',accent:'#60a5fa',bg:'#080c14'}]);
   activeTheme = rd.theme||'midnight-blue';
-  showInsignia = rd.show_insignia||false; bgEffect = rd.bg_effect||'none'; applyBgEffect(bgEffect);
+  showInsignia = rd.show_insignia||false; bgEffect = rd.bg_effect||'none'; applyBgEffect(bgEffect); maxStrikes = rd.max_strikes||4;
   alwaysShowInsignia = rd.always_show_insignia||false;
   useRosterCallsign = rd.use_roster_callsign||false;
   deptLogo = rd.dept_logo||'';
@@ -2313,7 +2331,7 @@ async function saveRoster(){
     const newTimestamp = new Date().toISOString();
     const payload = {
       rank_groups: rankGroups, subdivisions: subdivisions,
-      positions: positions, trainee_format: traineeFormat, trainee_format_to: traineeFormatTo, custom_tags: customTags, promotions: promotions, custom_themes: customThemes, show_insignia: showInsignia, always_show_insignia: alwaysShowInsignia, use_roster_callsign: useRosterCallsign, dept_logo: deptLogo, bg_effect: bgEffect,
+      positions: positions, trainee_format: traineeFormat, trainee_format_to: traineeFormatTo, custom_tags: customTags, promotions: promotions, custom_themes: customThemes, show_insignia: showInsignia, always_show_insignia: alwaysShowInsignia, use_roster_callsign: useRosterCallsign, dept_logo: deptLogo, bg_effect: bgEffect, max_strikes: maxStrikes,
       theme: activeTheme, members: members, trainees: trainees
     };
 
@@ -2440,7 +2458,7 @@ async function resolveSaveConflict(choice){
   const newTimestamp = pendingConflictTimestamp || new Date().toISOString();
   const payload = {
     rank_groups: rankGroups, subdivisions: subdivisions,
-    positions: positions, trainee_format: traineeFormat, trainee_format_to: traineeFormatTo, custom_tags: customTags, promotions: promotions, custom_themes: customThemes, show_insignia: showInsignia, always_show_insignia: alwaysShowInsignia, use_roster_callsign: useRosterCallsign, dept_logo: deptLogo, bg_effect: bgEffect,
+    positions: positions, trainee_format: traineeFormat, trainee_format_to: traineeFormatTo, custom_tags: customTags, promotions: promotions, custom_themes: customThemes, show_insignia: showInsignia, always_show_insignia: alwaysShowInsignia, use_roster_callsign: useRosterCallsign, dept_logo: deptLogo, bg_effect: bgEffect, max_strikes: maxStrikes,
     theme: activeTheme, members: members, trainees: trainees
   };
 
@@ -2630,7 +2648,7 @@ async function onLoginSuccess(user){
   members=[]; trainees=[]; rankGroups=[]; subdivisions=[]; positions=[];
   traineeFormat=''; traineeFormatTo=''; customTags=[]; promotions=[];
   customThemes=[{name:'Custom 1',accent:'#c9a84c',bg:'#0a0c10'},{name:'Custom 2',accent:'#60a5fa',bg:'#080c14'}];
-  deptId=null; rosterDataId=null; deptName=''; activeTheme='midnight-blue'; bgEffect='none';
+  deptId=null; rosterDataId=null; deptName=''; activeTheme='midnight-blue'; bgEffect='none'; maxStrikes=4;
   nextMemberId=1; nextTraineeId=1;
   currentUser = user;
   isSuperAdmin = isSuperAdminEmail(user.email);
@@ -2703,7 +2721,7 @@ async function doLogout(){
   }
   currentUser=null; isSuperAdmin=false; deptId=null; rosterDataId=null;
   members=[]; trainees=[]; rankGroups=[]; subdivisions=[]; positions=[];
-  traineeFormat=''; traineeFormatTo=''; deptName=''; activeTheme='midnight-blue'; bgEffect='none';
+  traineeFormat=''; traineeFormatTo=''; deptName=''; activeTheme='midnight-blue'; bgEffect='none'; maxStrikes=4;
   customTags=[]; promotions=[]; customThemes=[{name:'Custom 1',accent:'#c9a84c',bg:'#0a0c10'},{name:'Custom 2',accent:'#60a5fa',bg:'#080c14'}];
   nextMemberId=1; nextTraineeId=1;
   secondaryRosters=[]; activeSecondaryId=null;
@@ -2941,7 +2959,7 @@ async function completeStaffLogin(profile, preloadedRoster, preloadedDept){
   customTags=rd.custom_tags||[];
   promotions=rd.promotions||[];
   traineeFormat=rd.trainee_format||'';
-  traineeFormatTo=rd.trainee_format_to||''; showInsignia=rd.show_insignia||false; alwaysShowInsignia=rd.always_show_insignia||false; bgEffect=rd.bg_effect||'none';
+  traineeFormatTo=rd.trainee_format_to||''; showInsignia=rd.show_insignia||false; alwaysShowInsignia=rd.always_show_insignia||false; bgEffect=rd.bg_effect||'none'; maxStrikes=rd.max_strikes||4;
   activeTheme=rd.theme||'midnight-blue';
   members=rd.members||[];
   trainees=rd.trainees||[];
@@ -4575,15 +4593,18 @@ function strikeList(strikes){
   const n = strikes||0;
   return Array.from({length:n}, ()=>({reason:'', date:''}));
 }
+function strikeBarsHTML(n){
+  const max = maxStrikes||4;
+  const filled = Math.min(n, max);
+  return Array.from({length:max},(_,i)=>`<span class="strike-bar${i<filled?' on':''}"></span>`).join('');
+}
 function strikeBadge(n){
-  const c=n===0?'s0':n===1?'s1':n===2?'s2':'s3';
-  return `<span class="strike ${c}">${n}</span>`;
+  return `<span class="strike-bars" title="${n} strike${n===1?'':'s'}">${strikeBarsHTML(n)}</span>`;
 }
 function renderStrikeUI(){
   const n = editingStrikes.length;
-  const c = n===0?'s0':n===1?'s1':n===2?'s2':'s3';
   const countEl = document.getElementById('mmStrikeCount');
-  if(countEl){ countEl.className = 'strike '+c; countEl.textContent = n; }
+  if(countEl){ countEl.innerHTML = strikeBarsHTML(n); countEl.title = n+' strike'+(n===1?'':'s'); }
   const listEl = document.getElementById('mmStrikeList');
   if(!listEl) return;
   if(!n){ listEl.innerHTML = `<p style="font-size:11px;color:var(--text3);font-style:italic;">No strikes on record.</p>`; return; }
@@ -5391,7 +5412,7 @@ function hasPerm(perm){
   return currentUser.perms?.[perm] === true;
 }
 
-const EDITOR_SECTIONS = ['theme','rankgroups','positions','subdivisions','tags','trainee','insignia'];
+const EDITOR_SECTIONS = ['theme','rankgroups','positions','subdivisions','tags','trainee','insignia','maxstrikes'];
 function switchEditorSection(key){
   EDITOR_SECTIONS.forEach(k=>{
     const sec = document.getElementById('edsec-'+k);
@@ -5405,6 +5426,10 @@ function renderEditor(){
   document.getElementById('deptNameInput').value=deptName;
   const themeBadge = document.getElementById('edThemeBadge');
   if(themeBadge) themeBadge.textContent = getThemeDisplayName() + ' · Active Theme';
+  const msInput = document.getElementById('maxStrikesInput');
+  if(msInput) msInput.value = maxStrikes;
+  const msPreview = document.getElementById('maxStrikesPreview');
+  if(msPreview) msPreview.innerHTML = strikeBarsHTML(Math.max(1, Math.round(maxStrikes/2)));
   document.getElementById('traineeFormatInput').value=traineeFormat;
   const toEl=document.getElementById('traineeFormatToInput');
   if(toEl) toEl.value=traineeFormatTo;
@@ -5720,6 +5745,15 @@ function updateTraineeFormat(val){
 function updateTraineeFormatTo(val){
   traineeFormatTo=val;
   updateTraineeFormatPreview();
+  scheduleSave();
+}
+function updateMaxStrikes(val){
+  const n = parseInt(val);
+  maxStrikes = (n>=1 && n<=20) ? n : 4;
+  const msPreview = document.getElementById('maxStrikesPreview');
+  if(msPreview) msPreview.innerHTML = strikeBarsHTML(Math.max(1, Math.round(maxStrikes/2)));
+  renderRoster();
+  renderAllMembers();
   scheduleSave();
 }
 function updateTraineeFormatPreview(){
@@ -6606,7 +6640,7 @@ document.addEventListener('keydown',e=>{
         lastKnownUpdatedAt = rd.updated_at;
         deptId=deptRecord.id; deptName=deptRecord.name||'Department';
         rankGroups=rd.rank_groups||[]; subdivisions=rd.subdivisions||[];
-        positions=migratePositions(rd.positions); traineeFormat=rd.trainee_format||''; traineeFormatTo=rd.trainee_format_to||''; showInsignia=rd.show_insignia||false; alwaysShowInsignia=rd.always_show_insignia||false; customTags=rd.custom_tags||[]; promotions=rd.promotions||[]; customThemes=(rd.custom_themes&&rd.custom_themes.length?rd.custom_themes:[{name:'Custom 1',accent:'#c9a84c',bg:'#0a0c10'},{name:'Custom 2',accent:'#60a5fa',bg:'#080c14'}]); bgEffect=rd.bg_effect||'none';
+        positions=migratePositions(rd.positions); traineeFormat=rd.trainee_format||''; traineeFormatTo=rd.trainee_format_to||''; showInsignia=rd.show_insignia||false; alwaysShowInsignia=rd.always_show_insignia||false; customTags=rd.custom_tags||[]; promotions=rd.promotions||[]; customThemes=(rd.custom_themes&&rd.custom_themes.length?rd.custom_themes:[{name:'Custom 1',accent:'#c9a84c',bg:'#0a0c10'},{name:'Custom 2',accent:'#60a5fa',bg:'#080c14'}]); bgEffect=rd.bg_effect||'none'; maxStrikes=rd.max_strikes||4;
         activeTheme=rd.theme||'midnight-blue'; members=rd.members||[]; trainees=rd.trainees||[]; deptLogo=rd.dept_logo||'';
         applyTheme(activeTheme); applyBgEffect(bgEffect);
         document.getElementById('headerName').textContent=deptName;
@@ -6634,7 +6668,7 @@ document.addEventListener('keydown',e=>{
       const {data:dept}=await sb.from('public_departments').select('*').eq('id',rd.dept_id).single();
       if(dept){deptId=dept.id;deptName=dept.name||'Department';}
       rankGroups=rd.rank_groups||[]; subdivisions=rd.subdivisions||[];
-      positions=migratePositions(rd.positions); traineeFormat=rd.trainee_format||''; traineeFormatTo=rd.trainee_format_to||''; showInsignia=rd.show_insignia||false; alwaysShowInsignia=rd.always_show_insignia||false; customTags=rd.custom_tags||[]; promotions=rd.promotions||[]; customThemes=(rd.custom_themes&&rd.custom_themes.length?rd.custom_themes:[{name:'Custom 1',accent:'#c9a84c',bg:'#0a0c10'},{name:'Custom 2',accent:'#60a5fa',bg:'#080c14'}]); bgEffect=rd.bg_effect||'none';
+      positions=migratePositions(rd.positions); traineeFormat=rd.trainee_format||''; traineeFormatTo=rd.trainee_format_to||''; showInsignia=rd.show_insignia||false; alwaysShowInsignia=rd.always_show_insignia||false; customTags=rd.custom_tags||[]; promotions=rd.promotions||[]; customThemes=(rd.custom_themes&&rd.custom_themes.length?rd.custom_themes:[{name:'Custom 1',accent:'#c9a84c',bg:'#0a0c10'},{name:'Custom 2',accent:'#60a5fa',bg:'#080c14'}]); bgEffect=rd.bg_effect||'none'; maxStrikes=rd.max_strikes||4;
       activeTheme=rd.theme||'midnight-blue'; members=rd.members||[]; trainees=rd.trainees||[]; deptLogo=rd.dept_logo||'';
       applyTheme(activeTheme); applyBgEffect(bgEffect);
       document.getElementById('headerName').textContent=deptName;
