@@ -1216,6 +1216,10 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
           <span class="mm2-manage-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></span>
           Status &amp; Notes
         </button>
+        <button type="button" class="mm2-manage-btn" id="mm2nav-strikes" style="--mc:#f472b6;" onclick="switchMemberSection('strikes')">
+          <span class="mm2-manage-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><path d="M12 17h.01"/></svg></span>
+          Strikes
+        </button>
         <button type="button" class="mm2-manage-btn" id="mm2nav-history" style="--mc:#22d3ee;" onclick="switchMemberSection('history')">
           <span class="mm2-manage-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></span>
           History
@@ -1265,14 +1269,23 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
         </div>
 
         <div id="mmsec-status" style="display:none;flex:1;margin-top:6px;">
-          <div class="form-row">
-            <div class="form-group"><label class="form-label">Status</label>
-              <select class="form-select" id="mmStatus" onchange="updateMemberPreview()"><option>Active</option><option>Inactive</option><option>LOA</option><option>Part Time</option></select>
-            </div>
-            <div class="form-group"><label class="form-label">Strikes</label><input class="form-input" type="number" id="mmStrikes" value="0" min="0" max="99"></div>
+          <div class="form-group"><label class="form-label">Status</label>
+            <select class="form-select" id="mmStatus" onchange="updateMemberPreview()" style="max-width:220px;"><option>Active</option><option>Inactive</option><option>LOA</option><option>Part Time</option></select>
           </div>
           <div class="form-group"><label class="form-label">Notes</label><input class="form-input" id="mmNotes" placeholder="Optional…"></div>
-          <div id="mmTagsWrap" style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:10px;"></div>
+          <div id="mmTagsWrap" style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:14px;"></div>
+        </div>
+
+        <div id="mmsec-strikes" style="display:none;flex:1;margin-top:6px;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+            <label class="form-label" style="margin:0;">Strikes</label>
+            <span id="mmStrikeCount" class="strike s0">0</span>
+          </div>
+          <div id="mmStrikeList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;max-height:180px;overflow-y:auto;"></div>
+          <div class="add-form">
+            <input class="add-input" id="mmStrikeReason" placeholder="Reason for this strike…">
+            <button class="btn" style="background:rgba(248,113,113,.1);color:var(--red);border:1px solid var(--red2);font-size:10px;letter-spacing:1px;padding:9px 16px;" onclick="addStrike()">+ Add Strike</button>
+          </div>
         </div>
 
         <div id="mmsec-history" style="display:none;flex:1;overflow-y:auto;max-height:340px;margin-top:6px;">
@@ -1707,7 +1720,7 @@ function loadDemo(){
     {id:7,name:'K.Wilson',callsign:'1W-26',rankGroup:'Sergeant',position:'',discord:'333444555',doh:'2025-05-01',subdivs:['K9'],status:'Active',strikes:0,notes:'',tags:['Volunteer']},
     {id:8,name:'L.Moore',callsign:'1W-27',rankGroup:'Sergeant',position:'',discord:'666777888',doh:'2025-05-10',subdivs:['Marine'],status:'Part Time',strikes:0,notes:'',tags:[]},
     {id:9,name:'C.Taylor',callsign:'1W-51',rankGroup:'Game Warden',position:'',discord:'999000111',doh:'2025-06-01',subdivs:[],status:'Active',strikes:0,notes:'',tags:[]},
-    {id:10,name:'D.Anderson',callsign:'1W-52',rankGroup:'Game Warden',position:'',discord:'222333444',doh:'2025-06-15',subdivs:['CRT'],status:'Active',strikes:2,notes:'Under review',tags:[]},
+    {id:10,name:'D.Anderson',callsign:'1W-52',rankGroup:'Game Warden',position:'',discord:'222333444',doh:'2025-06-15',subdivs:['CRT'],status:'Active',strikes:[{reason:'Failed to check in for assigned shift',date:'2025-06-10'},{reason:'Improper radio conduct during traffic stop',date:'2025-06-20'}],notes:'Under review',tags:[]},
     {id:11,name:'P.Martinez',callsign:'1W-53',rankGroup:'Game Warden',position:'',discord:'555666777',doh:'2025-07-01',subdivs:[],status:'Inactive',strikes:0,notes:'',tags:[]},
   ];
 
@@ -1847,7 +1860,7 @@ function buildMemberRow(m, gi){
     <td>${statusPill(m.status)}</td>
     <td class="col-doh" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);">${fmtDate(m.doh)}</td>
     <td class="col-discord" style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escapeHtml(m.discord||'')}">${escapeHtml(m.discord||'—')}</td>
-    <td>${strikeBadge(m.strikes||0)}</td>
+    <td>${strikeBadge(strikeCount(m.strikes))}</td>
     <td class="col-notes" style="font-size:11px;color:var(--text2);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escapeHtml(m.notes||'')}">${escapeHtml(m.notes||'—')}</td>
     ${currentUser?`<td><div class="row-acts">
       ${gi>0&&hasPerm('promotion')?`<button class="btn-promote btn" onclick="promote(${m.id})">▲</button>`:''}
@@ -2050,6 +2063,7 @@ let nextPromoId = Date.now();
 let nextTraineeId = 1;
 
 let editingMemberId = null;
+let editingStrikes = [];
 let editingTraineeId = null;
 let deletingId = null;
 let deletingType = null;
@@ -3397,8 +3411,9 @@ async function downloadRosterPDF(){
           setFont(text2[0],text2[1],text2[2]); doc.text(((m.subdivs||[]).filter(Boolean).join(', ')||'—').substring(0,16),x+1,y); x+=colW[3];
           const sc={Active:green,Inactive:red,LOA:[251,191,36],'Part Time':[251,146,60]};
           const _c=sc[m.status]||text2;doc.setTextColor(_c[0],_c[1],_c[2]); doc.text(m.status||'—',x+1,y); x+=colW[4];
-          const stc=m.strikes===0?green:m.strikes===1?[251,191,36]:m.strikes===2?[251,146,60]:red;
-          setFont(stc[0],stc[1],stc[2]); doc.text(String(m.strikes||0),x+1,y); x+=colW[5];
+          const _sn=strikeCount(m.strikes);
+          const stc=_sn===0?green:_sn===1?[251,191,36]:_sn===2?[251,146,60]:red;
+          setFont(stc[0],stc[1],stc[2]); doc.text(String(_sn),x+1,y); x+=colW[5];
           setFont(text3[0],text3[1],text3[2]); doc.text(m.doh||'—',x+1,y); x+=colW[6];
           doc.text((m.notes||'—').substring(0,22),x+1,y);
         } else {
@@ -4511,9 +4526,46 @@ function statusPill(s){
   const c=map[s]||'inactive';
   return `<span class="status-pill s-${c}"><span class="s-dot"></span>${escapeHtml(s)}</span>`;
 }
+function strikeCount(strikes){
+  return Array.isArray(strikes) ? strikes.length : (strikes||0);
+}
+function strikeList(strikes){
+  if(Array.isArray(strikes)) return strikes;
+  const n = strikes||0;
+  return Array.from({length:n}, ()=>({reason:'', date:''}));
+}
 function strikeBadge(n){
   const c=n===0?'s0':n===1?'s1':n===2?'s2':'s3';
   return `<span class="strike ${c}">${n}</span>`;
+}
+function renderStrikeUI(){
+  const n = editingStrikes.length;
+  const c = n===0?'s0':n===1?'s1':n===2?'s2':'s3';
+  const countEl = document.getElementById('mmStrikeCount');
+  if(countEl){ countEl.className = 'strike '+c; countEl.textContent = n; }
+  const listEl = document.getElementById('mmStrikeList');
+  if(!listEl) return;
+  if(!n){ listEl.innerHTML = `<p style="font-size:11px;color:var(--text3);font-style:italic;">No strikes on record.</p>`; return; }
+  listEl.innerHTML = editingStrikes.map((s,i)=>`
+    <div style="display:flex;align-items:flex-start;gap:8px;background:var(--bg3);border:1px solid var(--red2);border-left:2px solid var(--red);padding:8px 10px;border-radius:var(--radius);">
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:12px;color:var(--text);">${escapeHtml(s.reason)||'No reason given'}</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3);margin-top:2px;">${s.date?fmtDate(s.date):'—'}</div>
+      </div>
+      <button class="del-btn" style="width:22px;height:22px;font-size:12px;flex-shrink:0;" onclick="removeStrike(${i})">×</button>
+    </div>`).join('');
+}
+function addStrike(){
+  const input = document.getElementById('mmStrikeReason');
+  const reason = input.value.trim();
+  if(!reason){ showToast('⚠ Enter a reason for the strike.', true); return; }
+  editingStrikes.push({ reason, date: new Date().toISOString().split('T')[0] });
+  input.value='';
+  renderStrikeUI();
+}
+function removeStrike(i){
+  editingStrikes.splice(i,1);
+  renderStrikeUI();
 }
 function sdBadges(arr){
   if(!arr||!arr.filter(Boolean).length) return `<span style="color:var(--border2);font-family:'JetBrains Mono',monospace;font-size:11px;">—</span>`;
@@ -4615,7 +4667,7 @@ function renderRoster(){
               <td>${statusPill(m.status)}</td>
               <td class="col-doh" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);">${fmtDate(m.doh)}</td>
               <td class="col-discord" style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escapeHtml(m.discord||'')}">${escapeHtml(m.discord||'—')}</td>
-              <td>${strikeBadge(m.strikes||0)}</td>
+              <td>${strikeBadge(strikeCount(m.strikes))}</td>
               <td class="col-notes" style="font-size:11px;color:var(--text2);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escapeHtml(m.notes||'')}">${escapeHtml(m.notes||'—')}</td>
               ${currentUser?`<td><div class="row-acts">
                 ${gi>0&&hasPerm('promotion')?`<button class="btn-promote btn" onclick="promote(${m.id})">▲</button>`:''}
@@ -4881,7 +4933,7 @@ function renderAllMembers(){
       <td>${statusPill(m.status)}</td>
       <td class="col-doh" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);">${fmtDate(m.doh)}</td>
       <td class="col-discord" style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);">${escapeHtml(m.discord||'—')}</td>
-      <td>${strikeBadge(m.strikes||0)}</td>
+      <td>${strikeBadge(strikeCount(m.strikes))}</td>
       <td>${menu}</td>
     </tr>`;
   }).join('');
@@ -4960,7 +5012,7 @@ function graduate(id){
 }
 
 function switchMemberSection(key){
-  ['details','subdivisions','status','history'].forEach(k=>{
+  ['details','subdivisions','status','strikes','history'].forEach(k=>{
     const sec = document.getElementById('mmsec-'+k);
     const nav = document.getElementById('mm2nav-'+k);
     if(sec) sec.style.display = (k===key) ? '' : 'none';
@@ -4982,13 +5034,13 @@ function renderMemberHistory(){
   promotions.filter(p=>p.name===m.name).forEach(p=>{
     items.push({ date:new Date(p.date), icon:'▲', color:'#4ade80', title:`Promoted to ${p.toGroup}`, sub:`${p.fromCS||'—'} → ${p.toCS||'—'}` });
   });
-  if((m.strikes||0)>0){
-    items.push({ date:new Date(), icon:'⚠', color:'#f87171', title:`${m.strikes} active strike${m.strikes>1?'s':''}`, sub: m.notes?`Note: ${m.notes}`:'No notes on file', _pin:true });
-  }
+  strikeList(m.strikes).forEach(s=>{
+    items.push({ date: s.date?new Date(s.date):new Date(), icon:'⚠', color:'#f87171', title:'Received a strike', sub: s.reason||'No reason given' });
+  });
   if(m.doh){
     items.push({ date:new Date(m.doh), icon:'★', color:'#60a5fa', title:'Joined the department', sub:`Hired ${fmtDate(m.doh)}` });
   }
-  items.sort((a,b)=> (b._pin?1:0)-(a._pin?1:0) || b.date-a.date );
+  items.sort((a,b)=>b.date-a.date);
   if(!items.length){ wrap.innerHTML = `<p style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);padding:8px 0;">No recorded history yet.</p>`; return; }
   wrap.innerHTML = items.map(it=>`
     <div class="mm2-history-item">
@@ -5051,8 +5103,10 @@ function openAddMember(){
   document.getElementById('mmDOH').value=new Date().toISOString().split('T')[0];
   document.getElementById('mmPosition').value='';
   document.getElementById('mmStatus').value='Active';
-  document.getElementById('mmStrikes').value='0';
   document.getElementById('mmNotes').value='';
+  editingStrikes = [];
+  document.getElementById('mmStrikeReason').value='';
+  renderStrikeUI();
   populateTagCheckboxes([]);
   switchMemberSection('details');
   updateMemberPreview();
@@ -5113,8 +5167,10 @@ function openEditMember(id){
   document.getElementById('mmDOH').value=m.doh||'';
   document.getElementById('mmPosition').value=m.position||'';
   document.getElementById('mmStatus').value=m.status||'Active';
-  document.getElementById('mmStrikes').value=m.strikes||0;
   document.getElementById('mmNotes').value=m.notes||'';
+  editingStrikes = strikeList(m.strikes).map(s=>({...s}));
+  document.getElementById('mmStrikeReason').value='';
+  renderStrikeUI();
   populateSubdivCheckboxes(m.subdivs||[]);
   populateTagCheckboxes(m.tags||[]);
   switchMemberSection('details');
@@ -5137,7 +5193,7 @@ function saveMember(){
     position:document.getElementById('mmPosition').value,
     subdivs:getSelectedSubdivs(),
     status:document.getElementById('mmStatus').value,
-    strikes:parseInt(document.getElementById('mmStrikes').value)||0,
+    strikes:editingStrikes.slice(),
     notes:document.getElementById('mmNotes').value.trim(),
     tags:getSelectedTags(),
   };
