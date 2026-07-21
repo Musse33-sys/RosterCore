@@ -201,7 +201,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .member-name{font-weight:600;color:var(--text);font-size:13px;display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
 .member-pos{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);letter-spacing:.5px;margin-top:2px;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 
-.subdiv-wrap{display:flex;flex-direction:column;gap:3px;}
 .sdiv-badge{display:inline-flex;font-family:'JetBrains Mono',monospace;font-size:10px;padding:2px 7px;border-radius:2px;border:1px solid;white-space:nowrap;width:fit-content;}
 
 .status-pill{display:inline-flex;align-items:center;gap:5px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:3px 9px;border-radius:20px;white-space:nowrap;}
@@ -4653,8 +4652,13 @@ function removeStrike(i){
   renderStrikeUI();
 }
 function sdBadges(arr){
-  if(!arr||!arr.filter(Boolean).length) return `<span style="color:var(--border2);font-family:'JetBrains Mono',monospace;font-size:11px;">—</span>`;
-  return `<div class="subdiv-wrap">${arr.filter(Boolean).map(s=>{const c=sdColor(s);return`<span class="sdiv-badge" style="color:${c};background:${c}18;border-color:${c}55;">${escapeHtml(s)}</span>`;}).join('')}</div>`;
+  const list = (arr||[]).filter(Boolean);
+  if(!list.length) return `<span style="color:var(--border2);font-family:'JetBrains Mono',monospace;font-size:11px;">—</span>`;
+  const CAP = 3;
+  const shown = list.slice(0, CAP).map(s=>{const c=sdColor(s);return`<span class="sdiv-badge" style="color:${c};background:${c}18;border-color:${c}55;">${escapeHtml(s)}</span>`;}).join('');
+  const rest = list.slice(CAP);
+  const more = rest.length ? `<span class="sdiv-badge" style="color:var(--text3);border-color:var(--border2);" title="${escapeHtml(rest.join(', '))}">+${rest.length}</span>` : '';
+  return `<div class="subdiv-wrap">${shown}${more}</div>`;
 }
 function fmtDate(d){
   if(!d)return'—';
