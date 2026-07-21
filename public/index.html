@@ -4589,11 +4589,14 @@ function renderStrikeUI(){
   listEl.innerHTML = editingStrikes.map((s,i)=>`
     <div style="display:flex;align-items:flex-start;gap:8px;background:var(--bg3);border:1px solid var(--red2);border-left:2px solid var(--red);padding:8px 10px;border-radius:var(--radius);">
       <div style="flex:1;min-width:0;">
-        <div style="font-size:12px;color:var(--text);">${escapeHtml(s.reason)||'No reason given'}</div>
-        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3);margin-top:2px;">${s.date?fmtDate(s.date):'—'}</div>
+        <input class="edit-input" value="${escapeHtml(s.reason)}" placeholder="Reason for this strike…" oninput="editStrikeReason(${i},this.value)" style="margin-bottom:4px;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3);">${s.date?fmtDate(s.date):'—'}</div>
       </div>
       <button class="del-btn" style="width:22px;height:22px;font-size:12px;flex-shrink:0;" onclick="removeStrike(${i})">×</button>
     </div>`).join('');
+}
+function editStrikeReason(i, val){
+  if(editingStrikes[i]) editingStrikes[i].reason = val;
 }
 function addStrike(){
   const input = document.getElementById('mmStrikeReason');
