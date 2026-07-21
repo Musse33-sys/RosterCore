@@ -497,15 +497,15 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .app-bg-fx.fx-beam .fx-beam{display:block;}
 @keyframes bgorb1{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(60px,-40px) scale(1.15);}}
 @keyframes bgorb2{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(-50px,45px) scale(1.1);}}
-.fx-orbs .orb-a{position:absolute;width:480px;height:480px;top:-160px;right:-100px;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--accent) 30%,transparent),transparent 70%);filter:blur(30px);animation:bgorb1 14s ease-in-out infinite;}
-.fx-orbs .orb-b{position:absolute;width:420px;height:420px;bottom:-140px;left:-60px;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--purple) 26%,transparent),transparent 70%);filter:blur(30px);animation:bgorb2 17s ease-in-out infinite;}
+.fx-orbs .orb-a{position:absolute;width:480px;height:480px;top:-160px;right:-100px;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--accent) 20%,transparent),transparent 70%);filter:blur(30px);animation:bgorb1 14s ease-in-out infinite;}
+.fx-orbs .orb-b{position:absolute;width:420px;height:420px;bottom:-140px;left:-60px;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--purple) 17%,transparent),transparent 70%);filter:blur(30px);animation:bgorb2 17s ease-in-out infinite;}
 @keyframes auroraShift{0%{background-position:0% 50%;}50%{background-position:100% 50%;}100%{background-position:0% 50%;}}
-.fx-aurora .aurora-layer{position:absolute;inset:-10%;background:linear-gradient(115deg,var(--bg),color-mix(in srgb,var(--accent) 22%,var(--bg)),color-mix(in srgb,var(--purple) 18%,var(--bg)),var(--bg),color-mix(in srgb,var(--green) 16%,var(--bg)));background-size:320% 320%;animation:auroraShift 18s ease infinite;opacity:.6;}
-.fx-grid .grid-layer{position:absolute;inset:0;background-image:radial-gradient(circle,color-mix(in srgb,var(--accent) 35%,transparent) 1px,transparent 1px);background-size:28px 28px;opacity:.5;}
+.fx-aurora .aurora-layer{position:absolute;inset:-10%;background:linear-gradient(115deg,var(--bg),color-mix(in srgb,var(--accent) 12%,var(--bg)),color-mix(in srgb,var(--purple) 10%,var(--bg)),var(--bg),color-mix(in srgb,var(--green) 8%,var(--bg)));background-size:320% 320%;animation:auroraShift 22s ease infinite;opacity:.35;}
+.fx-grid .grid-layer{position:absolute;inset:0;background-image:radial-gradient(circle,color-mix(in srgb,var(--accent) 25%,transparent) 1px,transparent 1px);background-size:28px 28px;opacity:.4;}
 @keyframes dotPulse{0%,100%{opacity:.25;transform:scale(1);}50%{opacity:1;transform:scale(1.8);}}
 .fx-grid .pulse-dot{position:absolute;width:5px;height:5px;border-radius:50%;animation:dotPulse 2.6s ease-in-out infinite;}
 @keyframes beamSweep{0%{transform:translateX(-60%) rotate(15deg);}100%{transform:translateX(160%) rotate(15deg);}}
-.fx-beam .beam-layer{position:absolute;top:-50%;left:0;width:35%;height:200%;background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--accent) 22%,transparent),transparent);animation:beamSweep 7s linear infinite;}
+.fx-beam .beam-layer{position:absolute;top:-20%;left:0;width:14%;height:140%;background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--accent) 12%,transparent),transparent);animation:beamSweep 9s linear infinite;}
 .bg-effect-grid{display:flex;flex-wrap:wrap;gap:8px;}
 .bg-effect-btn{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:10px 16px;border-radius:8px;cursor:pointer;transition:all .15s;border:2px solid var(--border2);background:var(--bg3);color:var(--text2);}
 .bg-effect-btn:hover{color:var(--text);border-color:var(--border2);}
