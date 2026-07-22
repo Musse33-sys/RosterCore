@@ -4990,6 +4990,7 @@ function showOverflowPopover(el){
   if(top < 4) top = rect.bottom + 6;
   let left = rect.left;
   if(left + popW > window.innerWidth - 4) left = window.innerWidth - popW - 4;
+  if(left < 4) left = 4;
   overflowPopoverEl.style.top = top + 'px';
   overflowPopoverEl.style.left = left + 'px';
 }
