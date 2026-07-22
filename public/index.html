@@ -4672,7 +4672,7 @@ function sdBadges(arr){
   const list = (arr||[]).filter(Boolean).slice().sort((a,b)=>a.length-b.length);
   if(!list.length) return `<span style="color:var(--border2);font-family:'JetBrains Mono',monospace;font-size:11px;">—</span>`;
   const CAP = 3;
-  const shown = list.slice(0, CAP).map(s=>{const c=sdColor(s);return`<span class="sdiv-badge" style="color:${c};background:${c}18;border-color:${c}55;">${escapeHtml(s)}</span>`;}).join('');
+  const shown = list.slice(0, CAP).map(s=>{const c=sdColor(s);return`<span class="sdiv-badge" style="color:${c};background:${c}18;border-color:${c}55;" title="${escapeHtml(s)}">${escapeHtml(s)}</span>`;}).join('');
   const rest = list.slice(CAP);
   const more = rest.length ? `<span class="sdiv-badge overflow-badge" style="color:var(--text3);border-color:var(--border2);" data-items="${escapeHtml(rest.map(r=>{const c=sdColor(r);return`<div class="overflow-popover-item" style="color:${c};">${escapeHtml(r)}</div>`;}).join(''))}" onmouseenter="showOverflowPopover(this)" onmouseleave="hideOverflowPopover()">+${rest.length}</span>` : '';
   return `<div class="subdiv-wrap">${shown}${more}</div>`;
@@ -4722,7 +4722,7 @@ function tagBadges(arr){
   if(!list.length) return '';
   const CAP = 3;
   const colorOf = name => { const t=customTags.find(ct=>ct.name===name); return t?t.color:'#7ec8e3'; };
-  const shown = list.slice(0, CAP).map(tag=>{const c=colorOf(tag);return`<span class="tag-badge" style="color:${c};background:${c}18;border-color:${c}55;">${escapeHtml(tag)}</span>`;}).join('');
+  const shown = list.slice(0, CAP).map(tag=>{const c=colorOf(tag);return`<span class="tag-badge" style="color:${c};background:${c}18;border-color:${c}55;" title="${escapeHtml(tag)}">${escapeHtml(tag)}</span>`;}).join('');
   const rest = list.slice(CAP);
   const more = rest.length ? `<span class="tag-badge overflow-badge" style="color:var(--text3);border-color:var(--border2);" data-items="${escapeHtml(rest.map(r=>{const c=colorOf(r);return`<div class="overflow-popover-item" style="color:${c};">${escapeHtml(r)}</div>`;}).join(''))}" onmouseenter="showOverflowPopover(this)" onmouseleave="hideOverflowPopover()">+${rest.length}</span>` : '';
   return shown + more;
