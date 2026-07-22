@@ -187,10 +187,10 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .roster-table tbody tr.row-filled{background:var(--bg2);border-bottom:1px solid var(--border);border-left:2px solid transparent;transition:background .12s,border-color .12s;}
 .roster-table tbody tr.row-filled:hover{background:var(--bg3);border-left-color:var(--rg-color, var(--accent));}
 .roster-table tbody tr.row-empty{background:var(--bg);border-bottom:1px solid rgba(42,47,61,.5);}
-.roster-table td{padding:8px 12px;vertical-align:middle;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.roster-table td{padding:10px 12px;vertical-align:top;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .roster-table td.cs-cell{padding-right:4px;padding-left:12px;text-align:center;width:80px;min-width:80px;max-width:80px;}
 .roster-table th.cs-th{text-align:center;width:80px;min-width:80px;max-width:80px;}
-.roster-table td.ins-cell{padding:4px 6px;width:48px;max-width:48px;text-align:center;vertical-align:middle;}
+.roster-table td.ins-cell{padding:10px 6px;width:48px;max-width:48px;text-align:center;vertical-align:top;}
 .roster-table td.ins-cell img{max-width:36px;max-height:22px;width:auto;height:auto;object-fit:contain;display:block;margin:0 auto;}
 .roster-table td.name-td{white-space:normal;overflow:visible;}
 .roster-table tr.row-empty td{color:var(--border2);font-family:'JetBrains Mono',monospace;font-size:10px;}
@@ -202,6 +202,10 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .member-pos{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);letter-spacing:.5px;margin-top:2px;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 
 .sdiv-badge{display:inline-flex;font-family:'JetBrains Mono',monospace;font-size:10px;padding:2px 7px;border-radius:2px;border:1px solid;white-space:nowrap;width:fit-content;}
+.tag-badge{display:inline-flex;font-family:'JetBrains Mono',monospace;font-size:9px;padding:1px 6px;border-radius:2px;border:1px solid;white-space:nowrap;width:fit-content;}
+.overflow-badge{cursor:default;}
+.overflow-popover-float{position:fixed;background:var(--bg4);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;min-width:110px;max-width:240px;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.5);display:flex;flex-direction:column;gap:4px;pointer-events:none;}
+.overflow-popover-item{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 
 .status-pill{display:inline-flex;align-items:center;gap:5px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:3px 9px;border-radius:20px;white-space:nowrap;}
 .s-active{background:rgba(74,222,128,.08);color:var(--green);border:1px solid var(--green2);}
@@ -289,7 +293,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .members-table thead th{background:var(--bg3);border-bottom:1px solid var(--border2);font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);padding:10px 14px;text-align:left;white-space:nowrap;}
 .members-table tbody tr{background:var(--bg2);border-bottom:1px solid var(--border);}
 .members-table tbody tr:hover{background:var(--bg3);}
-.members-table td{padding:11px 14px;vertical-align:middle;color:var(--text2);}
+.members-table td{padding:11px 14px;vertical-align:top;color:var(--text2);}
 .trainee-row td{opacity:.8;}
 .action-menu-wrap{position:relative;display:inline-block;}
 .action-menu-btn{background:var(--bg3);border:1px solid var(--border);color:var(--text2);padding:5px 10px;border-radius:var(--radius);cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;transition:all .15s;}
@@ -1904,13 +1908,13 @@ let realtimeChannel = null;
 let isSyncing = false;
 
 function buildMemberRow(m, gi){
-  const tags=(m.tags||[]).map(tag=>{const t=customTags.find(ct=>ct.name===tag);const c=t?t.color:'#7ec8e3';return`<span style="font-family:'JetBrains Mono',monospace;font-size:9px;background:${c}18;border:1px solid ${c}55;color:${c};padding:1px 6px;border-radius:2px;">${escapeHtml(tag)}</span>`;}).join('');
+  const tags=tagBadges(m.tags);
   const g=rankGroups[gi]||{};
   const pd=getPosData(m.position);
   const displayCS=(pd&&pd.callsign)?pd.callsign:(m.callsign||'—');
   return `<tr class="row-filled" data-member-id="${m.id}">
     <td class="cs-cell"><span class="cs-filled">${escapeHtml(displayCS)}</span></td>
-    ${showInsignia?`<td class="ins-cell" style="text-align:center;vertical-align:middle;">${getRankInsignia(gi,m.position,m.callsign)}</td>`:''}
+    ${showInsignia?`<td class="ins-cell" style="text-align:center;vertical-align:top;">${getRankInsignia(gi,m.position,m.callsign)}</td>`:''}
     <td class="name-td"><div class="member-name">${escapeHtml(m.name)}${onlineUsers.has(m.name)?'<span class="online-dot" title="Online now"></span>':''} ${tags}</div>${(m.position||g.position)?`<div class="member-pos">${escapeHtml(m.position||g.position)}</div>`:''}</td>
     <td>${sdBadges(m.subdivs)}</td>
     <td>${statusPill(m.status)}</td>
@@ -4086,7 +4090,7 @@ function _renderSecondaryRosterInner(id, sr){
           <td class="cs-cell"><span class="cs-filled">${escapeHtml(m.callsign||'—')}</span></td>
           <td class="name-td">
             <div class="member-name">${escapeHtml(m.name)}
-              ${(m.tags||[]).map(tag=>{const t=customTags.find(ct=>ct.name===tag);const c=t?t.color:'#7ec8e3';return`<span style="font-family:'JetBrains Mono',monospace;font-size:9px;background:${c}18;border:1px solid ${c}55;color:${c};padding:1px 6px;border-radius:2px;">${escapeHtml(tag)}</span>`;}).join('')}
+              ${tagBadges(m.tags)}
             </div>
             ${m.position?`<div class="member-pos">${escapeHtml(m.position)}</div>`:''}
           </td>
@@ -4658,8 +4662,18 @@ function sdBadges(arr){
   const CAP = 3;
   const shown = list.slice(0, CAP).map(s=>{const c=sdColor(s);return`<span class="sdiv-badge" style="color:${c};background:${c}18;border-color:${c}55;">${escapeHtml(s)}</span>`;}).join('');
   const rest = list.slice(CAP);
-  const more = rest.length ? `<span class="sdiv-badge" style="color:var(--text3);border-color:var(--border2);" title="${escapeHtml(rest.join(', '))}">+${rest.length}</span>` : '';
+  const more = rest.length ? `<span class="sdiv-badge overflow-badge" style="color:var(--text3);border-color:var(--border2);" data-items="${escapeHtml(rest.map(r=>{const c=sdColor(r);return`<div class="overflow-popover-item" style="color:${c};">${escapeHtml(r)}</div>`;}).join(''))}" onmouseenter="showOverflowPopover(this)" onmouseleave="hideOverflowPopover()">+${rest.length}</span>` : '';
   return `<div class="subdiv-wrap">${shown}${more}</div>`;
+}
+function tagBadges(arr){
+  const list = (arr||[]).filter(Boolean);
+  if(!list.length) return '';
+  const CAP = 3;
+  const colorOf = name => { const t=customTags.find(ct=>ct.name===name); return t?t.color:'#7ec8e3'; };
+  const shown = list.slice(0, CAP).map(tag=>{const c=colorOf(tag);return`<span class="tag-badge" style="color:${c};background:${c}18;border-color:${c}55;">${escapeHtml(tag)}</span>`;}).join('');
+  const rest = list.slice(CAP);
+  const more = rest.length ? `<span class="tag-badge overflow-badge" style="color:var(--text3);border-color:var(--border2);" data-items="${escapeHtml(rest.map(r=>{const c=colorOf(r);return`<div class="overflow-popover-item" style="color:${c};">${escapeHtml(r)}</div>`;}).join(''))}" onmouseenter="showOverflowPopover(this)" onmouseleave="hideOverflowPopover()">+${rest.length}</span>` : '';
+  return shown + more;
 }
 function fmtDate(d){
   if(!d)return'—';
@@ -4745,10 +4759,10 @@ function renderRoster(){
       const displayCS = (pd && pd.callsign) ? pd.callsign : (m.callsign||'—');
       return `<tr class="row-filled" data-member-id="${m.id}">
               <td class="cs-cell"><span class="cs-filled">${escapeHtml(displayCS)}</span></td>
-              ${showInsignia?`<td class="ins-cell" style="text-align:center;vertical-align:middle;">${getRankInsignia(gi,m.position,m.callsign)}</td>`:''}
+              ${showInsignia?`<td class="ins-cell" style="text-align:center;vertical-align:top;">${getRankInsignia(gi,m.position,m.callsign)}</td>`:''}
               <td class="name-td">
                 <div class="member-name">${escapeHtml(m.name)}${onlineUsers.has(m.name)?'<span class="online-dot" title="Online now"></span>':''}
-                  ${(m.tags||[]).map(tag=>{const t=customTags.find(ct=>ct.name===tag);const c=t?t.color:'#7ec8e3';return`<span style="font-family:'JetBrains Mono',monospace;font-size:9px;background:${c}18;border:1px solid ${c}55;color:${c};padding:1px 6px;border-radius:2px;">${escapeHtml(tag)}</span>`;}).join('')}
+                  ${tagBadges(m.tags)}
                 </div>
                 ${(m.position||g.position)?`<div class="member-pos">${escapeHtml(m.position||g.position)}</div>`:''}
                 ${m.discord?`<div class="mobile-discord">${escapeHtml(m.discord)}</div>`:''}
@@ -4777,7 +4791,7 @@ function renderRoster(){
           } else {
             return `<tr class="row-empty">
               <td>${isRosterMode?'':(`<span class="cs-empty">${slot}</span>`)}</td>
-              ${showInsignia ? `<td class="ins-cell" style="text-align:center;vertical-align:middle;">${alwaysShowInsignia ? getRankInsignia(gi,'',slot) : ''}</td>` : ''}
+              ${showInsignia ? `<td class="ins-cell" style="text-align:center;vertical-align:top;">${alwaysShowInsignia ? getRankInsignia(gi,'',slot) : ''}</td>` : ''}
               <td colspan="${currentUser?(showInsignia?8:8):(showInsignia?7:7)}" style="color:var(--border2);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;padding:10px 12px;">— VACANT —</td>
             </tr>`;
           }
@@ -4962,6 +4976,27 @@ function closeMenu(){
   openMenuId = null;
 }
 
+let overflowPopoverEl = null;
+function showOverflowPopover(el){
+  hideOverflowPopover();
+  overflowPopoverEl = document.createElement('div');
+  overflowPopoverEl.className = 'overflow-popover-float';
+  overflowPopoverEl.innerHTML = el.dataset.items || '';
+  document.body.appendChild(overflowPopoverEl);
+  const rect = el.getBoundingClientRect();
+  const popH = overflowPopoverEl.offsetHeight;
+  const popW = overflowPopoverEl.offsetWidth;
+  let top = rect.top - popH - 6;
+  if(top < 4) top = rect.bottom + 6;
+  let left = rect.left;
+  if(left + popW > window.innerWidth - 4) left = window.innerWidth - popW - 4;
+  overflowPopoverEl.style.top = top + 'px';
+  overflowPopoverEl.style.left = left + 'px';
+}
+function hideOverflowPopover(){
+  if(overflowPopoverEl){ overflowPopoverEl.remove(); overflowPopoverEl = null; }
+}
+
 document.addEventListener('click', ()=>closeMenu());
 
 function renderAllMembers(){
@@ -4987,11 +5022,7 @@ function renderAllMembers(){
     const gi=isTrainee?-1:rgIndex(m.rankGroup);
     const group=isTrainee?'Trainee':m.rankGroup||'—';
     const groupColor=isTrainee?'var(--purple)':'var(--accent)';
-    const tags=(m.tags||[]).map(tag=>{
-      const t=customTags.find(ct=>ct.name===tag);
-      const c=t?t.color:'#7ec8e3';
-      return`<span style="font-family:'JetBrains Mono',monospace;font-size:9px;background:${c}18;border:1px solid ${c}55;color:${c};padding:1px 5px;border-radius:2px;">${escapeHtml(tag)}</span>`;
-    }).join(' ');
+    const tags=tagBadges(m.tags);
 
     const menuId=`menu_${m._type}_${m.id}`;
     const menu=currentUser?`
