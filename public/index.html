@@ -206,10 +206,11 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .cs-filled{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green);font-weight:700;letter-spacing:.5px;}
 .cs-empty{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--border2);}
 .member-name{font-weight:600;color:var(--text);font-size:13px;display:flex;align-items:center;gap:5px;flex-wrap:nowrap;overflow:hidden;}
+.member-name-text{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0;max-width:65%;}
 .member-pos{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);letter-spacing:.5px;margin-top:2px;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 
-.sdiv-badge{display:inline-flex;font-family:'JetBrains Mono',monospace;font-size:10px;padding:2px 7px;border-radius:2px;border:1px solid;white-space:nowrap;width:fit-content;max-width:92px;overflow:hidden;text-overflow:ellipsis;flex-shrink:0;}
-.tag-badge{display:inline-flex;font-family:'JetBrains Mono',monospace;font-size:9px;padding:1px 6px;border-radius:2px;border:1px solid;white-space:nowrap;width:fit-content;max-width:92px;overflow:hidden;text-overflow:ellipsis;flex-shrink:0;}
+.sdiv-badge{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:10px;padding:2px 7px;border-radius:2px;border:1px solid;white-space:nowrap;max-width:92px;overflow:hidden;text-overflow:ellipsis;flex-shrink:0;vertical-align:middle;}
+.tag-badge{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:9px;padding:1px 6px;border-radius:2px;border:1px solid;white-space:nowrap;max-width:92px;overflow:hidden;text-overflow:ellipsis;flex-shrink:0;vertical-align:middle;}
 .overflow-badge{cursor:default;}
 .overflow-popover-float{position:fixed;background:var(--bg4);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;min-width:110px;max-width:240px;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.5);display:flex;flex-direction:column;gap:4px;pointer-events:none;}
 .overflow-popover-item{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -1922,7 +1923,7 @@ function buildMemberRow(m, gi){
   return `<tr class="row-filled" data-member-id="${m.id}">
     <td class="cs-cell"><span class="cs-filled">${escapeHtml(displayCS)}</span></td>
     ${showInsignia?`<td class="ins-cell" style="text-align:center;vertical-align:top;">${getRankInsignia(gi,m.position,m.callsign)}</td>`:''}
-    <td class="name-td"><div class="member-name">${escapeHtml(m.name)}${onlineUsers.has(m.name)?'<span class="online-dot" title="Online now"></span>':''} ${tags}</div>${(m.position||g.position)?`<div class="member-pos">${escapeHtml(m.position||g.position)}</div>`:''}</td>
+    <td class="name-td"><div class="member-name"><span class="member-name-text">${escapeHtml(m.name)}</span>${onlineUsers.has(m.name)?'<span class="online-dot" title="Online now"></span>':''} ${tags}</div>${(m.position||g.position)?`<div class="member-pos">${escapeHtml(m.position||g.position)}</div>`:''}</td>
     <td class="col-subdiv">${sdBadges(m.subdivs)}</td>
     <td class="col-status">${statusPill(m.status)}</td>
     <td class="col-doh" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);">${fmtDate(m.doh)}</td>
@@ -4099,7 +4100,7 @@ function _renderSecondaryRosterInner(id, sr){
     const memberRow = (m) => `<tr class="row-filled">
           <td class="cs-cell"><span class="cs-filled">${escapeHtml(m.callsign||'—')}</span></td>
           <td class="name-td">
-            <div class="member-name">${escapeHtml(m.name)}
+            <div class="member-name"><span class="member-name-text">${escapeHtml(m.name)}</span>
               ${tagBadges(m.tags)}
             </div>
             ${m.position?`<div class="member-pos">${escapeHtml(m.position)}</div>`:''}
@@ -4812,7 +4813,7 @@ function renderRoster(){
               <td class="cs-cell"><span class="cs-filled">${escapeHtml(displayCS)}</span></td>
               ${showInsignia?`<td class="ins-cell" style="text-align:center;vertical-align:top;">${getRankInsignia(gi,m.position,m.callsign)}</td>`:''}
               <td class="name-td">
-                <div class="member-name">${escapeHtml(m.name)}${onlineUsers.has(m.name)?'<span class="online-dot" title="Online now"></span>':''}
+                <div class="member-name"><span class="member-name-text">${escapeHtml(m.name)}</span>${onlineUsers.has(m.name)?'<span class="online-dot" title="Online now"></span>':''}
                   ${tagBadges(m.tags)}
                 </div>
                 ${(m.position||g.position)?`<div class="member-pos">${escapeHtml(m.position||g.position)}</div>`:''}
@@ -5100,7 +5101,7 @@ function renderAllMembers(){
     return`<tr class="${isTrainee?'trainee-row':''}">
       <td><span style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:${isTrainee?'var(--purple)':'var(--green)'};">${escapeHtml(m.callsign||'—')}</span></td>
       <td>
-        <div style="font-weight:600;color:var(--text);font-size:13px;display:flex;align-items:center;gap:4px;">${escapeHtml(m.name)}${onlineUsers.has(m.name)?'<span class="online-dot" title="Online now"></span>':''} ${tags}</div>
+        <div class="member-name"><span class="member-name-text">${escapeHtml(m.name)}</span>${onlineUsers.has(m.name)?'<span class="online-dot" title="Online now"></span>':''} ${tags}</div>
         ${m.position?`<div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);margin-top:2px;">${escapeHtml(m.position)}</div>`:''}
       </td>
       <td><span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:${groupColor};">${escapeHtml(group)}</span></td>
