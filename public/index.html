@@ -194,11 +194,11 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .roster-table td.ins-cell img{max-width:36px;max-height:22px;width:auto;height:auto;object-fit:contain;display:block;margin:0 auto;}
 .roster-table td.name-td{white-space:normal;overflow:visible;}
 .roster-table tr.row-empty td{color:var(--border2);font-family:'JetBrains Mono',monospace;font-size:10px;}
-.subdiv-wrap{display:flex;flex-direction:row;flex-wrap:wrap;gap:3px;}
+.subdiv-wrap{display:flex;flex-direction:row;flex-wrap:nowrap;gap:3px;overflow:hidden;}
 
 .cs-filled{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green);font-weight:700;letter-spacing:.5px;}
 .cs-empty{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--border2);}
-.member-name{font-weight:600;color:var(--text);font-size:13px;display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
+.member-name{font-weight:600;color:var(--text);font-size:13px;display:flex;align-items:center;gap:5px;flex-wrap:nowrap;overflow:hidden;}
 .member-pos{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);letter-spacing:.5px;margin-top:2px;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 
 .sdiv-badge{display:inline-flex;font-family:'JetBrains Mono',monospace;font-size:10px;padding:2px 7px;border-radius:2px;border:1px solid;white-space:nowrap;width:fit-content;}
