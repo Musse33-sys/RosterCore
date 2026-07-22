@@ -182,7 +182,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .rg-count{font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:500;letter-spacing:.3px;color:var(--text3);white-space:nowrap;line-height:1;}
 .rg-count b{color:var(--rg-color, var(--accent));font-weight:700;}
 .rg-table-wrap{flex:1;overflow-x:auto;}
-.roster-table{width:100%;border-collapse:collapse;font-size:12px;table-layout:auto;}
+.roster-table{width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed;}
 .roster-table thead th{background:var(--bg3);border-bottom:1px solid var(--border2);font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);padding:10px 12px;text-align:left;white-space:nowrap;font-weight:500;overflow:hidden;}
 .roster-table tbody tr.row-filled{background:var(--bg2);border-bottom:1px solid var(--border);border-left:2px solid transparent;transition:background .12s,border-color .12s;}
 .roster-table tbody tr.row-filled:hover{background:var(--bg3);border-left-color:var(--rg-color, var(--accent));}
@@ -192,7 +192,14 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .roster-table th.cs-th{text-align:center;width:80px;min-width:80px;max-width:80px;}
 .roster-table td.ins-cell{padding:10px 6px;width:48px;max-width:48px;text-align:center;vertical-align:top;}
 .roster-table td.ins-cell img{max-width:36px;max-height:22px;width:auto;height:auto;object-fit:contain;display:block;margin:0 auto;}
-.roster-table td.name-td{white-space:normal;overflow:visible;}
+.roster-table td.name-td{white-space:normal;overflow:visible;width:20%;}
+.roster-table .col-subdiv{width:19%;}
+.roster-table .col-status{width:10%;}
+.roster-table .col-doh{width:9%;}
+.roster-table .col-discord{width:12%;}
+.roster-table .col-strikes{width:8%;}
+.roster-table .col-notes{width:11%;}
+.roster-table .col-actions{width:11%;}
 .roster-table tr.row-empty td{color:var(--border2);font-family:'JetBrains Mono',monospace;font-size:10px;}
 .subdiv-wrap{display:flex;flex-direction:row;flex-wrap:nowrap;gap:3px;overflow:hidden;}
 
@@ -1916,13 +1923,13 @@ function buildMemberRow(m, gi){
     <td class="cs-cell"><span class="cs-filled">${escapeHtml(displayCS)}</span></td>
     ${showInsignia?`<td class="ins-cell" style="text-align:center;vertical-align:top;">${getRankInsignia(gi,m.position,m.callsign)}</td>`:''}
     <td class="name-td"><div class="member-name">${escapeHtml(m.name)}${onlineUsers.has(m.name)?'<span class="online-dot" title="Online now"></span>':''} ${tags}</div>${(m.position||g.position)?`<div class="member-pos">${escapeHtml(m.position||g.position)}</div>`:''}</td>
-    <td>${sdBadges(m.subdivs)}</td>
-    <td>${statusPill(m.status)}</td>
+    <td class="col-subdiv">${sdBadges(m.subdivs)}</td>
+    <td class="col-status">${statusPill(m.status)}</td>
     <td class="col-doh" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);">${fmtDate(m.doh)}</td>
     <td class="col-discord" style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escapeHtml(m.discord||'')}">${escapeHtml(m.discord||'—')}</td>
-    <td>${strikeBadge(strikeCount(m.strikes))}</td>
+    <td class="col-strikes">${strikeBadge(strikeCount(m.strikes))}</td>
     <td class="col-notes" style="font-size:11px;color:var(--text2);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escapeHtml(m.notes||'')}">${escapeHtml(m.notes||'—')}</td>
-    ${currentUser?`<td><div class="row-acts">
+    ${currentUser?`<td class="col-actions"><div class="row-acts">
       ${gi>0&&hasPerm('promotion')?`<button class="btn-promote btn" onclick="promote(${m.id})">▲</button>`:''}
       ${gi<rankGroups.length-1&&hasPerm('promotion')?`<button class="btn-demote btn" onclick="demote(${m.id})">▼</button>`:''}
       ${hasPerm('mainRoster')?`<button class="btn btn-ghost btn-xs" onclick="openEditMember(${m.id})">Edit</button>`:''}
@@ -4143,7 +4150,7 @@ function _renderSecondaryRosterInner(id, sr){
         ${rgLabelHTML(g.name, gMembers.length, total, gi)}
         <div class="rg-table-wrap">
           <table class="roster-table">
-            <thead><tr><th class="cs-th">Callsign</th><th>Name</th><th>Subdivision</th><th>Status</th><th>DOH</th><th>ID</th><th>Strikes</th><th>Notes</th>${canEdit?'<th>Actions</th>':''}</tr></thead>
+            <thead><tr><th class="cs-th">Callsign</th><th class="name-td">Name</th><th class="col-subdiv">Subdivision</th><th class="col-status">Status</th><th class="col-doh">DOH</th><th class="col-discord">ID</th><th class="col-strikes">Strikes</th><th class="col-notes">Notes</th>${canEdit?'<th class="col-actions">Actions</th>':''}</tr></thead>
             <tbody>${rows}${capped?`<tr class="row-empty"><td colspan="${colCount}" style="text-align:center;padding:10px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);">Showing ${filledCallsigns.length} filled + vacant of ${total} total slots</td></tr>`:''}</tbody>
           </table>
         </div>
@@ -4747,7 +4754,7 @@ function renderRoster(){
       return true;
     }).sort((a,b)=>(a.callsign||'').localeCompare(b.callsign||''));
 
-    const actionsCols = currentUser ? '<th>Actions</th>' : '';
+    const actionsCols = currentUser ? '<th class="col-actions">Actions</th>' : '';
     const isRosterMode = useRosterCallsign === true;
     const filledCallsigns = gMembers.map(m=>m.callsign);
     const { slots, total, capped } = isRosterMode
@@ -4767,13 +4774,13 @@ function renderRoster(){
                 ${(m.position||g.position)?`<div class="member-pos">${escapeHtml(m.position||g.position)}</div>`:''}
                 ${m.discord?`<div class="mobile-discord">${escapeHtml(m.discord)}</div>`:''}
               </td>
-              <td>${sdBadges(m.subdivs)}</td>
-              <td>${statusPill(m.status)}</td>
+              <td class="col-subdiv">${sdBadges(m.subdivs)}</td>
+              <td class="col-status">${statusPill(m.status)}</td>
               <td class="col-doh" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);">${fmtDate(m.doh)}</td>
               <td class="col-discord" style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escapeHtml(m.discord||'')}">${escapeHtml(m.discord||'—')}</td>
-              <td>${strikeBadge(strikeCount(m.strikes))}</td>
+              <td class="col-strikes">${strikeBadge(strikeCount(m.strikes))}</td>
               <td class="col-notes" style="font-size:11px;color:var(--text2);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escapeHtml(m.notes||'')}">${escapeHtml(m.notes||'—')}</td>
-              ${currentUser?`<td><div class="row-acts">
+              ${currentUser?`<td class="col-actions"><div class="row-acts">
                 ${gi>0&&hasPerm('promotion')?`<button class="btn-promote btn" onclick="promote(${m.id})">▲</button>`:''}
                 ${gi<rankGroups.length-1&&hasPerm('promotion')?`<button class="btn-demote btn" onclick="demote(${m.id})">▼</button>`:''}
                 ${hasPerm('mainRoster')?`<button class="btn btn-ghost btn-xs" onclick="openEditMember(${m.id})">Edit</button>`:''}
@@ -4823,7 +4830,7 @@ function renderRoster(){
           <table class="roster-table">
 
             <thead><tr>
-              <th class="cs-th">Callsign</th>${showInsignia?'<th style="width:48px;text-align:center;"></th>':''}<th>Name</th><th>Subdivision</th><th>Status</th>
+              <th class="cs-th">Callsign</th>${showInsignia?'<th style="width:48px;text-align:center;"></th>':''}<th class="name-td">Name</th><th class="col-subdiv">Subdivision</th><th class="col-status">Status</th>
               <th class="col-doh">DOH</th><th class="col-discord">ID</th><th class="col-strikes">Strikes</th><th class="col-notes">Notes</th>
               ${actionsCols}
             </tr></thead>
@@ -4870,7 +4877,7 @@ function renderTrainees(){
     wrap.innerHTML=`<div class="rank-group"><div class="rg-wrap">
       <div class="rg-label" style="background:rgba(167,139,250,.08);color:var(--purple);border-right-color:rgba(167,139,250,.3);">Trainees</div>
       <div class="rg-table-wrap"><table class="roster-table">
-        <thead><tr><th class="cs-th">Callsign</th><th>Name</th><th>Status</th><th class="col-doh">DOH</th><th class="col-discord">ID</th><th class="col-strikes">Strikes</th><th class="col-notes">Notes</th>${currentUser?'<th>Actions</th>':''}</tr></thead>
+        <thead><tr><th class="cs-th">Callsign</th><th class="name-td">Name</th><th class="col-status">Status</th><th class="col-doh">DOH</th><th class="col-discord">ID</th><th class="col-strikes">Strikes</th><th class="col-notes">Notes</th>${currentUser?'<th class="col-actions">Actions</th>':''}</tr></thead>
         <tbody>${rows}${capped?`<tr class="row-empty"><td colspan="${currentUser?8:7}" style="text-align:center;padding:10px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--purple);">Showing ${filledCS.length} filled + ${MAX_VACANT} vacant of ${total} total slots</td></tr>`:''}</tbody>
       </table></div></div></div>`;
     return;
@@ -4903,9 +4910,9 @@ function renderTrainees(){
         <div class="rg-table-wrap">
           <table class="roster-table">
             <thead><tr>
-              <th class="cs-th">Callsign</th><th>Name</th><th>Status</th><th class="col-doh">DOH</th>
+              <th class="cs-th">Callsign</th><th class="name-td">Name</th><th class="col-status">Status</th><th class="col-doh">DOH</th>
               <th class="col-discord">ID</th><th class="col-strikes">Strikes</th><th class="col-notes">Notes</th>
-              ${currentUser?'<th>Actions</th>':''}
+              ${currentUser?'<th class="col-actions">Actions</th>':''}
             </tr></thead>
             <tbody>${rows}</tbody>
           </table>
