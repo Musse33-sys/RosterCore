@@ -1945,6 +1945,9 @@ function diffUpdateRow(m, gi){
   temp.innerHTML = buildMemberRow(m, gi);
   const newRow = temp.firstElementChild;
   row.replaceWith(newRow);
+  requestAnimationFrame(()=>{
+    newRow.querySelectorAll('.subdiv-wrap, .member-name').forEach(fitBadgeContainer);
+  });
   return true;
 }
 
@@ -4159,6 +4162,7 @@ function _renderSecondaryRosterInner(id, sr){
   });
 
   wrap.innerHTML = html || `<div class="empty-state"><div class="empty-text">No matches.</div></div>`;
+  fitAllBadgeContainers();
 }
 
 async function saveSecondaryRoster(sr){
@@ -4672,6 +4676,46 @@ function sdBadges(arr){
   const more = rest.length ? `<span class="sdiv-badge overflow-badge" style="color:var(--text3);border-color:var(--border2);" data-items="${escapeHtml(rest.map(r=>{const c=sdColor(r);return`<div class="overflow-popover-item" style="color:${c};">${escapeHtml(r)}</div>`;}).join(''))}" onmouseenter="showOverflowPopover(this)" onmouseleave="hideOverflowPopover()">+${rest.length}</span>` : '';
   return `<div class="subdiv-wrap">${shown}${more}</div>`;
 }
+function fitBadgeContainer(container){
+  if(!container) return;
+  const isSubdiv = container.classList.contains('subdiv-wrap');
+  const badgeClass = isSubdiv ? 'sdiv-badge' : 'tag-badge';
+  const badgeSel = '.'+badgeClass+':not(.overflow-badge)';
+  let overflowBadge = container.querySelector('.overflow-badge');
+  let visible = Array.from(container.querySelectorAll(badgeSel));
+  let hiddenCount = 0;
+  let hiddenItemsHtml = '';
+  let guard = 0;
+  while(container.scrollWidth > container.clientWidth + 1 && visible.length > 0 && guard < 20){
+    guard++;
+    const last = visible.pop();
+    hiddenCount++;
+    hiddenItemsHtml = `<div class="overflow-popover-item" style="color:${last.style.color};">${escapeHtml(last.textContent)}</div>` + hiddenItemsHtml;
+    last.remove();
+  }
+  if(hiddenCount>0){
+    if(overflowBadge){
+      const curN = parseInt((overflowBadge.textContent||'').replace('+',''))||0;
+      overflowBadge.textContent = '+'+(curN+hiddenCount);
+      overflowBadge.dataset.items = hiddenItemsHtml + (overflowBadge.dataset.items||'');
+    } else {
+      const nb = document.createElement('span');
+      nb.className = badgeClass+' overflow-badge';
+      nb.style.color = 'var(--text3)';
+      nb.style.borderColor = 'var(--border2)';
+      nb.textContent = '+'+hiddenCount;
+      nb.dataset.items = hiddenItemsHtml;
+      nb.addEventListener('mouseenter', ()=>showOverflowPopover(nb));
+      nb.addEventListener('mouseleave', hideOverflowPopover);
+      container.appendChild(nb);
+    }
+  }
+}
+function fitAllBadgeContainers(){
+  requestAnimationFrame(()=>{
+    document.querySelectorAll('.subdiv-wrap, .member-name').forEach(fitBadgeContainer);
+  });
+}
 function tagBadges(arr){
   const list = (arr||[]).filter(Boolean).slice().sort((a,b)=>a.length-b.length);
   if(!list.length) return '';
@@ -4844,6 +4888,7 @@ function renderRoster(){
   const temp = document.createElement('div');
   temp.innerHTML = newHtml;
   wrap.replaceChildren(...temp.childNodes);
+  fitAllBadgeContainers();
 }
 
 function renderTrainees(){
@@ -5075,6 +5120,7 @@ function renderAllMembers(){
       </tr></thead>
       <tbody>${rows}</tbody>
     </table>`;
+  fitAllBadgeContainers();
 }
 
 function promote(id){
