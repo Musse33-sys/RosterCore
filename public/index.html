@@ -4544,7 +4544,13 @@ async function promoteSecondaryMember(rosterId, memberId){
   if(gi<=0){ showToast('⚠ Already at the highest rank in this roster.', true); return; }
   const newGroup=groups[gi-1].name;
   const oldCS=m.callsign, oldGroup=m.rankGroup;
-  const newCS=nextSecondaryCallsign(sr, newGroup, m.id);
+  let newCS;
+  if(sr.use_roster_callsign===true && m.mainMemberId){
+    const mainMember = members.find(mm=>mm.id===m.mainMemberId);
+    newCS = mainMember ? mainMember.callsign : oldCS;
+  } else {
+    newCS = nextSecondaryCallsign(sr, newGroup, m.id);
+  }
   m.rankGroup=newGroup;
   m.callsign=newCS||oldCS;
   await saveSecondaryRoster(sr);
@@ -4561,7 +4567,13 @@ async function demoteSecondaryMember(rosterId, memberId){
   if(gi<0||gi>=groups.length-1){ showToast('⚠ Already at the lowest rank in this roster.', true); return; }
   const newGroup=groups[gi+1].name;
   const oldCS=m.callsign, oldGroup=m.rankGroup;
-  const newCS=nextSecondaryCallsign(sr, newGroup, m.id);
+  let newCS;
+  if(sr.use_roster_callsign===true && m.mainMemberId){
+    const mainMember = members.find(mm=>mm.id===m.mainMemberId);
+    newCS = mainMember ? mainMember.callsign : oldCS;
+  } else {
+    newCS = nextSecondaryCallsign(sr, newGroup, m.id);
+  }
   m.rankGroup=newGroup;
   m.callsign=newCS||oldCS;
   await saveSecondaryRoster(sr);
@@ -6806,7 +6818,7 @@ document.addEventListener('keydown',e=>{
     localStorage.removeItem('rc_staff_session');
   }
 
-
+  // No session found — show landing page
   document.getElementById('landingPage').style.display='flex';
   loadLandingStats();
 
