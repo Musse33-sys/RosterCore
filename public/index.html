@@ -4168,14 +4168,34 @@ function _renderSecondaryRosterInner(id, sr){
 
 async function saveSecondaryRoster(sr){
   isSyncing = true;
-  const {data, error} = await sb.from('secondary_rosters').update({
+  const payload = {
     name: sr.name,
     source_subdivision: sr.source_subdivision,
     rank_groups: sr.rank_groups,
     members: sr.members,
-    use_roster_callsign: sr.use_roster_callsign,
-    updated_at: new Date().toISOString()
-  }).eq('id', sr.id).select().single();
+    use_roster_callsign: sr.use_roster_callsign
+  };
+  let data, error;
+  if(currentUser?.email === 'staff'){
+    // Staff have no real Supabase session, so a direct authenticated update is always
+    // rejected by RLS — route through the secure function instead, same pattern as
+    // the main roster's staff_save_roster.
+    const {data: result, error: rpcError} = await sb.rpc('staff_save_secondary_roster', {
+      p_username: staffAuthUsername,
+      p_password_hash: staffAuthHash,
+      p_secondary_roster_id: sr.id,
+      p_last_known_updated_at: null,
+      p_payload: payload
+    });
+    if(rpcError){ error = rpcError; }
+    else if(result && result.error){ error = {message: result.error}; }
+    else if(result && result.conflict){ error = {message: "Someone else saved this roster first — reopen it and try again."}; }
+    else if(result && result.success){ data = result.roster; }
+    else { error = {message: 'Unexpected response from server.'}; }
+  } else {
+    const res = await sb.from('secondary_rosters').update({...payload, updated_at: new Date().toISOString()}).eq('id', sr.id).select().single();
+    data = res.data; error = res.error;
+  }
   if(error){
     showToast('⚠ Failed to save roster: '+error.message, true);
     console.error('[saveSecondaryRoster]', error);
