@@ -406,15 +406,17 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   .roster-table td.name-td .mobile-discord{display:block;font-size:8px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:'JetBrains Mono',monospace;margin-top:1px;}
 
   /* show strikes on mobile */
-  .roster-table .col-strikes{display:flex!important;align-items:center;flex-shrink:0;min-width:50px;margin-left:8px!important;padding:0!important;}
+  .roster-table .col-strikes{display:flex!important;align-items:center;flex-shrink:0;margin-left:8px!important;padding:0!important;}
 
-  /* status — inline, right of the name, on the same line as callsign+name */
-  .roster-table tr.row-filled td.col-status{display:flex;align-items:center;flex-shrink:0;min-width:68px;margin-left:36px;padding:0;white-space:nowrap;}
+  /* status + strikes — own dedicated line below callsign+name, same reliable forced-line-break as actions */
+  .roster-table tr.row-filled::before{content:'';flex-basis:100%;order:1;}
+  .roster-table tr.row-filled td.col-status{display:flex;align-items:center;flex-shrink:0;padding:4px 0 0;margin-left:0;order:1;}
+  .roster-table tr.row-filled td.col-strikes{order:1;}
   .status-pill{font-size:7px!important;padding:2px 5px!important;letter-spacing:.3px!important;}
   .s-dot{width:4px!important;height:4px!important;}
 
   /* actions — always its own full-width line, never sharing space with status/strikes */
-  .roster-table tr.row-filled td.col-actions{display:flex;align-items:center;flex-basis:100%;padding:6px 0 0;margin-left:53px;}
+  .roster-table tr.row-filled td.col-actions{display:flex;align-items:center;flex-basis:100%;padding:6px 0 0;margin-left:53px;order:2;}
   .row-acts{display:flex!important;flex-wrap:wrap;gap:5px;}
   .btn-promote,.btn-demote{font-size:9px!important;padding:4px 7px!important;}
   .btn.btn-ghost.btn-xs{font-size:9px!important;padding:4px 7px!important;}
