@@ -339,7 +339,10 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   .header-pill-btn{font-size:8px;padding:4px 7px;}
 
   /* ── NAV ── */
-  .nav-tab{font-size:9px;letter-spacing:1px;padding:9px 9px;white-space:nowrap;}
+  .nav-tab{font-size:9px;letter-spacing:1px;padding:9px 9px;white-space:nowrap;flex-shrink:0;}
+  .nav-bar{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  .nav-bar::-webkit-scrollbar{height:3px;}
+  #secondaryRosterTabs{display:inline-flex;align-items:center;gap:6px;flex-shrink:0;}
 
   /* ── MAIN ── */
   .app-main{padding:10px 8px;}
@@ -375,12 +378,12 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   .roster-table tbody{display:block;width:100%;}
 
   .roster-table tbody tr.row-filled{
-    display:flex;align-items:center;gap:7px;
+    display:flex;align-items:center;flex-wrap:wrap;gap:7px;
     padding:8px 10px;border-bottom:1px solid var(--border);
-    background:var(--bg2);width:100%;box-sizing:border-box;overflow:hidden;
+    background:var(--bg2);width:100%;box-sizing:border-box;
   }
   .roster-table tbody tr.row-empty{
-    display:flex;align-items:center;gap:7px;
+    display:flex;align-items:center;flex-wrap:wrap;gap:7px;
     padding:6px 10px;border-bottom:1px solid rgba(42,47,61,.4);
     background:var(--bg);opacity:.45;width:100%;box-sizing:border-box;
   }
@@ -405,8 +408,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   /* show strikes on mobile */
   .roster-table .col-strikes{display:flex!important;align-items:center;flex-shrink:0;padding:0!important;}
 
-  /* status — 5th td */
-  .roster-table tr.row-filled td:nth-child(5){display:flex;align-items:center;flex-shrink:0;padding:0;}
+  /* status */
+  .roster-table tr.row-filled td.col-status{display:flex;align-items:center;flex-shrink:0;padding:0;}
   .status-pill{font-size:7px!important;padding:2px 5px!important;letter-spacing:.3px!important;}
   .s-dot{width:4px!important;height:4px!important;}
 
@@ -419,7 +422,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 
   /* vacant: show cs + label */
   .roster-table tbody tr.row-empty td:first-child{display:flex;align-items:center;width:46px;min-width:46px;flex-shrink:0;padding:0;}
-  .roster-table tbody tr.row-empty td:nth-child(3){display:flex;flex:1;align-items:center;padding:0;font-size:9px;letter-spacing:1px;color:var(--border2);}
+  .roster-table tbody tr.row-empty td.vacant-label{display:flex;flex:1;align-items:center;padding:0;font-size:9px;letter-spacing:1px;color:var(--border2);}
 
   /* hide columns not needed */
   .roster-table .col-doh,
@@ -4136,7 +4139,7 @@ function _renderSecondaryRosterInner(id, sr){
         matchedIds.add(m.id);
         return memberRow(m);
       }
-      return `<tr class="row-empty"><td>${isRosterMode?'':(`<span class="cs-empty">${slot}</span>`)}</td><td colspan="${colCount-1}" style="color:var(--border2);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;padding:10px 12px;">— VACANT —</td></tr>`;
+      return `<tr class="row-empty"><td>${isRosterMode?'':(`<span class="cs-empty">${slot}</span>`)}</td><td class="vacant-label" colspan="${colCount-1}" style="color:var(--border2);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;padding:10px 12px;">— VACANT —</td></tr>`;
     });
     const unmatchedRows = gMembers.filter(m=>!matchedIds.has(m.id)).map(memberRow);
 
@@ -4148,7 +4151,7 @@ function _renderSecondaryRosterInner(id, sr){
       const totalSlots = toNum - fromNum + 1;
       const vacantCount = Math.max(0, Math.min(totalSlots - gMembers.length, 50));
       for(let v=0; v<vacantCount; v++){
-        rosterModeVacant += `<tr class="row-empty"><td></td><td colspan="${colCount-1}" style="color:var(--border2);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;padding:10px 12px;">— VACANT —</td></tr>`;
+        rosterModeVacant += `<tr class="row-empty"><td></td><td class="vacant-label" colspan="${colCount-1}" style="color:var(--border2);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;padding:10px 12px;">— VACANT —</td></tr>`;
       }
     }
 
@@ -4890,7 +4893,7 @@ function renderRoster(){
             return `<tr class="row-empty">
               <td>${isRosterMode?'':(`<span class="cs-empty">${slot}</span>`)}</td>
               ${showInsignia ? `<td class="ins-cell" style="text-align:center;vertical-align:top;">${alwaysShowInsignia ? getRankInsignia(gi,'',slot) : ''}</td>` : ''}
-              <td colspan="${currentUser?(showInsignia?8:8):(showInsignia?7:7)}" style="color:var(--border2);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;padding:10px 12px;">— VACANT —</td>
+              <td class="vacant-label" colspan="${currentUser?(showInsignia?8:8):(showInsignia?7:7)}" style="color:var(--border2);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;padding:10px 12px;">— VACANT —</td>
             </tr>`;
           }
         });
@@ -4904,7 +4907,7 @@ function renderRoster(){
         vacantRows += `<tr class="row-empty">
           <td></td>
           ${showInsignia?`<td></td>`:''}
-          <td colspan="${currentUser?(showInsignia?8:8):(showInsignia?7:7)}" style="color:var(--border2);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;padding:10px 12px;">— VACANT —</td>
+          <td class="vacant-label" colspan="${currentUser?(showInsignia?8:8):(showInsignia?7:7)}" style="color:var(--border2);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;padding:10px 12px;">— VACANT —</td>
         </tr>`;
       }
     }
@@ -4963,7 +4966,7 @@ function renderTrainees(){
       </tr>`;
       return`<tr class="row-empty">
         <td><span class="cs-empty" style="color:rgba(167,139,250,.35);">${slot}</span></td>
-        <td colspan="${currentUser?7:6}" style="color:var(--border2);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;">— VACANT —</td>
+        <td class="vacant-label" colspan="${currentUser?7:6}" style="color:var(--border2);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;">— VACANT —</td>
       </tr>`;
     }).join('');
     wrap.innerHTML=`<div class="rank-group"><div class="rg-wrap">
