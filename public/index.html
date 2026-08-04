@@ -409,8 +409,9 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   .roster-table .col-strikes{display:flex!important;align-items:center;flex-shrink:0;padding:0!important;}
 
   /* status */
-  .roster-table tr.row-filled td.col-status{display:flex;align-items:center;flex-shrink:0;flex-basis:100%;padding:4px 0 0;margin-left:53px;order:1;}
-  .roster-table tr.row-filled td.col-strikes{order:2;margin-left:8px;}
+  .roster-table tr.row-filled::before{content:'';flex-basis:100%;order:1;}
+  .roster-table tr.row-filled td.col-status{display:flex;align-items:center;flex-shrink:0;padding:4px 0 0;margin-left:0;order:2;}
+  .roster-table tr.row-filled td.col-strikes{order:2;margin-left:8px;padding-top:4px;}
   .roster-table tr.row-filled td.col-actions{order:3;}
   .status-pill{font-size:7px!important;padding:2px 5px!important;letter-spacing:.3px!important;}
   .s-dot{width:4px!important;height:4px!important;}
