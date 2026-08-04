@@ -399,17 +399,17 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   .roster-table td.ins-cell{display:none!important;}
   .roster-table tbody tr.row-empty .ins-cell{display:none!important;}
   /* name + position */
-  .roster-table td.name-td{display:flex;flex-direction:column;flex:0 1 auto;max-width:56%;min-width:0;padding:0;overflow:hidden;}
+  .roster-table td.name-td{display:flex;flex-direction:column;flex:0 1 auto;max-width:42%;min-width:0;padding:0;overflow:hidden;}
   .roster-table td.name-td .member-name{font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
   .roster-table td.name-td .member-name span[style]{display:inline!important;font-size:8px!important;padding:1px 4px!important;}
   .roster-table td.name-td .member-pos{font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .roster-table td.name-td .mobile-discord{display:block;font-size:8px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:'JetBrains Mono',monospace;margin-top:1px;}
 
   /* show strikes on mobile */
-  .roster-table .col-strikes{display:flex!important;align-items:center;flex-shrink:0;padding:0!important;}
+  .roster-table .col-strikes{display:flex!important;align-items:center;flex-shrink:0;padding:0!important;overflow:visible!important;}
 
   /* status — inline, right of the name, on the same line as callsign+name */
-  .roster-table tr.row-filled td.col-status{display:flex;align-items:center;flex-shrink:0;padding:0;}
+  .roster-table tr.row-filled td.col-status{display:flex;align-items:center;flex-shrink:0;padding:0;overflow:visible;white-space:nowrap;}
   .status-pill{font-size:7px!important;padding:2px 5px!important;letter-spacing:.3px!important;}
   .s-dot{width:4px!important;height:4px!important;}
 
