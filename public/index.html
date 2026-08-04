@@ -4116,13 +4116,13 @@ function _renderSecondaryRosterInner(id, sr){
             </div>
             ${m.position?`<div class="member-pos">${escapeHtml(m.position)}</div>`:''}
           </td>
-          <td>${sdBadges(m.subdivs)}</td>
-          <td>${statusPill(m.status)}</td>
+          <td class="col-subdiv">${sdBadges(m.subdivs)}</td>
+          <td class="col-status">${statusPill(m.status)}</td>
           <td class="col-doh" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);">${fmtDate(m.doh)}</td>
           <td class="col-discord" style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escapeHtml(m.discord||'')}">${escapeHtml(m.discord||'—')}</td>
-          <td>${strikeBadge(m.strikes||0)}</td>
+          <td class="col-strikes">${strikeBadge(m.strikes||0)}</td>
           <td class="col-notes" style="font-size:11px;color:var(--text2);">${escapeHtml(m.notes||'—')}</td>
-          ${canEdit?`<td><div class="row-acts">
+          ${canEdit?`<td class="col-actions"><div class="row-acts">
             ${gi>0?`<button class="btn-promote btn" onclick="promoteSecondaryMember('${id}',${m.id})" title="Promote">▲</button>`:''}
             ${gi<rankGroupsLocal.length-1?`<button class="btn-demote btn" onclick="demoteSecondaryMember('${id}',${m.id})" title="Demote">▼</button>`:''}
             <button class="btn btn-ghost btn-xs" onclick="openEditSecondaryMember('${id}',${m.id})">Edit</button>
@@ -4951,14 +4951,14 @@ function renderTrainees(){
     const rows=slots.map(slot=>{
       const t=trainees.find(tr=>tr.callsign===slot);
       if(t) return`<tr class="row-filled">
-        <td><span class="cs-filled" style="color:var(--purple);">${escapeHtml(t.callsign||'—')}</span></td>
-        <td><div class="member-name">${escapeHtml(t.name)}</div></td>
-        <td>${statusPill(t.status)}</td>
+        <td class="cs-cell"><span class="cs-filled" style="color:var(--purple);">${escapeHtml(t.callsign||'—')}</span></td>
+        <td class="name-td"><div class="member-name"><span class="member-name-text">${escapeHtml(t.name)}</span></div></td>
+        <td class="col-status">${statusPill(t.status)}</td>
         <td class="col-doh" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);">${fmtDate(t.doh)}</td>
         <td class="col-discord" style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);">${escapeHtml(t.discord||'—')}</td>
-        <td>${strikeBadge(t.strikes||0)}</td>
+        <td class="col-strikes">${strikeBadge(t.strikes||0)}</td>
         <td class="col-notes" style="font-size:11px;color:var(--text2);">${escapeHtml(t.notes||'—')}</td>
-        ${currentUser?`<td><div class="row-acts" style="opacity:1;">
+        ${currentUser?`<td class="col-actions"><div class="row-acts" style="opacity:1;">
           <button class="btn btn-primary btn-xs" onclick="graduate(${t.id})">★ Graduate</button>
           <button class="btn btn-ghost btn-xs" onclick="openEditTrainee(${t.id})">Edit</button>
           <button class="btn btn-danger" onclick="openConfirmDelete(${t.id},'trainee')">✕</button>
@@ -4984,14 +4984,14 @@ function renderTrainees(){
   }
   const rows = trainees.map(t=>`
     <tr class="row-filled">
-      <td><span class="cs-filled" style="color:var(--purple);">${escapeHtml(t.callsign||'—')}</span></td>
-      <td><div class="member-name">${escapeHtml(t.name)}</div></td>
-      <td>${statusPill(t.status)}</td>
+      <td class="cs-cell"><span class="cs-filled" style="color:var(--purple);">${escapeHtml(t.callsign||'—')}</span></td>
+      <td class="name-td"><div class="member-name"><span class="member-name-text">${escapeHtml(t.name)}</span></div></td>
+      <td class="col-status">${statusPill(t.status)}</td>
       <td class="col-doh" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);">${fmtDate(t.doh)}</td>
       <td class="col-discord" style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);">${escapeHtml(t.discord||'—')}</td>
-      <td>${strikeBadge(t.strikes||0)}</td>
+      <td class="col-strikes">${strikeBadge(t.strikes||0)}</td>
       <td class="col-notes" style="font-size:11px;color:var(--text2);">${escapeHtml(t.notes||'—')}</td>
-      ${currentUser?`<td><div class="row-acts" style="opacity:1;">
+      ${currentUser?`<td class="col-actions"><div class="row-acts" style="opacity:1;">
         <button class="btn btn-primary btn-xs" onclick="graduate(${t.id})">★ Graduate</button>
         <button class="btn btn-ghost btn-xs" onclick="openEditTrainee(${t.id})">Edit</button>
         <button class="btn btn-danger" onclick="openConfirmDelete(${t.id},'trainee')">✕</button>
