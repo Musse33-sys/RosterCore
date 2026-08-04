@@ -326,6 +326,16 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .confirm-modal .modal-title{color:var(--red);}
 
 @media(max-width:768px){
+  /* Desktop sets explicit width:% on these columns for cross-rank-group table alignment.
+     That width keeps applying even after these cells switch to display:flex on mobile,
+     which has been silently constraining Status/Strikes/Name far narrower than every
+     fix below intended — this is the actual root cause behind repeated clipping. */
+  .roster-table td.name-td,
+  .roster-table .col-subdiv,
+  .roster-table .col-status,
+  .roster-table .col-strikes,
+  .roster-table .col-actions{width:auto!important;}
+
   /* ── HEADER ── */
   .header-inner{min-height:56px;}
   .header-identity{min-width:100px;max-width:170px;padding:8px 0;gap:8px;}
