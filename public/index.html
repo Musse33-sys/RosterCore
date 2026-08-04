@@ -438,6 +438,11 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   .form-input{font-size:16px;}
   .form-select{font-size:16px;}
 
+  /* ── MEMBER MODAL (mm2) ── */
+  .mm2-body{flex-direction:column;min-height:0;max-height:80vh;overflow-y:auto;}
+  .mm2-sidebar{width:100%;border-right:none;border-bottom:1px solid var(--border);padding:14px 16px;flex-shrink:0;}
+  .mm2-content{padding:14px 16px;}
+
   /* ── EDITOR ── */
   .editor-wrap{max-width:100%;}
   .edit-row{gap:4px;}
@@ -502,6 +507,9 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .mm2-history-title{font-size:12.5px;font-weight:700;color:var(--text);}
 .mm2-history-sub{font-size:11px;color:var(--text3);margin-top:1px;}
 .mm2-history-time{font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--text3);white-space:nowrap;padding-left:10px;margin-left:auto;}
+.mm2-body{display:flex;min-height:480px;}
+.mm2-sidebar{width:250px;border-right:1px solid var(--border);padding:18px 16px;flex-shrink:0;}
+.mm2-content{flex:1;padding:18px 24px;min-width:0;display:flex;flex-direction:column;}
 
 .app-bg-fx{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden;}
 .app-bg-fx>div{display:none;}
@@ -1258,10 +1266,10 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
     <div style="display:flex;align-items:center;gap:7px;padding:14px 22px 0;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);">
       <span style="width:6px;height:6px;border-radius:50%;background:var(--green);"></span><span id="mmLiveLabel">New member — unsaved</span>
     </div>
-    <div style="display:flex;min-height:480px;">
+    <div class="mm2-body">
 
       <!-- LEFT: identity card + manage actions -->
-      <div style="width:250px;border-right:1px solid var(--border);padding:18px 16px;flex-shrink:0;">
+      <div class="mm2-sidebar">
         <div style="margin-bottom:14px;">
           <div id="mmHeading" style="font-weight:700;font-size:15px;color:var(--text);"></div>
           <div id="mmHeadingSub" style="font-size:11.5px;color:var(--text3);margin-top:1px;"></div>
@@ -1312,7 +1320,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
       </div>
 
       <!-- RIGHT: sections -->
-      <div style="flex:1;padding:18px 24px;min-width:0;display:flex;flex-direction:column;">
+      <div class="mm2-content">
         <div style="display:flex;justify-content:flex-end;">
           <div onclick="closeMemberModal()" style="width:26px;height:26px;border-radius:50%;background:var(--bg3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:12px;cursor:pointer;">✕</div>
         </div>
@@ -4711,7 +4719,7 @@ function sdBadges(arr){
   const CAP = 3;
   const shown = list.slice(0, CAP).map(s=>{const c=sdColor(s);return`<span class="sdiv-badge" style="color:${c};background:${c}18;border-color:${c}55;" title="${escapeHtml(s)}">${escapeHtml(s)}</span>`;}).join('');
   const rest = list.slice(CAP);
-  const more = rest.length ? `<span class="sdiv-badge overflow-badge" style="color:var(--text3);border-color:var(--border2);" data-items="${escapeHtml(rest.map(r=>{const c=sdColor(r);return`<div class="overflow-popover-item" style="color:${c};">${escapeHtml(r)}</div>`;}).join(''))}" onmouseenter="showOverflowPopover(this)" onmouseleave="hideOverflowPopover()">+${rest.length}</span>` : '';
+  const more = rest.length ? `<span class="sdiv-badge overflow-badge" style="color:var(--text3);border-color:var(--border2);" data-items="${escapeHtml(rest.map(r=>{const c=sdColor(r);return`<div class="overflow-popover-item" style="color:${c};">${escapeHtml(r)}</div>`;}).join(''))}" onmouseenter="showOverflowPopover(this)" onmouseleave="hideOverflowPopover()" onclick="toggleOverflowPopover(this,event)">+${rest.length}</span>` : '';
   return `<div class="subdiv-wrap">${shown}${more}</div>`;
 }
 function fitBadgeContainer(container){
@@ -4745,6 +4753,7 @@ function fitBadgeContainer(container){
       nb.dataset.items = hiddenItemsHtml;
       nb.addEventListener('mouseenter', ()=>showOverflowPopover(nb));
       nb.addEventListener('mouseleave', hideOverflowPopover);
+      nb.addEventListener('click', (e)=>toggleOverflowPopover(nb,e));
       container.appendChild(nb);
     }
   }
@@ -4761,7 +4770,7 @@ function tagBadges(arr){
   const colorOf = name => { const t=customTags.find(ct=>ct.name===name); return t?t.color:'#7ec8e3'; };
   const shown = list.slice(0, CAP).map(tag=>{const c=colorOf(tag);return`<span class="tag-badge" style="color:${c};background:${c}18;border-color:${c}55;" title="${escapeHtml(tag)}">${escapeHtml(tag)}</span>`;}).join('');
   const rest = list.slice(CAP);
-  const more = rest.length ? `<span class="tag-badge overflow-badge" style="color:var(--text3);border-color:var(--border2);" data-items="${escapeHtml(rest.map(r=>{const c=colorOf(r);return`<div class="overflow-popover-item" style="color:${c};">${escapeHtml(r)}</div>`;}).join(''))}" onmouseenter="showOverflowPopover(this)" onmouseleave="hideOverflowPopover()">+${rest.length}</span>` : '';
+  const more = rest.length ? `<span class="tag-badge overflow-badge" style="color:var(--text3);border-color:var(--border2);" data-items="${escapeHtml(rest.map(r=>{const c=colorOf(r);return`<div class="overflow-popover-item" style="color:${c};">${escapeHtml(r)}</div>`;}).join(''))}" onmouseenter="showOverflowPopover(this)" onmouseleave="hideOverflowPopover()" onclick="toggleOverflowPopover(this,event)">+${rest.length}</span>` : '';
   return shown + more;
 }
 function fmtDate(d){
@@ -5083,12 +5092,23 @@ function showOverflowPopover(el){
   if(left < 4) left = 4;
   overflowPopoverEl.style.top = top + 'px';
   overflowPopoverEl.style.left = left + 'px';
+  overflowPopoverOpenerEl = el;
 }
 function hideOverflowPopover(){
   if(overflowPopoverEl){ overflowPopoverEl.remove(); overflowPopoverEl = null; }
+  overflowPopoverOpenerEl = null;
 }
+// Touch devices never fire mouseenter/mouseleave, so the hover-only popover above
+// is invisible on mobile — this gives it a tap equivalent: tap to open, tap the same
+// badge again (or tap elsewhere, via the document click listener) to close.
+function toggleOverflowPopover(el, event){
+  if(event) event.stopPropagation();
+  if(overflowPopoverEl && overflowPopoverOpenerEl === el){ hideOverflowPopover(); }
+  else { showOverflowPopover(el); }
+}
+let overflowPopoverOpenerEl = null;
 
-document.addEventListener('click', ()=>closeMenu());
+document.addEventListener('click', ()=>{ closeMenu(); hideOverflowPopover(); });
 
 function renderAllMembers(){
   const search=(document.getElementById('membersSearch')?.value||'').toLowerCase();
