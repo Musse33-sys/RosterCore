@@ -413,12 +413,12 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   .status-pill{font-size:7px!important;padding:2px 5px!important;letter-spacing:.3px!important;}
   .s-dot{width:4px!important;height:4px!important;}
 
-  /* actions — last td */
-  .roster-table tr.row-filled td:last-child{display:flex;align-items:center;flex-shrink:0;padding:0;}
-  .row-acts{display:flex!important;gap:3px;}
-  .btn-promote,.btn-demote{font-size:9px!important;padding:3px 5px!important;}
-  .btn.btn-ghost.btn-xs{font-size:8px!important;padding:3px 5px!important;}
-  .btn.btn-danger{font-size:8px!important;padding:3px 5px!important;}
+  /* actions — always its own full-width line, never sharing space with status/strikes */
+  .roster-table tr.row-filled td.col-actions{display:flex;align-items:center;flex-basis:100%;padding:6px 0 0;margin-left:53px;}
+  .row-acts{display:flex!important;flex-wrap:wrap;gap:5px;}
+  .btn-promote,.btn-demote{font-size:9px!important;padding:4px 7px!important;}
+  .btn.btn-ghost.btn-xs{font-size:9px!important;padding:4px 7px!important;}
+  .btn.btn-danger{font-size:9px!important;padding:4px 7px!important;}
 
   /* vacant: show cs + label */
   .roster-table tbody tr.row-empty td:first-child{display:flex;align-items:center;width:46px;min-width:46px;flex-shrink:0;padding:0;}
