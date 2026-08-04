@@ -418,10 +418,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   /* show strikes on mobile */
   .roster-table .col-strikes{display:flex!important;align-items:center;flex-shrink:0;margin-left:8px!important;padding:0!important;}
 
-  /* status + strikes — own dedicated line below callsign+name, same reliable forced-line-break as actions */
-  .roster-table tr.row-filled::before{content:'';flex-basis:100%;order:1;height:0;line-height:0;font-size:0;}
-  .roster-table tr.row-filled td.col-status{display:flex;align-items:center;flex-shrink:0;padding:4px 0 0;margin-left:0;order:1;}
-  .roster-table tr.row-filled td.col-strikes{order:1;}
+  /* status + strikes — inline, right of the name, on the same line as callsign+name */
+  .roster-table tr.row-filled td.col-status{display:flex;align-items:center;flex-shrink:0;margin-left:10px;padding:0;white-space:nowrap;}
   .status-pill{font-size:7px!important;padding:2px 5px!important;letter-spacing:.3px!important;}
   .s-dot{width:4px!important;height:4px!important;}
 
