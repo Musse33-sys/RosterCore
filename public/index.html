@@ -344,8 +344,7 @@ body.sa-mode .header-name{color:#e8e8e8;}
 body.sa-mode .header-sub{color:#5a5a5a;}
 body.sa-mode .logout-btn{border-color:#2e2e2e;color:#8a8a8a;}
 body.sa-mode .logout-btn:hover{border-color:#393939;background:#1c1c1c;color:#e8e8e8;}
-body.sa-mode .header-tools-row{background:#171717;border-color:#242424;}
-body.sa-mode .tools-label{color:#5a5a5a;}
+body.sa-mode .header-tools-row{display:none;}
 
 .share-url{background:var(--bg3);border:1px solid var(--border2);padding:10px 13px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);word-break:break-all;cursor:pointer;border-radius:var(--radius);min-height:42px;margin-bottom:14px;}
 
@@ -1279,6 +1278,10 @@ body.sa-mode .tools-label{color:#5a5a5a;}
             Bug Reports
             <span class="sa-nav-badge" id="saNavBugCount"></span>
           </button>
+          <button type="button" class="sa-nav-item" id="sanav-updates" onclick="switchSASection('updates')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 11-5.8-1.6"/></svg>
+            Updates
+          </button>
         </div>
         <div class="sa-main">
           <div class="sa-topbar">
@@ -1308,58 +1311,41 @@ body.sa-mode .tools-label{color:#5a5a5a;}
               <div id="bugReportsList"></div>
             </div>
 
-          </div>
-        </div>
-      </div>
-    </div>
+            <div id="sasec-updates" style="display:none;">
+              <p style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#8a8a8a;margin-bottom:18px;line-height:1.6;">📣 Shown as a popup on next department login.</p>
 
-    <!-- DEPARTMENT UPDATES (super admin only) -->
-    <div class="tab-panel" id="tab-updates" style="display:none;">
-      <div class="sa-panel" style="max-width:1100px;">
+              <div style="background:#171717;border:1px solid #242424;border-radius:8px;padding:20px;margin-bottom:24px;">
+                <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;color:#5a5a5a;margin-bottom:14px;">NEW UPDATE</div>
+                <div style="margin-bottom:14px;">
+                  <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;color:#5a5a5a;margin-bottom:6px;">TYPE</div>
+                  <div style="display:flex;gap:8px;flex-wrap:wrap;" id="updTypeRow">
+                    <button type="button" class="upd-type-pill active" data-type="feature" style="--uc:#3ecf8e;" onclick="selectUpdateType('feature',this)">🚀 New Feature</button>
+                    <button type="button" class="upd-type-pill" data-type="bugfix" style="--uc:#f87171;" onclick="selectUpdateType('bugfix',this)">🐛 Bug Fix</button>
+                    <button type="button" class="upd-type-pill" data-type="maintenance" style="--uc:#fbbf24;" onclick="selectUpdateType('maintenance',this)">🔧 Maintenance</button>
+                    <button type="button" class="upd-type-pill" data-type="announcement" style="--uc:#a78bfa;" onclick="selectUpdateType('announcement',this)">📢 Announcement</button>
+                  </div>
+                </div>
+                <div class="form-group" style="margin-bottom:14px;">
+                  <label class="form-label" style="color:#8a8a8a;">Title</label>
+                  <input class="form-input" id="updTitle" placeholder="e.g. Promotion documents now support multiple pages" style="background:#0f0f0f;border-color:#2e2e2e;">
+                </div>
+                <div class="form-group" style="margin-bottom:16px;">
+                  <label class="form-label" style="color:#8a8a8a;">Message</label>
+                  <textarea class="form-input" id="updMessage" placeholder="What changed, and why it matters to departments…" style="resize:vertical;min-height:90px;font-family:'Inter',sans-serif;background:#0f0f0f;border-color:#2e2e2e;"></textarea>
+                </div>
+                <div class="form-error hidden" id="updError"></div>
+                <div style="display:flex;gap:8px;">
+                  <button class="sa-btn sa-btn-primary" onclick="publishUpdate()">Publish</button>
+                  <button class="sa-btn" onclick="clearUpdateForm()">Clear</button>
+                </div>
+              </div>
 
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;">
-          <div>
-            <div style="font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:3px;color:var(--text);line-height:1;">Department Updates</div>
-            <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#f472b6;letter-spacing:2px;margin-top:4px;">📣 SHOWN AS A POPUP ON NEXT DEPARTMENT LOGIN</div>
-          </div>
-        </div>
-
-        <!-- COMPOSER -->
-        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:22px;margin-bottom:28px;">
-          <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--text3);margin-bottom:14px;">NEW UPDATE</div>
-
-          <div style="margin-bottom:14px;">
-            <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;color:var(--text3);margin-bottom:6px;">TYPE</div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;" id="updTypeRow">
-              <button type="button" class="upd-type-pill active" data-type="feature" style="--uc:#4ade80;" onclick="selectUpdateType('feature',this)">🚀 New Feature</button>
-              <button type="button" class="upd-type-pill" data-type="bugfix" style="--uc:#f87171;" onclick="selectUpdateType('bugfix',this)">🐛 Bug Fix</button>
-              <button type="button" class="upd-type-pill" data-type="maintenance" style="--uc:#fbbf24;" onclick="selectUpdateType('maintenance',this)">🔧 Maintenance</button>
-              <button type="button" class="upd-type-pill" data-type="announcement" style="--uc:#a78bfa;" onclick="selectUpdateType('announcement',this)">📢 Announcement</button>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;color:#5a5a5a;text-transform:uppercase;margin-bottom:10px;">Published</div>
+              <div id="updatesList"></div>
             </div>
-          </div>
 
-          <div class="form-group" style="margin-bottom:14px;">
-            <label class="form-label">Title</label>
-            <input class="form-input" id="updTitle" placeholder="e.g. Promotion documents now support multiple pages">
-          </div>
-
-          <div class="form-group" style="margin-bottom:16px;">
-            <label class="form-label">Message</label>
-            <textarea class="form-input" id="updMessage" placeholder="What changed, and why it matters to departments…" style="resize:vertical;min-height:90px;font-family:'Inter',sans-serif;"></textarea>
-          </div>
-
-          <div class="form-error hidden" id="updError"></div>
-          <div style="display:flex;gap:8px;">
-            <button class="btn btn-primary btn-sm" onclick="publishUpdate()">Publish</button>
-            <button class="btn btn-ghost btn-sm" onclick="clearUpdateForm()">Clear</button>
           </div>
         </div>
-
-        <!-- PUBLISHED LIST -->
-        <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--text3);text-transform:uppercase;margin-bottom:10px;">Published</div>
-        <div class="divider" style="margin-bottom:14px;"></div>
-        <div id="updatesList"></div>
-
       </div>
     </div>
 
@@ -6681,10 +6667,11 @@ const SA_TOPBAR = {
   overview: {title:'Overview', actions:'<button class="sa-btn sa-btn-primary" onclick="openCreateDept()">+ New Department</button>'},
   departments: {title:'Departments', actions:'<button class="sa-btn sa-btn-primary" onclick="openCreateDept()">+ New Department</button>'},
   servers: {title:'Servers', actions:'<button class="sa-btn sa-btn-primary" onclick="openCreateServer()">+ Add Server</button>'},
-  bugs: {title:'Bug Reports', actions:'<button class="sa-btn" onclick="loadBugReports()">↻ Refresh</button>'}
+  bugs: {title:'Bug Reports', actions:'<button class="sa-btn" onclick="loadBugReports()">↻ Refresh</button>'},
+  updates: {title:'Updates', actions:''}
 };
 function switchSASection(key){
-  ['overview','departments','servers','bugs'].forEach(k=>{
+  ['overview','departments','servers','bugs','updates'].forEach(k=>{
     const sec=document.getElementById('sasec-'+k);
     const nav=document.getElementById('sanav-'+k);
     if(sec) sec.style.display=(k===key)?'':'none';
@@ -6695,6 +6682,7 @@ function switchSASection(key){
     document.getElementById('saTopbarTitle').textContent=t.title;
     document.getElementById('saTopbarActions').innerHTML=t.actions;
   }
+  if(key==='updates') loadUpdates();
 }
 
 async function resetDeptPassword(userId, name){
