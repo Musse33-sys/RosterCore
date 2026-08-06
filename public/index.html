@@ -332,6 +332,20 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .sa-pw-reveal{font-family:'JetBrains Mono',monospace;font-size:11px;color:#8a8a8a;cursor:pointer;filter:blur(4px);transition:filter .15s;}
 .sa-icon-btn{width:28px;height:28px;border-radius:6px;background:#1c1c1c;border:1px solid #2e2e2e;color:#8a8a8a;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;transition:all .12s;}
 .sa-icon-btn:hover{border-color:#393939;color:#e8e8e8;}
+/* Scoped to Super Admin sessions only — the header/tools-row are shared by every tab and
+   still use the app's own theme colors (blue, by default). These overrides make the shared
+   chrome match Supabase's palette while in Super Admin, without touching the global theme
+   that regular department tabs still rely on. */
+body.sa-mode .app-header{background:#0f0f0f;border-bottom-color:#242424;}
+body.sa-mode .header-accent-bar{background:#3ecf8e;}
+body.sa-mode .header-avatar{background:#171717;border-color:rgba(62,207,142,.45);}
+body.sa-mode .header-avatar span{color:#3ecf8e;}
+body.sa-mode .header-name{color:#e8e8e8;}
+body.sa-mode .header-sub{color:#5a5a5a;}
+body.sa-mode .logout-btn{border-color:#2e2e2e;color:#8a8a8a;}
+body.sa-mode .logout-btn:hover{border-color:#393939;background:#1c1c1c;color:#e8e8e8;}
+body.sa-mode .header-tools-row{background:#171717;border-color:#242424;}
+body.sa-mode .tools-label{color:#5a5a5a;}
 
 .share-url{background:var(--bg3);border:1px solid var(--border2);padding:10px 13px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);word-break:break-all;cursor:pointer;border-radius:var(--radius);min-height:42px;margin-bottom:14px;}
 
@@ -2779,6 +2793,7 @@ async function onLoginSuccess(user){
   window.scrollTo(0,0);
 
   if(isSuperAdmin){
+    document.body.classList.add('sa-mode');
     document.getElementById('saTab').classList.remove('hidden');
     document.getElementById('updatesTab').classList.remove('hidden');
     document.getElementById('toolsRow').classList.remove('hidden');
@@ -2837,6 +2852,7 @@ async function onLoginSuccess(user){
 async function doLogout(){
   // Cancel any pending saves before wiping state
   clearTimeout(saveTimer); saveTimer = null;
+  document.body.classList.remove('sa-mode');
   if(currentUser && currentUser.email !== 'shared' && currentUser.email !== 'staff'){
     await sb.auth.signOut({scope:'global'});
   }
