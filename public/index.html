@@ -6677,6 +6677,8 @@ const SA_TOPBAR = {
   updates: {title:'Updates', actions:''}
 };
 function switchSASection(key){
+  const contentEl=document.querySelector('.sa-content');
+  if(contentEl) contentEl.scrollTop=0;
   ['overview','departments','servers','bugs','updates'].forEach(k=>{
     const sec=document.getElementById('sasec-'+k);
     const nav=document.getElementById('sanav-'+k);
