@@ -623,7 +623,7 @@ body.sa-mode .header-sub{display:none;}
 @keyframes dotPulse{0%,100%{opacity:.25;transform:scale(1);}50%{opacity:1;transform:scale(1.8);}}
 .fx-grid .pulse-dot{position:absolute;width:5px;height:5px;border-radius:50%;animation:dotPulse 2.6s ease-in-out infinite;}
 @keyframes beamSweep{0%{transform:translateX(-20vw) rotate(15deg);}100%{transform:translateX(120vw) rotate(15deg);}}
-.fx-beam .beam-layer{position:absolute;top:-20%;left:0;width:14%;height:140%;background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--accent) 12%,transparent),transparent);animation:beamSweep 9s linear infinite;}
+.fx-beam .beam-layer{position:absolute;top:-20%;left:0;width:14%;height:140%;background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--accent) 12%,transparent),transparent);animation:beamSweep 18s linear infinite;}
 .bg-effect-grid{display:flex;flex-wrap:wrap;gap:8px;}
 .bg-effect-btn{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:10px 16px;border-radius:8px;cursor:pointer;transition:all .15s;border:2px solid var(--border2);background:var(--bg3);color:var(--text2);}
 .bg-effect-btn:hover{color:var(--text);border-color:var(--border2);}
@@ -1122,6 +1122,14 @@ body.sa-mode .header-sub{display:none;}
             <div style="display:flex;flex-direction:column;gap:8px;" id="customThemesList"></div>
           </div>
           <div style="margin-top:14px;border-top:1px solid var(--border);padding-top:14px;">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:4px;">Accent Color</div>
+            <p style="font-size:11.5px;color:var(--text3);line-height:1.6;margin-bottom:10px;">Pick your own accent — it stays applied no matter which theme above is selected.</p>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <input type="color" id="accentOverrideInput" value="#3b82f6" oninput="updateAccentOverride(this.value)" style="width:44px;height:36px;border:1px solid var(--border);border-radius:var(--radius);background:transparent;cursor:pointer;padding:2px;">
+              <button class="btn btn-ghost btn-sm" id="accentOverrideClearBtn" onclick="clearAccentOverride()" style="display:none;">Reset to theme default</button>
+            </div>
+          </div>
+          <div style="margin-top:14px;border-top:1px solid var(--border);padding-top:14px;">
             <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:4px;">Background Motion</div>
             <p style="font-size:11.5px;color:var(--text3);line-height:1.6;margin-bottom:12px;">A subtle animated layer behind the roster. Uses your theme's own colors.</p>
             <div class="bg-effect-grid" id="bgEffectGrid"></div>
@@ -1296,7 +1304,7 @@ body.sa-mode .header-sub{display:none;}
           <div class="sa-content">
 
             <div id="sasec-overview">
-              <div id="saStatsRow" style="display:grid;grid-template-columns:repeat(4,1fr);gap:18px;"></div></div>
+              <div id="saStatsRow" style="display:grid;grid-template-columns:repeat(4,1fr);gap:18px;"></div>
             </div>
 
             <div id="sasec-departments" style="display:none;">
@@ -2157,7 +2165,7 @@ function startRealtimeSync(){
       promotions = rd.promotions||[];
       if(rd.custom_themes&&rd.custom_themes.length) customThemes = rd.custom_themes;
       if(rd.theme && rd.theme !== activeTheme) applyTheme(rd.theme);
-      if(rd.show_insignia !== undefined) showInsignia = rd.show_insignia; if(rd.always_show_insignia !== undefined) alwaysShowInsignia = rd.always_show_insignia; if(rd.bg_effect !== undefined && rd.bg_effect !== bgEffect) applyBgEffect(rd.bg_effect); if(rd.max_strikes !== undefined && rd.max_strikes !== maxStrikes){ maxStrikes = rd.max_strikes; renderRoster(); }
+      if(rd.show_insignia !== undefined) showInsignia = rd.show_insignia; if(rd.always_show_insignia !== undefined) alwaysShowInsignia = rd.always_show_insignia; if(rd.bg_effect !== undefined && rd.bg_effect !== bgEffect) applyBgEffect(rd.bg_effect); if(rd.max_strikes !== undefined && rd.max_strikes !== maxStrikes){ maxStrikes = rd.max_strikes; renderRoster(); } if(rd.accent_override !== undefined && rd.accent_override !== accentOverride){ accentOverride = rd.accent_override||''; applyAccentOverride(); }
       if(rd.use_roster_callsign !== undefined) useRosterCallsign = rd.use_roster_callsign;
       nextMemberId = members.length>0?Math.max(...members.map(m=>m.id||0))+1:1;
       nextTraineeId = trainees.length>0?Math.max(...trainees.map(t=>t.id||0))+1:1;
@@ -2229,6 +2237,7 @@ let rankGroups = [];
 let showInsignia = false;
 let alwaysShowInsignia = false;
 let bgEffect = 'none';
+let accentOverride = '';
 let maxStrikes = 4;
 let subdivisions = [];
 let positions = [];
@@ -2363,7 +2372,7 @@ async function loadDepartment(userId){
   promotions = rd.promotions||[];
   customThemes = (rd.custom_themes&&rd.custom_themes.length?rd.custom_themes:[{name:'Custom 1',accent:'#c9a84c',bg:'#0a0c10'},{name:'Custom 2',accent:'#60a5fa',bg:'#080c14'}]);
   activeTheme = rd.theme||'midnight-blue';
-  showInsignia = rd.show_insignia||false; bgEffect = rd.bg_effect||'none'; applyBgEffect(bgEffect); maxStrikes = rd.max_strikes||4;
+  showInsignia = rd.show_insignia||false; bgEffect = rd.bg_effect||'none'; applyBgEffect(bgEffect); maxStrikes = rd.max_strikes||4; accentOverride = rd.accent_override||'';
   alwaysShowInsignia = rd.always_show_insignia||false;
   useRosterCallsign = rd.use_roster_callsign||false;
   deptLogo = rd.dept_logo||'';
@@ -2457,7 +2466,7 @@ async function saveRoster(){
     const newTimestamp = new Date().toISOString();
     const payload = {
       rank_groups: rankGroups, subdivisions: subdivisions,
-      positions: positions, trainee_format: traineeFormat, trainee_format_to: traineeFormatTo, custom_tags: customTags, promotions: promotions, custom_themes: customThemes, show_insignia: showInsignia, always_show_insignia: alwaysShowInsignia, use_roster_callsign: useRosterCallsign, dept_logo: deptLogo, bg_effect: bgEffect, max_strikes: maxStrikes,
+      positions: positions, trainee_format: traineeFormat, trainee_format_to: traineeFormatTo, custom_tags: customTags, promotions: promotions, custom_themes: customThemes, show_insignia: showInsignia, always_show_insignia: alwaysShowInsignia, use_roster_callsign: useRosterCallsign, dept_logo: deptLogo, bg_effect: bgEffect, max_strikes: maxStrikes, accent_override: accentOverride,
       theme: activeTheme, members: members, trainees: trainees
     };
 
@@ -2584,7 +2593,7 @@ async function resolveSaveConflict(choice){
   const newTimestamp = pendingConflictTimestamp || new Date().toISOString();
   const payload = {
     rank_groups: rankGroups, subdivisions: subdivisions,
-    positions: positions, trainee_format: traineeFormat, trainee_format_to: traineeFormatTo, custom_tags: customTags, promotions: promotions, custom_themes: customThemes, show_insignia: showInsignia, always_show_insignia: alwaysShowInsignia, use_roster_callsign: useRosterCallsign, dept_logo: deptLogo, bg_effect: bgEffect, max_strikes: maxStrikes,
+    positions: positions, trainee_format: traineeFormat, trainee_format_to: traineeFormatTo, custom_tags: customTags, promotions: promotions, custom_themes: customThemes, show_insignia: showInsignia, always_show_insignia: alwaysShowInsignia, use_roster_callsign: useRosterCallsign, dept_logo: deptLogo, bg_effect: bgEffect, max_strikes: maxStrikes, accent_override: accentOverride,
     theme: activeTheme, members: members, trainees: trainees
   };
 
@@ -2649,7 +2658,7 @@ async function reloadRosterFromServer(){
   promotions = rd.promotions||[];
   if(rd.custom_themes&&rd.custom_themes.length) customThemes = rd.custom_themes;
   if(rd.theme && rd.theme !== activeTheme) applyTheme(rd.theme);
-  if(rd.show_insignia !== undefined) showInsignia = rd.show_insignia; if(rd.bg_effect !== undefined) applyBgEffect(rd.bg_effect);
+  if(rd.show_insignia !== undefined) showInsignia = rd.show_insignia; if(rd.bg_effect !== undefined) applyBgEffect(rd.bg_effect); if(rd.accent_override !== undefined){ accentOverride = rd.accent_override||''; applyAccentOverride(); }
   if(rd.always_show_insignia !== undefined) alwaysShowInsignia = rd.always_show_insignia;
   if(rd.use_roster_callsign !== undefined) useRosterCallsign = rd.use_roster_callsign;
   nextMemberId = members.length>0?Math.max(...members.map(m=>m.id||0))+1:1;
@@ -2774,7 +2783,7 @@ async function onLoginSuccess(user){
   members=[]; trainees=[]; rankGroups=[]; subdivisions=[]; positions=[];
   traineeFormat=''; traineeFormatTo=''; customTags=[]; promotions=[];
   customThemes=[{name:'Custom 1',accent:'#c9a84c',bg:'#0a0c10'},{name:'Custom 2',accent:'#60a5fa',bg:'#080c14'}];
-  deptId=null; rosterDataId=null; deptName=''; activeTheme='midnight-blue'; bgEffect='none'; maxStrikes=4;
+  deptId=null; rosterDataId=null; deptName=''; activeTheme='midnight-blue'; bgEffect='none'; maxStrikes=4; accentOverride='';
   nextMemberId=1; nextTraineeId=1;
   currentUser = user;
   isSuperAdmin = isSuperAdminEmail(user.email);
@@ -2849,7 +2858,7 @@ async function doLogout(){
   }
   currentUser=null; isSuperAdmin=false; deptId=null; rosterDataId=null;
   members=[]; trainees=[]; rankGroups=[]; subdivisions=[]; positions=[];
-  traineeFormat=''; traineeFormatTo=''; deptName=''; activeTheme='midnight-blue'; bgEffect='none'; maxStrikes=4;
+  traineeFormat=''; traineeFormatTo=''; deptName=''; activeTheme='midnight-blue'; bgEffect='none'; maxStrikes=4; accentOverride='';
   customTags=[]; promotions=[]; customThemes=[{name:'Custom 1',accent:'#c9a84c',bg:'#0a0c10'},{name:'Custom 2',accent:'#60a5fa',bg:'#080c14'}];
   nextMemberId=1; nextTraineeId=1;
   secondaryRosters=[]; activeSecondaryId=null;
@@ -3087,7 +3096,7 @@ async function completeStaffLogin(profile, preloadedRoster, preloadedDept){
   customTags=rd.custom_tags||[];
   promotions=rd.promotions||[];
   traineeFormat=rd.trainee_format||'';
-  traineeFormatTo=rd.trainee_format_to||''; showInsignia=rd.show_insignia||false; alwaysShowInsignia=rd.always_show_insignia||false; bgEffect=rd.bg_effect||'none'; maxStrikes=rd.max_strikes||4;
+  traineeFormatTo=rd.trainee_format_to||''; showInsignia=rd.show_insignia||false; alwaysShowInsignia=rd.always_show_insignia||false; bgEffect=rd.bg_effect||'none'; maxStrikes=rd.max_strikes||4; accentOverride=rd.accent_override||'';
   activeTheme=rd.theme||'midnight-blue';
   members=rd.members||[];
   trainees=rd.trainees||[];
@@ -5679,6 +5688,10 @@ function renderEditor(){
   document.getElementById('deptNameInput').value=deptName;
   const themeBadge = document.getElementById('edThemeBadge');
   if(themeBadge) themeBadge.textContent = getThemeDisplayName() + ' · Active Theme';
+  const accentInput = document.getElementById('accentOverrideInput');
+  const accentClearBtn = document.getElementById('accentOverrideClearBtn');
+  if(accentInput) accentInput.value = accentOverride || getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#3b82f6';
+  if(accentClearBtn) accentClearBtn.style.display = accentOverride ? '' : 'none';
   const msInput = document.getElementById('maxStrikesInput');
   if(msInput) msInput.value = maxStrikes;
   const msPreview = document.getElementById('maxStrikesPreview');
@@ -5770,6 +5783,13 @@ function applyTheme(id){
   if(!t) return;
   activeTheme = id;
   Object.entries(t.vars).forEach(([k,v])=>document.documentElement.style.setProperty(k,v));
+  applyAccentOverride();
+}
+function applyAccentOverride(){
+  if(!accentOverride) return;
+  document.documentElement.style.setProperty('--accent', accentOverride);
+  document.documentElement.style.setProperty('--accent2', adjustColor(accentOverride, 30));
+  document.documentElement.style.setProperty('--accent3', dimColor(accentOverride, 0.4));
 }
 
 function applyCustomTheme(i){
@@ -5789,6 +5809,7 @@ function applyCustomTheme(i){
   document.documentElement.style.setProperty('--text', '#e8e4da');
   document.documentElement.style.setProperty('--text2', '#a8a098');
   document.documentElement.style.setProperty('--text3', '#686460');
+  applyAccentOverride();
 }
 
 function adjustColor(hex, amount){
@@ -5813,6 +5834,24 @@ function selectCustomTheme(i){
   showToast(`✓ ${customThemes[i].name} applied.`);
   const themeBadge = document.getElementById('edThemeBadge');
   if(themeBadge) themeBadge.textContent = getThemeDisplayName() + ' · Active Theme';
+}
+
+function updateAccentOverride(val){
+  accentOverride = val;
+  applyAccentOverride();
+  const clearBtn = document.getElementById('accentOverrideClearBtn');
+  if(clearBtn) clearBtn.style.display = '';
+  scheduleSave();
+}
+function clearAccentOverride(){
+  accentOverride = '';
+  // Re-apply the current theme fresh, since applyAccentOverride() only sets colors when
+  // an override exists — clearing it doesn't restore the theme's own accent by itself.
+  applyTheme(activeTheme);
+  const clearBtn = document.getElementById('accentOverrideClearBtn');
+  if(clearBtn) clearBtn.style.display = 'none';
+  scheduleSave();
+  showToast('✓ Accent color reset to theme default.');
 }
 
 // Uploaded images (dept logos, insignia badges) were being stored raw/uncompressed as
@@ -6942,7 +6981,7 @@ document.addEventListener('keydown',e=>{
         lastKnownUpdatedAt = rd.updated_at;
         deptId=deptRecord.id; deptName=deptRecord.name||'Department';
         rankGroups=rd.rank_groups||[]; subdivisions=rd.subdivisions||[];
-        positions=migratePositions(rd.positions); traineeFormat=rd.trainee_format||''; traineeFormatTo=rd.trainee_format_to||''; showInsignia=rd.show_insignia||false; alwaysShowInsignia=rd.always_show_insignia||false; customTags=rd.custom_tags||[]; promotions=rd.promotions||[]; customThemes=(rd.custom_themes&&rd.custom_themes.length?rd.custom_themes:[{name:'Custom 1',accent:'#c9a84c',bg:'#0a0c10'},{name:'Custom 2',accent:'#60a5fa',bg:'#080c14'}]); bgEffect=rd.bg_effect||'none'; maxStrikes=rd.max_strikes||4;
+        positions=migratePositions(rd.positions); traineeFormat=rd.trainee_format||''; traineeFormatTo=rd.trainee_format_to||''; showInsignia=rd.show_insignia||false; alwaysShowInsignia=rd.always_show_insignia||false; customTags=rd.custom_tags||[]; promotions=rd.promotions||[]; customThemes=(rd.custom_themes&&rd.custom_themes.length?rd.custom_themes:[{name:'Custom 1',accent:'#c9a84c',bg:'#0a0c10'},{name:'Custom 2',accent:'#60a5fa',bg:'#080c14'}]); bgEffect=rd.bg_effect||'none'; maxStrikes=rd.max_strikes||4; accentOverride=rd.accent_override||'';
         activeTheme=rd.theme||'midnight-blue'; members=rd.members||[]; trainees=rd.trainees||[]; deptLogo=rd.dept_logo||'';
         applyTheme(activeTheme); applyBgEffect(bgEffect);
         document.getElementById('headerName').textContent=deptName;
@@ -6970,7 +7009,7 @@ document.addEventListener('keydown',e=>{
       const {data:dept}=await sb.from('public_departments').select('*').eq('id',rd.dept_id).single();
       if(dept){deptId=dept.id;deptName=dept.name||'Department';}
       rankGroups=rd.rank_groups||[]; subdivisions=rd.subdivisions||[];
-      positions=migratePositions(rd.positions); traineeFormat=rd.trainee_format||''; traineeFormatTo=rd.trainee_format_to||''; showInsignia=rd.show_insignia||false; alwaysShowInsignia=rd.always_show_insignia||false; customTags=rd.custom_tags||[]; promotions=rd.promotions||[]; customThemes=(rd.custom_themes&&rd.custom_themes.length?rd.custom_themes:[{name:'Custom 1',accent:'#c9a84c',bg:'#0a0c10'},{name:'Custom 2',accent:'#60a5fa',bg:'#080c14'}]); bgEffect=rd.bg_effect||'none'; maxStrikes=rd.max_strikes||4;
+      positions=migratePositions(rd.positions); traineeFormat=rd.trainee_format||''; traineeFormatTo=rd.trainee_format_to||''; showInsignia=rd.show_insignia||false; alwaysShowInsignia=rd.always_show_insignia||false; customTags=rd.custom_tags||[]; promotions=rd.promotions||[]; customThemes=(rd.custom_themes&&rd.custom_themes.length?rd.custom_themes:[{name:'Custom 1',accent:'#c9a84c',bg:'#0a0c10'},{name:'Custom 2',accent:'#60a5fa',bg:'#080c14'}]); bgEffect=rd.bg_effect||'none'; maxStrikes=rd.max_strikes||4; accentOverride=rd.accent_override||'';
       activeTheme=rd.theme||'midnight-blue'; members=rd.members||[]; trainees=rd.trainees||[]; deptLogo=rd.dept_logo||'';
       applyTheme(activeTheme); applyBgEffect(bgEffect);
       document.getElementById('headerName').textContent=deptName;
