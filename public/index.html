@@ -293,7 +293,48 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .theme-swatches{display:flex;gap:3px;}
 .t-dot{width:10px;height:10px;border-radius:50%;}
 
-.sa-panel{max-width:1100px;}
+/* ═══ SUPER ADMIN — Supabase-inspired shell ═══ */
+.sa-shell{display:flex;margin:-28px -32px;min-height:calc(100vh - 187px);background:#0f0f0f;}
+.sa-sidebar{width:220px;flex-shrink:0;background:#171717;border-right:1px solid #242424;padding:18px 0;display:flex;flex-direction:column;}
+.sa-sidebar-brand{display:flex;align-items:center;gap:10px;padding:0 20px 16px;margin-bottom:8px;border-bottom:1px solid #242424;}
+.sa-sidebar-brand-mark{width:26px;height:26px;border-radius:7px;background:rgba(62,207,142,.12);border:1px solid rgba(62,207,142,.3);color:#3ecf8e;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:12px;flex-shrink:0;}
+.sa-sidebar-brand-text{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:#e8e8e8;letter-spacing:1px;}
+.sa-nav-item{display:flex;align-items:center;gap:11px;padding:9px 20px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;color:#8a8a8a;cursor:pointer;background:none;border:none;border-left:2px solid transparent;width:100%;text-align:left;transition:all .12s;}
+.sa-nav-item:hover{color:#e8e8e8;background:#1c1c1c;}
+.sa-nav-item.active{color:#3ecf8e;border-left-color:#3ecf8e;background:rgba(62,207,142,.06);}
+.sa-nav-item svg{width:16px;height:16px;flex-shrink:0;}
+.sa-nav-badge{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:9px;color:#8a8a8a;background:#242424;padding:1px 6px;border-radius:10px;}
+.sa-main{flex:1;min-width:0;display:flex;flex-direction:column;}
+.sa-topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 28px;border-bottom:1px solid #242424;background:#0f0f0f;flex-shrink:0;}
+.sa-breadcrumb{font-family:'Inter',sans-serif;font-size:15px;font-weight:600;color:#e8e8e8;display:flex;align-items:center;gap:8px;}
+.sa-breadcrumb .dim{color:#5a5a5a;font-weight:400;}
+.sa-content{flex:1;padding:24px 28px;overflow-y:auto;}
+.sa-btn{font-family:'Inter',sans-serif;font-size:12.5px;font-weight:600;padding:8px 14px;border-radius:6px;cursor:pointer;border:1px solid #2e2e2e;background:#1c1c1c;color:#e8e8e8;transition:all .12s;}
+.sa-btn:hover{border-color:#393939;background:#242424;}
+.sa-btn-primary{background:#3ecf8e;color:#0f0f0f;border-color:#3ecf8e;font-weight:700;}
+.sa-btn-primary:hover{background:#5cd9a0;}
+.sa-btn-danger{background:transparent;color:#f87171;border-color:rgba(248,113,113,.35);}
+.sa-btn-danger:hover{background:rgba(248,113,113,.1);}
+.sa-stat-card{background:#171717;border:1px solid #242424;border-radius:8px;padding:16px 18px;}
+.sa-stat-label{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:#5a5a5a;margin-bottom:8px;}
+.sa-stat-val{font-family:'Inter',sans-serif;font-size:28px;font-weight:700;color:#e8e8e8;}
+.sa-stat-val.accent{color:#3ecf8e;}
+.sa-search{background:#171717;border:1px solid #242424;color:#e8e8e8;padding:8px 12px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:12px;outline:none;transition:border-color .12s;}
+.sa-search:focus{border-color:#3ecf8e;}
+.sa-search::placeholder{color:#5a5a5a;}
+.sa-table-wrap{border:1px solid #242424;border-radius:8px;overflow:hidden;}
+.sa-table{width:100%;border-collapse:collapse;font-size:13px;}
+.sa-table thead th{text-align:left;padding:10px 14px;font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:1.5px;text-transform:uppercase;color:#5a5a5a;border-bottom:1px solid #242424;background:#141414;font-weight:500;}
+.sa-table tbody tr{border-bottom:1px solid #1c1c1c;transition:background .1s;}
+.sa-table tbody tr:last-child{border-bottom:none;}
+.sa-table tbody tr:hover{background:#171717;}
+.sa-table td{padding:12px 14px;color:#c0c0c0;vertical-align:middle;}
+.sa-pill{font-family:'JetBrains Mono',monospace;font-size:9.5px;padding:3px 9px;border-radius:20px;background:#1c1c1c;border:1px solid #2e2e2e;color:#8a8a8a;display:inline-block;}
+.sa-server-select{background:#1c1c1c;border:1px solid #2e2e2e;color:#c0c0c0;padding:4px 8px;border-radius:5px;font-family:'JetBrains Mono',monospace;font-size:10.5px;cursor:pointer;outline:none;}
+.sa-empty{text-align:center;padding:48px 20px;color:#5a5a5a;font-family:'JetBrains Mono',monospace;font-size:12px;}
+.sa-pw-reveal{font-family:'JetBrains Mono',monospace;font-size:11px;color:#8a8a8a;cursor:pointer;filter:blur(4px);transition:filter .15s;}
+.sa-icon-btn{width:28px;height:28px;border-radius:6px;background:#1c1c1c;border:1px solid #2e2e2e;color:#8a8a8a;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;transition:all .12s;}
+.sa-icon-btn:hover{border-color:#393939;color:#e8e8e8;}
 
 .share-url{background:var(--bg3);border:1px solid var(--border2);padding:10px 13px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);word-break:break-all;cursor:pointer;border-radius:var(--radius);min-height:42px;margin-bottom:14px;}
 
@@ -479,6 +520,18 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   .themes-grid{gap:6px;}
   .theme-btn{min-width:calc(50% - 3px);font-size:9px;padding:8px 10px;}
   .section-hdr{flex-direction:column;align-items:flex-start;gap:10px;}
+
+  /* ── SUPER ADMIN SHELL ── */
+  .sa-shell{flex-direction:column;margin:-10px -8px;min-height:0;}
+  .sa-sidebar{width:100%;flex-direction:row;align-items:center;overflow-x:auto;-webkit-overflow-scrolling:touch;padding:10px 8px;border-right:none;border-bottom:1px solid #242424;gap:4px;}
+  .sa-sidebar::-webkit-scrollbar{height:3px;}
+  .sa-sidebar-brand{display:none;}
+  .sa-nav-item{width:auto;flex-shrink:0;border-left:none;border-bottom:2px solid transparent;padding:8px 12px;white-space:nowrap;}
+  .sa-nav-item.active{border-left:none;border-bottom-color:#3ecf8e;}
+  .sa-topbar{padding:12px 14px;flex-wrap:wrap;gap:8px;}
+  .sa-content{padding:14px;}
+  .sa-table{font-size:11.5px;}
+  .sa-table thead th,.sa-table td{padding:8px 10px;}
 
   /* ── MISC ── */
   .action-menu{right:auto;left:0;}
@@ -1196,47 +1249,67 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
       </div>
     </div>
     <div class="tab-panel" id="tab-superadmin" style="display:none;">
-      <div class="sa-panel">
-
-        <!-- HEADER -->
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;">
-          <div>
-            <div style="font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:3px;color:var(--text);line-height:1;">Super Admin</div>
-            <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--purple);letter-spacing:2px;margin-top:4px;">⬡ RESTRICTED ACCESS — ONLY YOU CAN SEE THIS</div>
+      <div class="sa-shell">
+        <div class="sa-sidebar">
+          <div class="sa-sidebar-brand">
+            <div class="sa-sidebar-brand-mark">⬡</div>
+            <div class="sa-sidebar-brand-text">SUPER ADMIN</div>
           </div>
-          <button class="btn btn-primary btn-sm" onclick="openCreateDept()">+ New Department</button>
+          <button type="button" class="sa-nav-item active" id="sanav-overview" onclick="switchSASection('overview')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            Overview
+          </button>
+          <button type="button" class="sa-nav-item" id="sanav-departments" onclick="switchSASection('departments')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 9h1"/><path d="M14 9h1"/><path d="M9 13h1"/><path d="M14 13h1"/><path d="M9 21v-4h6v4"/></svg>
+            Departments
+            <span class="sa-nav-badge" id="saNavDeptCount"></span>
+          </button>
+          <button type="button" class="sa-nav-item" id="sanav-servers" onclick="switchSASection('servers')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="7" rx="1"/><rect x="2" y="14" width="20" height="7" rx="1"/><line x1="6" y1="6.5" x2="6.01" y2="6.5"/><line x1="6" y1="17.5" x2="6.01" y2="17.5"/></svg>
+            Servers
+          </button>
+          <button type="button" class="sa-nav-item" id="sanav-bugs" onclick="switchSASection('bugs')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="6" width="8" height="12" rx="4"/><path d="M12 2v4"/><path d="M8 10H4"/><path d="M8 14H4"/><path d="M20 10h-4"/><path d="M20 14h-4"/><path d="M9 6l-1.5-2"/><path d="M15 6l1.5-2"/></svg>
+            Bug Reports
+            <span class="sa-nav-badge" id="saNavBugCount"></span>
+          </button>
         </div>
-
-        <!-- STATS ROW -->
-        <div id="saStatsRow" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:28px;"></div>
-
-        <!-- SERVERS -->
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-          <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--text3);text-transform:uppercase;">Server Categories</div>
-          <button class="btn btn-ghost btn-sm" onclick="openCreateServer()">+ Add Server</button>
-        </div>
-        <div id="serversList" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:28px;"></div>
-        <div class="divider" style="margin-bottom:28px;"></div>
-
-        <!-- DEPARTMENTS -->
-        <div id="deptsByServer"></div>
-
-        <!-- BUG REPORTS -->
-        <div style="margin-top:40px;">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-            <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--red);text-transform:uppercase;">Bug Reports</div>
-            <button class="btn btn-ghost btn-sm" onclick="loadBugReports()">↻ Refresh</button>
+        <div class="sa-main">
+          <div class="sa-topbar">
+            <div class="sa-breadcrumb"><span class="dim">Super Admin /</span> <span id="saTopbarTitle">Overview</span></div>
+            <div id="saTopbarActions"><button class="sa-btn sa-btn-primary" onclick="openCreateDept()">+ New Department</button></div>
           </div>
-          <div class="divider" style="background:linear-gradient(90deg,var(--red2),transparent);margin-bottom:14px;"></div>
-          <div id="bugReportsList"></div>
-        </div>
+          <div class="sa-content">
 
+            <div id="sasec-overview">
+              <div id="saStatsRow" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;"></div>
+            </div>
+
+            <div id="sasec-departments" style="display:none;">
+              <div style="display:flex;gap:10px;margin-bottom:16px;">
+                <input class="sa-search" id="saDeptSearch" placeholder="Search departments…" oninput="renderSADeptTable()" style="flex:1;max-width:320px;">
+                <select class="sa-search" id="saDeptServerFilter" onchange="renderSADeptTable()" style="width:170px;cursor:pointer;"><option value="">All Servers</option></select>
+              </div>
+              <div id="deptsByServer"></div>
+            </div>
+
+            <div id="sasec-servers" style="display:none;">
+              <p style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#8a8a8a;margin-bottom:16px;line-height:1.6;">Server categories used to group departments on the Departments tab.</p>
+              <div id="serversList" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
+            </div>
+
+            <div id="sasec-bugs" style="display:none;">
+              <div id="bugReportsList"></div>
+            </div>
+
+          </div>
+        </div>
       </div>
     </div>
 
     <!-- DEPARTMENT UPDATES (super admin only) -->
     <div class="tab-panel" id="tab-updates" style="display:none;">
-      <div class="sa-panel">
+      <div class="sa-panel" style="max-width:1100px;">
 
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;">
           <div>
@@ -4651,7 +4724,7 @@ function switchTab(name, btn){
   if(btn) btn.classList.add('active');
   if(name==='editor') renderEditor();
   if(name==='editlog') loadOwnEditLog();
-  if(name==='superadmin'){ loadSuperAdminDepts(); loadBugReports(); }
+  if(name==='superadmin'){ switchSASection('overview'); loadSuperAdminDepts(); loadBugReports(); }
   if(name==='updates') loadUpdates();
   if(name==='members') renderAllMembers();
   if(name==='promotions') renderPromotions();
@@ -6217,6 +6290,9 @@ async function loadBugReports(){
   if(!wrap) return;
   wrap.innerHTML=`<p style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);padding:8px;">Loading...</p>`;
   const {data:reports}=await sb.from('bug_reports').select('*').order('created_at',{ascending:false}).limit(50);
+  const openCount=(reports||[]).filter(r=>r.status==='open').length;
+  const bugBadge=document.getElementById('saNavBugCount');
+  if(bugBadge) bugBadge.textContent = openCount || '';
   if(!reports||!reports.length){
     wrap.innerHTML=`<p style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);padding:8px;">No bug reports yet.</p>`;
     return;
@@ -6475,100 +6551,142 @@ function togglePw(id){
   }
 }
 
+let _saDeptsCache = [];
+let _saServersCache = [];
+
 async function loadSuperAdminDepts(){
   const {data:depts,error}=await sb.from('departments').select('*').order('created_at',{ascending:false});
   const {data:srvs}=await sb.from('servers').select('*').order('created_at',{ascending:true});
   servers = srvs||[];
+  _saDeptsCache = depts||[];
+  _saServersCache = servers;
 
   // Stats row
   const statsRow=document.getElementById('saStatsRow');
-  if(statsRow && depts){
-    const total=depts.length;
+  if(statsRow){
+    const total=_saDeptsCache.length;
     const serverCount=servers.length;
+    const unassigned=_saDeptsCache.filter(d=>!d.server_id).length;
     statsRow.innerHTML=[
-      {label:'Departments',val:total,color:'var(--accent)'},
-      {label:'Servers',val:serverCount,color:'var(--blue)'},
+      {label:'Departments',val:total,accent:true},
+      {label:'Servers',val:serverCount},
+      {label:'Unassigned',val:unassigned},
     ].map(s=>`
-      <div style="background:var(--bg2);border:1px solid var(--border);border-top:2px solid ${s.color};border-radius:var(--radius);padding:14px 16px;">
-        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--text3);text-transform:uppercase;margin-bottom:6px;">${s.label}</div>
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:${s.color};line-height:1;">${s.val}</div>
+      <div class="sa-stat-card">
+        <div class="sa-stat-label">${s.label}</div>
+        <div class="sa-stat-val${s.accent?' accent':''}">${s.val}</div>
       </div>`).join('');
   }
 
-  // Server pills
+  // Sidebar badge
+  const deptBadge=document.getElementById('saNavDeptCount');
+  if(deptBadge) deptBadge.textContent = _saDeptsCache.length || '';
+
+  // Server pills (Servers section)
   const serversList=document.getElementById('serversList');
   if(serversList){
     if(!servers.length){
-      serversList.innerHTML=`<span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);">No servers yet.</span>`;
+      serversList.innerHTML=`<span class="sa-empty" style="padding:16px 0;">No servers yet.</span>`;
     } else {
-      serversList.innerHTML=servers.map(s=>`
-        <div style="display:inline-flex;align-items:center;gap:8px;background:var(--bg3);border:1px solid var(--border);border-left:3px solid var(--accent);padding:6px 12px;border-radius:var(--radius);">
-          <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);font-weight:700;">${escapeHtml(s.name)}</span>
-          <span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3);">${(depts||[]).filter(d=>d.server_id===s.id).length} dept${(depts||[]).filter(d=>d.server_id===s.id).length!==1?'s':''}</span>
-          <button class="btn btn-danger" style="padding:1px 6px;font-size:9px;" onclick="deleteServer('${s.id}','${s.name}')">✕</button>
-        </div>`).join('');
+      serversList.innerHTML=servers.map(s=>{
+        const n=_saDeptsCache.filter(d=>d.server_id===s.id).length;
+        return`<div class="sa-pill" style="display:inline-flex;align-items:center;gap:8px;padding:6px 12px;">
+          <span style="color:#e8e8e8;font-weight:700;">${escapeHtml(s.name)}</span>
+          <span style="color:#5a5a5a;">${n} dept${n!==1?'s':''}</span>
+          <button class="sa-btn sa-btn-danger" style="padding:1px 7px;font-size:9px;" onclick="deleteServer('${s.id}','${s.name}')">✕</button>
+        </div>`;
+      }).join('');
     }
   }
 
-  // Server dropdown in create dept modal
+  // Server dropdown in create-dept modal
   const cdServer=document.getElementById('cdServer');
   if(cdServer){
     cdServer.innerHTML='<option value="">— No Server —</option>'+servers.map(s=>`<option value="${s.id}">${escapeHtml(s.name)}</option>`).join('');
   }
 
+  // Server filter dropdown in Departments section
+  const filterEl=document.getElementById('saDeptServerFilter');
+  if(filterEl){
+    const cur=filterEl.value;
+    filterEl.innerHTML='<option value="">All Servers</option><option value="__none__">— Unassigned —</option>'+servers.map(s=>`<option value="${s.id}">${escapeHtml(s.name)}</option>`).join('');
+    filterEl.value=cur;
+  }
+
+  renderSADeptTable();
+}
+
+function renderSADeptTable(){
   const wrap=document.getElementById('deptsByServer');
   if(!wrap) return;
-  if(error||!depts||!depts.length){
-    wrap.innerHTML=`<div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);padding:16px;text-align:center;">No departments yet. Create one above.</div>`;
+  const search=(document.getElementById('saDeptSearch')?.value||'').toLowerCase();
+  const serverFilter=document.getElementById('saDeptServerFilter')?.value||'';
+
+  let rows=_saDeptsCache.filter(d=>{
+    if(search && !d.name.toLowerCase().includes(search) && !(d.email||'').toLowerCase().includes(search)) return false;
+    if(serverFilter==='__none__' && d.server_id) return false;
+    if(serverFilter && serverFilter!=='__none__' && d.server_id!==serverFilter) return false;
+    return true;
+  });
+
+  if(!_saDeptsCache.length){
+    wrap.innerHTML=`<div class="sa-empty">No departments yet. Click "+ New Department" to create one.</div>`;
+    return;
+  }
+  if(!rows.length){
+    wrap.innerHTML=`<div class="sa-empty">No departments match your search.</div>`;
     return;
   }
 
-  // Group by server
-  const groups=[];
-  servers.forEach(s=>{
-    const serverDepts=depts.filter(d=>d.server_id===s.id);
-    if(serverDepts.length) groups.push({server:s, depts:serverDepts});
-  });
-  const unassigned=depts.filter(d=>!d.server_id);
-  if(unassigned.length) groups.push({server:null, depts:unassigned});
-
-  wrap.innerHTML=groups.map((g,gi)=>`
-    <div style="margin-bottom:32px;">
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;cursor:pointer;" onclick="toggleServerSection(${gi})">
-        <button id="serverArrow_${gi}" style="background:transparent;border:none;color:var(--accent);font-size:12px;cursor:pointer;transition:transform .2s;padding:0;flex-shrink:0;">▶</button>
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:2px;color:${g.server?'var(--accent)':'var(--text3)'};">${g.server?g.server.name:'Unassigned'}</div>
-        <span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3);background:var(--bg3);border:1px solid var(--border);padding:2px 8px;border-radius:8px;">${g.depts.length}</span>
-        <div style="height:1px;flex:1;background:linear-gradient(90deg,var(--border),transparent);"></div>
-        ${g.server?`<button class="btn btn-danger" style="padding:2px 7px;font-size:9px;" onclick="event.stopPropagation();deleteServer('${g.server.id}','${g.server.name}')">✕ Server</button>`:''}
-      </div>
-      <div id="serverSection_${gi}" style="display:none;">
-        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;">
-          ${g.depts.map(d=>`
-            <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:border-color .15s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
-              <div style="padding:12px 14px;border-bottom:1px solid var(--border);">
-                <div style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:var(--text);">${escapeHtml(d.name)}</div>
-                <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);margin-top:2px;">${d.email||'—'}</div>
-              </div>
-              <div style="padding:10px 14px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-                <span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3);cursor:pointer;filter:blur(4px);transition:filter .2s;" id="pw_${d.id}" data-hidden="1" onclick="togglePw('${d.id}')" title="Click to reveal">${d.password_hint||'—'}</span>
-                <span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3);">· ${new Date(d.created_at).toLocaleDateString()}</span>
-                <div style="margin-left:auto;display:flex;gap:5px;">
-                  <button title="Version History" onclick="openDeptHistory('${d.id}','${d.name}')" style="width:28px;height:28px;border-radius:50%;background:rgba(96,165,250,.1);border:1px solid rgba(96,165,250,.3);color:var(--blue);cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;" onmouseover="this.style.background='rgba(96,165,250,.25)'" onmouseout="this.style.background='rgba(96,165,250,.1)'">⟳</button>
-                  <button title="Edit Log" onclick="openDeptEditLog('${d.id}','${d.name}')" style="width:28px;height:28px;border-radius:50%;background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.3);color:var(--purple);cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;" onmouseover="this.style.background='rgba(167,139,250,.25)'" onmouseout="this.style.background='rgba(167,139,250,.1)'">📋</button>
-                  <button class="btn btn-outline btn-sm" onclick="resetDeptPassword('${d.user_id}','${d.name}')">Reset PW</button>
-                  <button class="btn btn-danger" style="padding:4px 8px;" onclick="deleteDept('${d.id}','${d.name}')">✕</button>
-                </div>
-              </div>
-              <div style="padding:6px 14px 10px;">
-                <select class="form-select" style="font-size:10px;padding:4px 8px;width:100%;" onchange="assignDeptServer('${d.id}',this.value)">
-                  <option value="">— No Server —</option>
-                  ${servers.map(s=>`<option value="${s.id}" ${d.server_id===s.id?'selected':''}>${escapeHtml(s.name)}</option>`).join('')}
-                </select>
-              </div>
-            </div>`).join('')}
+  const rowsHtml=rows.map(d=>{
+    const serverOpts='<option value="">— No Server —</option>'+_saServersCache.map(s=>`<option value="${s.id}" ${d.server_id===s.id?'selected':''}>${escapeHtml(s.name)}</option>`).join('');
+    const menuId=`sa_dept_menu_${d.id}`;
+    return `<tr>
+      <td>
+        <div style="color:#e8e8e8;font-weight:600;">${escapeHtml(d.name)}</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#5a5a5a;margin-top:2px;">${escapeHtml(d.email||'—')}</div>
+      </td>
+      <td><select class="sa-server-select" onchange="assignDeptServer('${d.id}',this.value)">${serverOpts}</select></td>
+      <td><span class="sa-pw-reveal" id="pw_${d.id}" data-hidden="1" onclick="togglePw('${d.id}')" title="Click to reveal">${escapeHtml(d.password_hint||'—')}</span></td>
+      <td style="font-family:'JetBrains Mono',monospace;font-size:10.5px;color:#5a5a5a;">${new Date(d.created_at).toLocaleDateString()}</td>
+      <td style="text-align:right;">
+        <div class="action-menu-wrap">
+          <button class="sa-icon-btn" onclick="toggleMenu('${menuId}',event)" title="Actions">⋯</button>
+          <div class="action-menu" id="${menuId}" style="display:none;">
+            <button onclick="openDeptHistory('${d.id}','${escapeHtml(d.name)}');closeMenu()">⟳ Version History</button>
+            <button onclick="openDeptEditLog('${d.id}','${escapeHtml(d.name)}');closeMenu()">📋 Edit Log</button>
+            <button onclick="resetDeptPassword('${d.user_id}','${escapeHtml(d.name)}');closeMenu()">🔑 Reset Password</button>
+            <button class="danger" onclick="deleteDept('${d.id}','${escapeHtml(d.name)}');closeMenu()">✕ Delete Department</button>
+          </div>
         </div>
-      </div>
-    </div>`).join('');
+      </td>
+    </tr>`;
+  }).join('');
+
+  wrap.innerHTML=`<div class="sa-table-wrap"><table class="sa-table">
+    <thead><tr><th>Department</th><th>Server</th><th>Password</th><th>Created</th><th style="text-align:right;">Actions</th></tr></thead>
+    <tbody>${rowsHtml}</tbody>
+  </table></div>`;
+}
+
+const SA_TOPBAR = {
+  overview: {title:'Overview', actions:'<button class="sa-btn sa-btn-primary" onclick="openCreateDept()">+ New Department</button>'},
+  departments: {title:'Departments', actions:'<button class="sa-btn sa-btn-primary" onclick="openCreateDept()">+ New Department</button>'},
+  servers: {title:'Servers', actions:'<button class="sa-btn sa-btn-primary" onclick="openCreateServer()">+ Add Server</button>'},
+  bugs: {title:'Bug Reports', actions:'<button class="sa-btn" onclick="loadBugReports()">↻ Refresh</button>'}
+};
+function switchSASection(key){
+  ['overview','departments','servers','bugs'].forEach(k=>{
+    const sec=document.getElementById('sasec-'+k);
+    const nav=document.getElementById('sanav-'+k);
+    if(sec) sec.style.display=(k===key)?'':'none';
+    if(nav) nav.classList.toggle('active', k===key);
+  });
+  const t=SA_TOPBAR[key];
+  if(t){
+    document.getElementById('saTopbarTitle').textContent=t.title;
+    document.getElementById('saTopbarActions').innerHTML=t.actions;
+  }
 }
 
 async function resetDeptPassword(userId, name){
