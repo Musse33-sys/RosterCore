@@ -3135,8 +3135,6 @@ async function completeStaffLogin(profile, preloadedRoster, preloadedDept){
   if(hasPerm('editor')) document.getElementById('editorTab').classList.remove('hidden');
   if(!hasPerm('secondaryRosters')) document.getElementById('secondaryRosterTabs').classList.add('hidden');
   document.getElementById('newsBtn').classList.remove('hidden');
-  document.getElementById('editLogTab').classList.remove('hidden');
-  document.getElementById('historyBtn').classList.remove('hidden');
 
   renderAll();
   await loadSecondaryRosters();
