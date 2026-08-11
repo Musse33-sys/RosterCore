@@ -3125,6 +3125,7 @@ async function completeStaffLogin(profile, preloadedRoster, preloadedDept){
   // Defense-in-depth: staff must never see super-admin-only controls either.
   document.getElementById('saTab').classList.add('hidden');
   document.getElementById('updatesTab').classList.add('hidden');
+  document.getElementById('toolsRow').classList.remove('hidden');
   if(hasPerm('mainRoster')) document.getElementById('addMemberBtn').classList.remove('hidden');
   if(hasPerm('traineeRoster')) document.getElementById('addTraineeBtn').classList.remove('hidden');
   if(hasPerm('mainRoster')) document.getElementById('rosterTab').classList.remove('hidden');
@@ -3134,6 +3135,8 @@ async function completeStaffLogin(profile, preloadedRoster, preloadedDept){
   if(hasPerm('editor')) document.getElementById('editorTab').classList.remove('hidden');
   if(!hasPerm('secondaryRosters')) document.getElementById('secondaryRosterTabs').classList.add('hidden');
   document.getElementById('newsBtn').classList.remove('hidden');
+  document.getElementById('editLogTab').classList.remove('hidden');
+  document.getElementById('historyBtn').classList.remove('hidden');
 
   renderAll();
   await loadSecondaryRosters();
